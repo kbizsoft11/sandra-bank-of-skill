@@ -1,0 +1,109 @@
+<div
+  class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+
+  <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+
+    <div>
+      <h2 class="text-xl font-semibold text-slate-900 dark:text-white">
+        Skills
+      </h2>
+
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        Manage all skills
+      </p>
+
+    </div>
+
+    <a
+      routerLink="/admin/skills/create"
+      class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
+
+      Add Skill
+
+    </a>
+
+  </div>
+
+  <div class="overflow-x-auto">
+
+    <table class="min-w-full">
+
+      <thead>
+
+        <tr class="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
+
+          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Skill
+          </th>
+
+          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Category
+          </th>
+
+          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Employee
+          </th>
+
+          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Level
+          </th>
+
+          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Score
+          </th>
+
+          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Actions
+          </th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        @for(skill of skills(); track skill._id){
+
+        <tr class="border-b border-slate-100 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/30">
+
+          <td class="px-6 py-4">
+            {{ skill.skill_name }}
+          </td>
+
+          <td class="px-6 py-4">
+            {{ skill.cat_id.cat_name }}
+          </td>
+
+          <td class="px-6 py-4">
+            {{ skill.user_id.firstName }} {{ skill.user_id.lastName }}
+          </td>
+
+          <td class="px-6 py-4">
+            {{ skill.skill_level }}
+          </td>
+
+          <td class="px-6 py-4">
+            {{ skill.skill_score }}
+          </td>
+
+          <td class="px-6 py-4">
+
+            <app-table-actions
+              [actions]="['edit','delete']"
+              (edit)="editSkill(skill)"
+              (delete)="deleteSkill(skill)">
+            </app-table-actions>
+
+          </td>
+
+        </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
