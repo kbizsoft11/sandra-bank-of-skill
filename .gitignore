@@ -1,9 +1,12 @@
-# Node
+#apache
+.htaccess
+
+# Dependencies
 node_modules/
 
-# Build
-dist/
+# Angular
 .angular/
+dist/
 coverage/
 
 # Environment
@@ -14,6 +17,8 @@ coverage/
 logs/
 *.log
 npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # IDE
 .vscode/
@@ -22,3 +27,16 @@ npm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# PM2
+.pm2/
+
+# Cache
+.cache/
+
+# Angular generated
+client/.angular/
+client/dist/
+
+# Express generated
+server/dist/
