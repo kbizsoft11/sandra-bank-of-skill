@@ -1,0 +1,15 @@
+<div
+  class="flex h-screen overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white"
+>
+  <app-dashboard-sidebar />
+
+  <div class="flex flex-1 flex-col overflow-hidden">
+    <app-dashboard-header />
+
+    <main
+      class="flex-1 overflow-y-auto bg-slate-50 p-6 dark:bg-slate-950"
+    >
+      <router-outlet />
+    </main>
+  </div>
+</div>
