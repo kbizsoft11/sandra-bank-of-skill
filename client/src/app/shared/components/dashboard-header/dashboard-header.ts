@@ -12,6 +12,7 @@ export class DashboardHeader {
   private readonly themeService = inject(ThemeService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  readonly auth = inject(AuthService);
 
   toggleTheme(): void {
     this.themeService.toggleTheme();

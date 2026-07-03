@@ -24,18 +24,6 @@ export class DashboardSidebar {
     {
       label: 'Skills',
       route: '/admin/skills',
-    },   
-    {
-      label: 'Assessments',
-      route: '/admin/assessments',
-    },
-    {
-      label: 'Qualifications',
-      route: '/admin/qualifications',
-    },
-    {
-      label: 'Reports',
-      route: '/admin/reports',
-    },
+    },       
   ];
 }

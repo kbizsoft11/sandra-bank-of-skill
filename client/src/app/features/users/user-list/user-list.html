@@ -14,7 +14,7 @@
     </div>
 
     <a routerLink="/admin/users/create"
-      class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
+      class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 cursor-pointer">
       Add User
     </a>
 
@@ -86,7 +86,7 @@
           </td>
 
           <td class="px-6 py-4">
-            <app-table-actions [actions]="['view','edit','delete']" (view)="viewUser(user)" (edit)="editUser(user)"
+            <app-table-actions [actions]="['edit','delete']" (edit)="editUser(user)"
               (delete)="deleteUser(user)">
             </app-table-actions>
           </td>

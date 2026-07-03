@@ -31,6 +31,7 @@ export const authService = {
     const token = generateToken({
       userId: user._id,
       email: user.email,
+      role: user.role,
     });
 
     const userResponse = {

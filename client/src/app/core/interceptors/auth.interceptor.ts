@@ -4,25 +4,44 @@ import {
 
 import { inject } from '@angular/core';
 
-import { AuthService } from '../services/auth.service';
+import { StorageService } from '../services/storage.service';
 
 export const authInterceptor: HttpInterceptorFn = (
     req,
     next
 ) => {
-    const authService = inject(AuthService);
 
-    const token = authService.token();    
+    if (
+        req.url.includes('/auth/login') ||
+        req.url.includes('/auth/register')
+    ) {
 
-    if (!token) {
         return next(req);
+
     }
 
-    const authReq = req.clone({
-        setHeaders: {
-            Authorization: `Bearer ${token}`
-        }
-    });
+    const storage =
+        inject(StorageService);
 
-    return next(authReq);
+    const token =
+        storage.getItem('accessToken');
+
+    if (!token) {
+
+        return next(req);
+
+    }
+
+    return next(
+        req.clone({
+
+            setHeaders: {
+
+                Authorization: `Bearer ${token}`
+
+            }
+
+        })
+    );
+
 };

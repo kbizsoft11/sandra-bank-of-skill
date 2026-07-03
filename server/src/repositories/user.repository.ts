@@ -16,11 +16,38 @@ export const userRepository = {
   },
 
   findAll: async () => {
-    return UserModel.find();
+
+    return UserModel.find()
+      .select("-password");
+
   },
 
   findById: async (id: string) => {
-    return UserModel.findById(id);
+
+    return UserModel.findById(id)
+      .select("-password");
+
+  },
+
+  update: async (
+    id: string,
+    payload: Partial<IUser>
+  ) => {
+
+    return UserModel.findByIdAndUpdate(
+      id,
+      payload,
+      {
+        new: true
+      }
+    ).select("-password");
+
+  },
+
+  delete: async (id: string) => {
+
+    return UserModel.findByIdAndDelete(id);
+
   },
 
   findByEmail: async (email: string) => {

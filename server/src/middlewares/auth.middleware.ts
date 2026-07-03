@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
 import { env } from '../config/env';
+import { JwtUserPayload } from '../types/jwt-payload.types';
 
 export const authenticate = (
   req: Request,
@@ -28,7 +29,7 @@ export const authenticate = (
     const decoded = jwt.verify(
       token,
       env.JWT_SECRET
-    );
+    ) as JwtUserPayload;
 
     req.user = decoded;
 

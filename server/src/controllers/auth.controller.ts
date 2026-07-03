@@ -6,6 +6,7 @@ import { sendResponse } from '../utils/api-response';
 import { authService } from '../services/auth.service';
 
 import { LoginDto } from '../dto/login.dto';
+import { userRepository } from '../repositories/user.repository';
 
 export const register = asyncHandler(
   async (req: Request, res: Response) => {
@@ -24,12 +25,21 @@ export const register = asyncHandler(
 export const getMe = asyncHandler(
   async (req: Request, res: Response) => {
 
+    const user = await userRepository.findById(
+      req.user.userId
+    );
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
     return sendResponse(
       res,
       200,
-      'User fetched successfully',
-      req.user
+      'Authenticated user fetched successfully',
+      user
     );
+
   }
 );
 

@@ -1,13 +1,15 @@
-// user.controller.ts
+import { Request, Response } from 'express';
+
+import { userService } from '../services/user.service';
 
 import { sendResponse } from '../utils/api-response';
 import { asyncHandler } from '../utils/async-handler';
-import { userService } from '../services/user.service';
-import { Request, Response } from 'express';
 
 export const getAllUsers = asyncHandler(
-  async (req: Request, res:Response) => {
-    const users = await userService.getAllUsers();
+  async (req: Request, res: Response) => {
+
+    const users =
+      await userService.getAllUsers();
 
     return sendResponse(
       res,
@@ -15,6 +17,25 @@ export const getAllUsers = asyncHandler(
       'Users fetched successfully',
       users
     );
+
+  }
+);
+
+export const getUserById = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const user =
+      await userService.getUserById(
+        req.params.id as string
+      );
+
+    return sendResponse(
+      res,
+      200,
+      'User fetched successfully',
+      user
+    );
+
   }
 );
 
@@ -32,5 +53,41 @@ export const createUser = asyncHandler(
       'User created successfully',
       user
     );
+
+  }
+);
+
+export const updateUser = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const user =
+      await userService.updateUser(
+        req.params.id as string,
+        req.body
+      );
+
+    return sendResponse(
+      res,
+      200,
+      'User updated successfully',
+      user
+    );
+
+  }
+);
+
+export const deleteUser = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    await userService.deleteUser(
+      req.params.id as string
+    );
+
+    return sendResponse(
+      res,
+      200,
+      'User deleted successfully'
+    );
+
   }
 );
