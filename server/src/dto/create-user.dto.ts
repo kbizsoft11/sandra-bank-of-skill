@@ -1,3 +1,5 @@
+import { UserRole } from "../types/common.types";
+
 export interface CreateUserDto {
 
   firstName: string;
@@ -8,7 +10,7 @@ export interface CreateUserDto {
 
   password: string;
 
-  role?: 'admin' | 'company' | 'employee';
+  role: UserRole;
 
   tenantId?: string;
 

@@ -1,0 +1,4030 @@
+@use 'swiper/css';
+@use 'swiper/css/navigation';
+
+/*==================================
+Google Font
+===================================*/
+
+body {
+    font-family: 'Roboto', sans-serif;
+    color: #111827;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+/*==================================
+Header
+===================================*/
+
+.bos-header {
+    background: #fff;
+    border-bottom: 2px solid #ececec;
+}
+
+.bos-header .navbar {
+    padding: 18px 0;
+}
+
+.bos-header .navbar-brand img {
+    width: 145px;
+}
+
+.bos-header .navbar-nav {
+    gap: 8px;
+}
+
+.bos-header .nav-link {
+    font-size: 16px;
+    font-weight: 500;
+    color: #000000;
+    padding: 10px 14px !important;
+    transition: .3s;
+}
+
+.bos-header .nav-link:hover,
+.bos-header .nav-link.active {
+    color: #D3920E;
+}
+
+.bos-header .dropdown-toggle::after {
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.bos-header .dropdown-menu {
+    border: 0;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 15px 40px rgba(0,0,0,.08);
+}
+
+.bos-header .dropdown-item {
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+}
+
+.bos-header .dropdown-item:hover {
+    background: #D3920E;
+    color: #fff;
+}
+
+.bos-header .bos-login {
+    color: #111827;
+    font-size: 14px;
+    font-weight: 600;
+    transition: .3s;
+}
+
+.bos-header .bos-login:hover {
+    color: #D3920E;
+}
+
+.bos-header .bos-demo-btn {
+    background: #D3920E;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 11px 24px;
+    border-radius: 8px;
+    transition: .3s;
+}
+
+.bos-header .bos-demo-btn:hover {
+    background: #b7810a;
+    color: #fff;
+}
+
+.bos-header .navbar-toggler {
+    padding: 0;
+}
+
+.bos-header .navbar-toggler:focus {
+    box-shadow: none;
+}
+
+/*==================================
+Responsive
+===================================*/
+
+@media (max-width:991.98px) {
+
+    .bos-header .navbar-collapse {
+        padding-top: 20px;
+    }
+
+    .bos-header .navbar-nav {
+        gap: 0;
+    }
+
+    .bos-header .nav-link {
+        padding: 12px 0 !important;
+    }
+
+    .bos-header .bos-login {
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+
+    .bos-header .bos-demo-btn {
+        display: inline-flex;
+        width: fit-content;
+    }
+
+}
+
+@media (max-width:575.98px) {
+
+    .bos-header .navbar-brand img {
+        width: 125px;
+    }
+
+    .bos-header .bos-demo-btn {
+        padding: 10px 20px;
+        font-size: 13px;
+    }
+
+}
+
+/*=================================
+Hero Section
+==================================*/
+
+.bos-hero{
+
+    padding:90px 0;
+
+    background:linear-gradient(
+        90deg,
+        #ffffff 0%,
+        rgba(74,192,238,.54) 62%,
+        #ffffff 100%
+    );
+
+    overflow:hidden;
+
+}
+
+.bos-hero .bos-hero-badge{
+
+    display:inline-flex;
+    align-items:center;
+
+    padding:10px 20px;
+
+    background:#8fd4f6;
+
+    border-radius:50px;
+
+    font-size:13px;
+
+    font-weight:500;
+
+    color:#163047;
+
+}
+
+.bos-hero .bos-hero-title{
+
+    font-size:54px;
+
+    line-height:1.18;
+
+    font-weight:700;
+
+    color:#000000;
+
+    margin-bottom:24px;
+
+}
+
+.bos-hero .bos-hero-title span{
+
+    color:#58AF43;
+
+}
+
+.bos-hero .bos-hero-text{
+
+    font-size:18px;
+
+    line-height:1.8;
+
+    color:#000000;
+
+    max-width:460px;
+
+}
+
+.bos-hero .bos-btn-primary{
+
+    background:#D3920E;
+
+    color:#fff;
+
+    border-radius:50px;
+
+    padding:14px 26px;
+
+    font-size:15px;
+
+    font-weight:500;
+
+}
+
+.bos-hero .bos-btn-primary:hover{
+
+    background:#b67b09;
+
+    color:#fff;
+
+}
+
+.bos-hero .bos-btn-outline{
+
+    border:1.5px solid #D3920E;
+
+    color:#D3920E;
+
+    border-radius:50px;
+
+    padding:14px 28px;
+
+    font-size:15px;
+
+    font-weight:500;
+
+}
+
+.bos-hero .bos-btn-outline:hover{
+
+    background:#D3920E;
+
+    color:#fff;
+
+}
+
+.bos-hero .bos-hero-image{
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    box-shadow:0 30px 80px rgba(0,0,0,.12);
+
+}
+
+.bos-hero .bos-hero-image img{
+
+    width:100%;
+
+}
+
+/*==========================
+Responsive
+===========================*/
+
+@media(max-width:1199px){
+
+    .bos-hero .bos-hero-title{
+
+        font-size:48px;
+
+    }
+
+}
+
+@media(max-width:991.98px){
+
+    .bos-hero{
+
+        padding:70px 0;
+
+        text-align:center;
+
+    }
+
+    .bos-hero .bos-hero-text{
+
+        margin:auto;
+
+    }
+
+    .bos-hero .d-flex{
+
+        justify-content:center;
+
+    }
+
+    .bos-hero .bos-hero-image{
+
+        margin-top:20px;
+
+    }
+
+}
+
+@media(max-width:767px){
+
+    .bos-hero .bos-hero-title{
+
+        font-size:38px;
+
+    }
+
+}
+
+@media(max-width:575px){
+
+    .bos-hero{
+
+        padding:55px 0;
+
+    }
+
+    .bos-hero .bos-hero-title{
+
+        font-size:30px;
+
+    }
+
+    .bos-hero .bos-btn-primary,
+
+    .bos-hero .bos-btn-outline{
+
+        width:100%;
+
+        justify-content:center;
+
+    }
+
+}
+
+/*====================================
+Hidden Talent Section
+=====================================*/
+
+.bos-hidden-talent{
+
+    padding:100px 0;
+
+    background:#F5F7FD;
+
+}
+
+.bos-hidden-talent .bos-section-title{
+
+    font-size:54px;
+
+    font-weight:700;
+
+    line-height:1.25;
+
+    color:#111827;
+
+    margin-bottom:0;
+
+}
+
+.bos-hidden-talent .bos-section-title span{
+
+    color:#58AF43;
+
+}
+
+.bos-hidden-talent .bos-talent-image{
+
+    border-radius:16px;
+
+    overflow:hidden;
+
+}
+
+.bos-hidden-talent .bos-talent-image img{
+
+    width:100%;
+
+    display:block;
+
+}
+
+.bos-hidden-talent .bos-content{
+
+    padding-left:35px;
+
+}
+
+.bos-hidden-talent .bos-content p{
+
+    font-size:18px;
+
+    line-height:1.9;
+
+    color:#111827;
+
+    margin-bottom:28px;
+
+}
+
+/*=========================
+Responsive
+=========================*/
+
+@media (max-width:1199px){
+
+    .bos-hidden-talent .bos-section-title{
+
+        font-size:46px;
+
+    }
+
+}
+
+@media (max-width:991.98px){
+
+    .bos-hidden-talent{
+
+        padding:80px 0;
+
+    }
+
+    .bos-hidden-talent .bos-section-title{
+
+        font-size:38px;
+
+    }
+
+    .bos-hidden-talent .bos-content{
+
+        padding-left:0;
+
+        text-align:center;
+
+    }
+
+}
+
+@media (max-width:767.98px){
+
+    .bos-hidden-talent .bos-section-title{
+
+        font-size:32px;
+
+    }
+
+    .bos-hidden-talent .bos-content p{
+
+        font-size:16px;
+
+        line-height:1.8;
+
+    }
+
+}
+
+@media (max-width:575.98px){
+
+    .bos-hidden-talent{
+
+        padding:60px 0;
+
+    }
+
+    .bos-hidden-talent .bos-section-title{
+
+        font-size:28px;
+
+        line-height:1.35;
+
+    }
+
+}
+
+/*====================================
+How It Works
+====================================*/
+
+.bos-work-section{
+
+    padding:100px 0;
+    background:#fff;
+
+}
+
+/* Heading */
+
+.bos-work-section .bos-section-title{
+
+    font-size:54px;
+    font-weight:700;
+    color:#111;
+    margin-bottom:12px;
+
+}
+
+.bos-work-section .bos-section-title span{
+
+    color:#58AF43;
+
+}
+
+.bos-work-section .bos-section-subtitle{
+
+    max-width:720px;
+    margin:auto;
+    font-size:18px;
+    line-height:1.8;
+    color:#444;
+
+}
+
+/* Step Numbers */
+
+.bos-work-section .bos-step-item{
+    position: relative;
+    text-align: center;
+}
+
+.bos-work-section .bos-step-number{
+    display:block;
+    font-size:42px;
+    font-weight:700;
+    margin-bottom:25px;
+}
+
+.bos-work-section .bos-step-arrow{
+    position: absolute;
+    top: 20px;
+    left: 80%;
+    width: 50%;
+    display: flex;
+    align-items: center;
+}
+
+.bos-work-section .bos-line{
+    flex:1;
+    border-top:2px dashed #D3920E;
+}
+
+.bos-work-section .bos-step-arrow i{
+    color:#D3920E;
+    font-size:18px;
+    margin-left:-5px;
+}
+/* Cards */
+
+.bos-work-section .bos-work-card{
+
+    height:100%;
+    background:#fff;
+
+    border:1px solid #CDD6E2;
+
+    border-radius:18px;
+
+    padding:38px 24px;
+
+    text-align:center;
+
+    transition:.35s;
+
+}
+
+.bos-work-section .bos-work-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:0 18px 40px rgba(0,0,0,.08);
+
+}
+
+.bos-work-section .bos-icon{
+
+    width:72px;
+    height:72px;
+
+    margin:auto auto 28px;
+
+    background:#FCF4E8;
+
+    border-radius:50%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+}
+
+.bos-work-section .bos-icon i{
+
+    font-size:30px;
+    color:#D3920E;
+
+}
+
+.bos-work-section .bos-work-card h4{
+
+    font-size:28px;
+    font-weight:700;
+    color:#111;
+
+    margin-bottom:18px;
+
+}
+
+.bos-work-section .bos-work-card p{
+
+    font-size:15px;
+    line-height:1.8;
+    color:#555;
+    margin-bottom:0;
+
+}
+
+/* Responsive */
+
+@media(max-width:1199px){
+
+    .bos-work-section .bos-section-title{
+
+        font-size:46px;
+
+    }
+
+}
+
+@media(max-width:991px){
+
+    .bos-work-section{
+
+        padding:80px 0;
+
+    }
+
+    .bos-work-section .bos-section-title{
+
+        font-size:38px;
+
+    }
+
+    .bos-work-section .bos-section-subtitle{
+
+        font-size:16px;
+
+    }
+
+}
+
+@media(max-width:767px){
+
+    .bos-work-section{
+
+        padding:70px 0;
+
+    }
+
+    .bos-work-section .bos-section-title{
+
+        font-size:32px;
+
+    }
+
+    .bos-work-section .bos-work-card{
+
+        padding:32px 20px;
+
+    }
+
+    .bos-work-section .bos-work-card h4{
+
+        font-size:22px;
+
+    }
+
+}
+
+@media(max-width:575px){
+
+    .bos-work-section{
+
+        padding:60px 0;
+
+    }
+
+    .bos-work-section .bos-section-title{
+
+        font-size:28px;
+
+    }
+
+}
+
+/*==================================
+Ecosystem Section
+==================================*/
+
+.bos-ecosystem{
+
+    padding:100px 0;
+
+    background:#F5F7FD;
+
+    overflow:hidden;
+
+}
+
+.bos-ecosystem .bos-ecosystem-tag{
+
+    display:inline-block;
+
+    font-size:15px;
+
+    font-weight:700;
+
+    color:#111827;
+
+    letter-spacing:1px;
+
+    text-transform:uppercase;
+
+    margin-bottom:18px;
+
+}
+
+.bos-ecosystem .bos-section-title{
+
+    font-size:54px;
+
+    font-weight:700;
+
+    line-height:1.2;
+
+    color:#111827;
+
+    margin-bottom:20px;
+
+}
+
+.bos-ecosystem .bos-section-title span{
+
+    color:#58AF43;
+
+}
+
+.bos-ecosystem .bos-section-desc{
+
+    max-width:700px;
+
+    margin:0 auto;
+
+    font-size:18px;
+
+    line-height:1.8;
+
+    color:#555;
+
+}
+
+.bos-ecosystem .bos-ecosystem-image{
+
+    text-align:center;
+
+}
+
+.bos-ecosystem .bos-ecosystem-image img{
+
+    width:100%;
+
+    
+
+    display:inline-block;
+
+}
+
+/*==========================
+Responsive
+==========================*/
+
+@media (max-width:1199px){
+
+    .bos-ecosystem .bos-section-title{
+
+        font-size:46px;
+
+    }
+
+}
+
+@media (max-width:991.98px){
+
+    .bos-ecosystem{
+
+        padding:80px 0;
+
+    }
+
+    .bos-ecosystem .bos-section-title{
+
+        font-size:40px;
+
+    }
+
+    .bos-ecosystem .bos-section-desc{
+
+        font-size:16px;
+
+    }
+
+}
+
+@media (max-width:767.98px){
+
+    .bos-ecosystem{
+
+        padding:70px 0;
+
+    }
+
+    .bos-ecosystem .bos-section-title{
+
+        font-size:32px;
+
+    }
+
+    .bos-ecosystem .bos-section-desc{
+
+        line-height:1.7;
+
+    }
+
+}
+
+@media (max-width:575.98px){
+
+    .bos-ecosystem{
+
+        padding:60px 0;
+
+    }
+
+    .bos-ecosystem .bos-section-title{
+
+        font-size:28px;
+
+    }
+
+    .bos-ecosystem .bos-ecosystem-tag{
+
+        font-size:13px;
+
+    }
+
+}
+
+/*==================================
+Talent Search Section
+==================================*/
+
+.bos-search-engine{
+
+    padding:100px 0;
+
+    background:#ffffff;
+
+    overflow:hidden;
+
+}
+
+.bos-search-engine .bos-search-tag{
+
+    display:inline-block;
+
+    font-size:15px;
+
+    font-weight:700;
+
+    text-transform:uppercase;
+
+    color:#111827;
+
+    letter-spacing:1px;
+
+    margin-bottom:18px;
+
+}
+
+.bos-search-engine .bos-section-title{
+
+    font-size:54px;
+
+    font-weight:700;
+
+    line-height:1.2;
+
+    color:#111827;
+
+    margin-bottom:18px;
+
+}
+
+.bos-search-engine .bos-section-title span{
+
+    color:#58AF43;
+
+}
+
+.bos-search-engine .bos-section-desc{
+
+    max-width:720px;
+
+    margin:0 auto;
+
+    font-size:18px;
+
+    line-height:1.8;
+
+    color:#555;
+
+}
+
+.bos-search-engine .bos-search-image{
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    box-shadow:0 18px 45px rgba(0,0,0,.12);
+
+}
+
+.bos-search-engine .bos-search-image img{
+
+    width:100%;
+
+    display:block;
+
+}
+
+/*==================================
+Responsive
+==================================*/
+
+@media(max-width:1199px){
+
+    .bos-search-engine .bos-section-title{
+
+        font-size:46px;
+
+    }
+
+}
+
+@media(max-width:991.98px){
+
+    .bos-search-engine{
+
+        padding:80px 0;
+
+    }
+
+    .bos-search-engine .bos-section-title{
+
+        font-size:40px;
+
+    }
+
+    .bos-search-engine .bos-section-desc{
+
+        font-size:16px;
+
+    }
+
+}
+
+@media(max-width:767.98px){
+
+    .bos-search-engine{
+
+        padding:70px 0;
+
+    }
+
+    .bos-search-engine .bos-section-title{
+
+        font-size:32px;
+
+    }
+
+}
+
+@media(max-width:575.98px){
+
+    .bos-search-engine{
+
+        padding:60px 0;
+
+    }
+
+    .bos-search-engine .bos-section-title{
+
+        font-size:28px;
+
+    }
+
+    .bos-search-engine .bos-search-tag{
+
+        font-size:13px;
+
+    }
+
+}
+
+/*==================================
+Skill Banking
+==================================*/
+
+.bos-skill-banking{
+
+    padding:100px 0;
+
+    background:#F5F7FD;
+
+}
+
+.bos-skill-banking .bos-section-tag{
+
+    font-size:15px;
+
+    font-weight:700;
+
+    color:#111;
+
+    text-transform:uppercase;
+
+}
+
+.bos-skill-banking .bos-section-title{
+
+    font-size:54px;
+
+    font-weight:700;
+
+    margin:15px 0;
+
+}
+
+.bos-skill-banking .bos-section-title span{
+
+    color:#58AF43;
+
+}
+
+.bos-skill-banking .bos-section-desc{
+
+    font-size:18px;
+
+    color:#555;
+
+    max-width:650px;
+
+    margin:auto;
+
+    line-height:1.8;
+
+}
+
+/* Card */
+
+.bos-skill-banking .bos-reward-card{
+
+    background:#fff;
+
+    padding:35px;
+
+    border-radius:20px;
+
+    box-shadow:0 12px 35px rgba(0,0,0,.08);
+
+}
+
+.bos-skill-banking .bos-icon{
+
+    width:56px;
+
+    height:56px;
+
+    border-radius:50%;
+
+    background:#9EE2A7;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+.bos-skill-banking .bos-icon i{
+
+    font-size:28px;
+
+}
+
+.bos-skill-banking .bos-reward-card h4{
+
+    font-size:22px;
+
+    font-weight:700;
+
+    margin-bottom:8px;
+
+}
+
+.bos-skill-banking .bos-reward-card p{
+
+    color:#666;
+
+    margin-bottom:30px;
+
+}
+
+/* List */
+
+.bos-skill-banking .bos-feature-item{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    background:#fff;
+
+    border-radius:14px;
+
+    padding:16px 18px;
+
+    margin-bottom:15px;
+
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+
+    transition:.3s;
+
+}
+
+.bos-skill-banking .bos-feature-item:hover{
+
+    transform:translateX(5px);
+
+}
+
+.bos-skill-banking .bos-small-icon{
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:50%;
+
+    background:#9EE2A7;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+.bos-skill-banking .bos-small-icon i{
+
+    font-size:18px;
+
+}
+
+.bos-skill-banking .bos-feature-item h6{
+
+    margin:0;
+
+    font-size:17px;
+
+    font-weight:700;
+
+}
+
+.bos-skill-banking .bos-feature-item span{
+
+    font-size:14px;
+
+    color:#666;
+
+}
+
+.bos-skill-banking .bos-feature-item>.bi{
+
+    color:#D3920E;
+
+    font-size:18px;
+
+}
+
+.bos-skill-banking .bos-bank-img{
+margin: auto;
+}
+
+/* Responsive */
+
+@media(max-width:991px){
+
+    .bos-skill-banking{
+
+        padding:80px 0;
+
+    }
+
+    .bos-skill-banking .bos-section-title{
+
+        font-size:40px;
+
+    }
+
+    .bos-skill-banking .bos-bank-img{
+
+        margin-top:20px;
+
+    }
+
+}
+
+@media(max-width:767px){
+
+    .bos-skill-banking{
+
+        padding:60px 0;
+
+    }
+
+    .bos-skill-banking .bos-section-title{
+
+        font-size:30px;
+
+    }
+
+    .bos-skill-banking .bos-reward-card{
+
+        padding:25px;
+
+    }
+
+}
+
+/*===========================
+Bottom Content
+===========================*/
+
+.bos-skill-banking .bos-skill-content h3{
+
+    font-size:48px;
+
+    font-weight:700;
+
+    color:#111827;
+
+    margin-bottom:25px;
+
+}
+
+.bos-skill-banking .bos-skill-content p{
+
+    font-size:17px;
+
+    color:#555;
+
+    line-height:1.9;
+
+    margin-bottom:35px;
+
+}
+
+.bos-skill-banking .bos-learn-btn{
+
+    background:#D3920E;
+
+    color:#fff;
+
+    padding:14px 75px;
+
+    border-radius:50px;
+
+    font-weight:600;
+
+}
+
+.bos-skill-banking .bos-learn-btn:hover{
+
+    background:#b7810a;
+
+    color:#fff;
+
+}
+
+/* Deposit Card */
+
+.bos-skill-banking .bos-deposit-card{
+
+
+    margin-left:auto;
+
+    background:#fff;
+
+    border-radius:18px;
+
+    padding:30px;
+
+    box-shadow:0 12px 35px rgba(0,0,0,.08);
+
+}
+
+.bos-skill-banking .bos-deposit-card h5{
+
+    font-size:20px;
+
+    font-weight:700;
+
+    margin-bottom:8px;
+
+}
+
+.bos-skill-banking .bos-deposit-card p{
+
+    font-size:14px;
+
+    color:#666;
+
+    margin-bottom:0;
+
+}
+
+.bos-skill-banking .bos-deposit-item{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    background:#fff;
+
+    padding:16px 18px;
+
+    border-radius:12px;
+
+    margin-bottom:14px;
+
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
+
+    transition:.3s;
+
+}
+
+.bos-skill-banking .bos-deposit-item:hover{
+
+    transform:translateX(5px);
+
+}
+
+.bos-skill-banking .bos-deposit-item h6{
+
+    margin:0;
+
+    font-size:17px;
+
+    font-weight:700;
+
+}
+
+.bos-skill-banking .bos-deposit-item span{
+
+    font-size:13px;
+
+    color:#666;
+
+}
+
+.bos-skill-banking .bos-deposit-item strong{
+
+    color:#D3920E;
+
+    font-size:18px;
+
+    font-weight:700;
+
+}
+
+/*===========================
+Responsive
+===========================*/
+
+@media(max-width:991px){
+
+    .bos-skill-banking .bos-skill-content{
+
+        text-align:center;
+
+    }
+
+    .bos-skill-banking .bos-skill-content h3{
+
+        font-size:38px;
+
+    }
+
+    .bos-skill-banking .bos-deposit-card{
+
+        margin:0 auto;
+
+    }
+
+}
+
+@media(max-width:767px){
+
+    .bos-skill-banking .bos-skill-content h3{
+
+        font-size:30px;
+
+    }
+
+    .bos-skill-banking .bos-deposit-card{
+
+        padding:22px;
+
+    }
+
+}
+
+/*====================================
+Partnership Section
+====================================*/
+
+/*====================================
+Partnership Section
+====================================*/
+
+.bos-partnership{
+    padding:100px 0;
+
+}
+
+.bos-partnership .bos-section-tag{
+    font-size:14px;
+    font-weight:700;
+    color:#111827;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.bos-partnership .bos-section-title{
+    font-size:54px;
+    font-weight:700;
+    color:#111827;
+    line-height:1.2;
+    margin:15px 0;
+}
+
+.bos-partnership .bos-section-title span{
+    color:#58AF43;
+}
+
+.bos-partnership .bos-section-desc{
+    max-width:720px;
+    margin:auto;
+    font-size:18px;
+    color:#555;
+    line-height:1.8;
+}
+
+/*==============================
+Cards
+==============================*/
+
+.bos-partnership-card{
+    background:#fff;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 15px 35px rgba(0,0,0,.08);
+    height:100%;
+    transition:.35s;
+}
+
+.bos-partnership-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 22px 45px rgba(0,0,0,.12);
+}
+
+.bos-card-head{
+    padding:18px 25px;
+    text-align:center;
+    color:#fff;
+    font-size:22px;
+    font-weight:700;
+    line-height:1.4;
+    background:#58AF43;
+}
+
+.bos-card-head small{
+    display:block;
+    font-size:13px;
+    font-weight:500;
+    margin-top:2px;
+}
+
+.bos-blue-card .bos-card-head{
+    background:#3D63C8;
+}
+
+.bos-green-card .bos-card-head{
+    background:#58AF43;
+}
+
+/*==============================
+Card Items
+==============================*/
+
+.bos-card-item{
+    padding:30px;
+}
+
+.border-primary-custom{
+    border-bottom:2px solid #4E7CFF;
+}
+
+.border-success-custom{
+    border-bottom:2px solid #63C96A;
+}
+
+.bos-card-item:last-child{
+    border-bottom:none;
+}
+
+.bos-item-image{
+    max-width:130px;
+    transition:.3s;
+}
+
+.bos-card-item:hover .bos-item-image{
+    transform:scale(1.05);
+}
+
+.bos-card-item h5{
+    font-size:22px;
+    font-weight:700;
+    color:#111827;
+    margin-bottom:18px;
+    line-height:1.4;
+}
+
+/*==============================
+List
+==============================*/
+
+.bos-list{
+    margin:0;
+    padding:0;
+    list-style:none;
+}
+
+.bos-list li{
+    position:relative;
+    padding-left:34px;
+    margin-bottom:14px;
+    color:#555;
+    font-size:15px;
+    line-height:1.7;
+}
+
+.bos-list li:last-child{
+    margin-bottom:0;
+}
+
+/* Blue Tick */
+
+.bos-list li::before{
+content: "\F26E";
+    font-family: "bootstrap-icons";
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #3D63C8;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+/* Green Tick */
+
+.green-check li::before{
+    background:#58AF43;
+}
+
+/* Golden Tick */
+
+.orange-check li::before{
+    background:#D3920E;
+}
+
+/*==============================
+Center Badge
+==============================*/
+
+.bos-center-badge{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:82px;
+    height:82px;
+    background:#fff;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 15px 35px rgba(0,0,0,.15);
+    z-index:99;
+}
+
+.bos-center-badge img{
+    width:46px;
+}
+
+/*==============================
+Responsive
+==============================*/
+
+@media(max-width:1199px){
+
+    .bos-partnership .bos-section-title{
+        font-size:48px;
+    }
+
+    .bos-item-image{
+        max-width:110px;
+    }
+
+}
+
+@media(max-width:991.98px){
+
+    .bos-partnership{
+        padding:80px 0;
+    }
+
+    .bos-partnership .bos-section-title{
+        font-size:40px;
+    }
+
+    .bos-partnership .bos-section-desc{
+        font-size:16px;
+    }
+
+    .bos-card-item{
+        padding:25px;
+    }
+
+    .bos-card-item h5{
+        font-size:20px;
+    }
+
+    .bos-center-badge{
+        display:none !important;
+    }
+
+}
+
+@media(max-width:767.98px){
+
+    .bos-partnership{
+        padding:60px 0;
+    }
+
+    .bos-partnership .bos-section-title{
+        font-size:32px;
+    }
+
+    .bos-card-head{
+        font-size:18px;
+    }
+
+    .bos-card-item{
+        padding:22px;
+    }
+
+    .bos-item-image{
+        max-width:85px;
+        margin-bottom:20px;
+    }
+
+    .bos-card-item .row{
+        text-align:center;
+    }
+
+    .bos-card-item h5{
+        margin-top:15px;
+        font-size:20px;
+    }
+
+    .bos-list li{
+        text-align:left;
+    }
+
+}
+
+@media(max-width:575.98px){
+
+    .bos-partnership{
+        padding:50px 0;
+    }
+
+    .bos-partnership .bos-section-title{
+        font-size:28px;
+    }
+
+    .bos-partnership .bos-section-desc{
+        font-size:15px;
+    }
+
+    .bos-card-head{
+        padding:16px;
+        font-size:17px;
+    }
+
+    .bos-card-item{
+        padding:20px;
+    }
+
+    .bos-item-image{
+        max-width:75px;
+    }
+
+}
+
+/*==================================
+Bottom CTA
+===================================*/
+
+.bos-bottom-cta{
+
+    background:#fff;
+
+    border:2px solid #4E7CFF;
+
+    border-radius:18px;
+
+    padding:24px 35px;
+
+    margin-top:15px;
+
+}
+
+.bos-bottom-cta .bos-cta-icon{
+
+    width:62px;
+
+    height:62px;
+
+    min-width:62px;
+
+    border-radius:50%;
+
+    background:#EEF3FF;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+.bos-bottom-cta .bos-cta-icon i{
+
+    font-size:30px;
+
+    color:#3D63C8;
+
+}
+
+.bos-bottom-cta h4{
+
+    font-size:30px;
+
+    font-weight:700;
+
+    color:#111827;
+
+    margin-bottom:8px;
+
+}
+
+.bos-bottom-cta p{
+
+    margin:0;
+
+    font-size:16px;
+
+    color:#555;
+
+    line-height:1.7;
+
+}
+
+.bos-growth-img{
+
+    max-width:150px;
+
+}
+
+/*==============================
+Responsive
+==============================*/
+
+@media(max-width:991px){
+
+    .bos-bottom-cta{
+
+        padding:25px;
+
+        text-align:center;
+
+    }
+
+    .bos-bottom-cta .d-flex{
+
+        flex-direction:column;
+
+    }
+
+    .bos-bottom-cta .ms-3{
+
+        margin-left:0 !important;
+
+        margin-top:18px;
+
+    }
+
+    .bos-bottom-cta h4{
+
+        font-size:24px;
+
+    }
+
+}
+
+@media(max-width:575px){
+
+    .bos-bottom-cta{
+
+        padding:20px;
+
+    }
+
+    .bos-bottom-cta h4{
+
+        font-size:20px;
+
+    }
+
+    .bos-bottom-cta p{
+
+        font-size:14px;
+
+    }
+
+    .bos-growth-img{
+
+        max-width:110px;
+
+    }
+
+}
+
+/*=========================================
+Pricing Section
+=========================================*/
+
+.bos-pricing{
+    padding:100px 0;
+    background:#ffffff;
+}
+
+.bos-pricing .bos-section-tag{
+    display:inline-block;
+    font-size:14px;
+    font-weight:700;
+    color:#111827;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin-bottom:15px;
+}
+
+.bos-pricing .bos-section-title{
+    font-size:54px;
+    font-weight:700;
+    color:#111827;
+    line-height:1.2;
+    margin-bottom:15px;
+}
+
+.bos-pricing .bos-section-title span{
+    color:#58AF43;
+}
+
+.bos-pricing .bos-section-desc{
+    max-width:700px;
+    margin:auto;
+    font-size:18px;
+    color:#555;
+    line-height:1.8;
+}
+
+/*=========================
+Card
+=========================*/
+
+.bos-price-card{
+
+    position:relative;
+
+    background:#fff;
+
+    border:1px solid #E8ECF4;
+
+    border-radius:20px;
+
+    padding:35px 30px;
+
+    height:100%;
+
+    transition:.35s;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.05);
+
+}
+
+.bos-price-card:hover{
+
+    transform:translateY(-10px);
+
+    box-shadow:0 25px 50px rgba(0,0,0,.10);
+
+}
+
+/* Active Card */
+
+.bos-price-card.active{
+
+    border:2px solid #D3920E;
+
+    transform:scale(1.03);
+
+}
+
+.bos-price-card.active:hover{
+
+    transform:scale(1.03) translateY(-8px);
+
+}
+
+/*=========================
+Popular Badge
+=========================*/
+
+.bos-popular{
+
+    position:absolute;
+
+    top:-15px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    background:#D3920E;
+
+    color:#fff;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    padding:8px 20px;
+
+    border-radius:50px;
+
+}
+
+/*=========================
+Top Area
+=========================*/
+
+.bos-plan-top{
+
+    text-align:center;
+
+    margin-bottom:30px;
+
+}
+
+.bos-plan-icon{
+
+    width:70px;
+
+    height:70px;
+
+    margin:auto;
+
+    margin-bottom:18px;
+
+    border-radius:50%;
+
+    background:#FFF5E4;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+.bos-plan-icon i{
+
+    font-size:32px;
+
+    color:#D3920E;
+
+}
+
+.bos-plan-top h4{
+
+    font-size:30px;
+
+    font-weight:700;
+
+    color:#111827;
+
+    margin-bottom:12px;
+
+}
+
+.bos-plan-top p{
+
+    font-size:15px;
+
+    color:#666;
+
+    line-height:1.7;
+
+}
+
+/*=========================
+Price
+=========================*/
+
+.bos-price{
+
+    text-align:center;
+
+    margin-bottom:30px;
+
+    color:#111827;
+
+}
+
+.bos-price sup{
+
+    font-size:26px;
+
+    top:-18px;
+
+    position:relative;
+
+}
+
+.bos-price span{
+
+    font-size:64px;
+
+    font-weight:700;
+
+    line-height:1;
+
+}
+
+.bos-price small{
+
+    display:block;
+
+    margin-top:10px;
+
+    font-size:15px;
+
+    color:#666;
+
+}
+
+.custom-price{
+
+    font-size:48px;
+
+    font-weight:700;
+
+    color:#111827;
+
+}
+
+/*=========================
+Button
+=========================*/
+
+.bos-price-btn{
+
+    width:100%;
+
+    background:#D3920E;
+
+    color:#fff;
+
+    padding:14px;
+
+    border-radius:10px;
+
+    font-weight:600;
+
+    margin-bottom:30px;
+
+}
+
+.bos-price-btn:hover{
+
+    background:#b8820a;
+
+    color:#fff;
+
+}
+
+/*=========================
+Features
+=========================*/
+
+.bos-plan-list{
+
+    margin:0;
+
+    padding:0;
+
+    list-style:none;
+
+}
+
+.bos-plan-list li{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    margin-bottom:16px;
+
+    font-size:15px;
+
+    color:#444;
+
+}
+
+.bos-plan-list li:last-child{
+
+    margin-bottom:0;
+
+}
+
+.bos-plan-list li i{
+
+    width:22px;
+
+    height:22px;
+
+    min-width:22px;
+
+    border-radius:50%;
+
+    background:#D3920E;
+
+    color:#fff;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:11px;
+
+}
+
+/*=========================
+Responsive
+=========================*/
+
+@media(max-width:1199px){
+
+    .bos-pricing .bos-section-title{
+
+        font-size:46px;
+
+    }
+
+}
+
+@media(max-width:991px){
+
+    .bos-pricing{
+
+        padding:80px 0;
+
+    }
+
+    .bos-pricing .bos-section-title{
+
+        font-size:40px;
+
+    }
+
+    .bos-price-card.active{
+
+        transform:none;
+
+    }
+
+}
+
+@media(max-width:767px){
+
+    .bos-pricing{
+
+        padding:60px 0;
+
+    }
+
+    .bos-pricing .bos-section-title{
+
+        font-size:32px;
+
+    }
+
+    .bos-price-card{
+
+        padding:28px 22px;
+
+    }
+
+    .bos-plan-top h4{
+
+        font-size:26px;
+
+    }
+
+    .bos-price span{
+
+        font-size:52px;
+
+    }
+
+}
+
+@media(max-width:575px){
+
+    .bos-pricing .bos-section-title{
+
+        font-size:28px;
+
+    }
+
+    .bos-pricing .bos-section-desc{
+
+        font-size:16px;
+
+    }
+
+    .bos-plan-icon{
+
+        width:60px;
+
+        height:60px;
+
+    }
+
+    .bos-plan-icon i{
+
+        font-size:28px;
+
+    }
+
+    .bos-price span{
+
+        font-size:46px;
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*==================================
+Pricing Packages
+==================================*/
+
+.bos-pricing-packages{
+    padding:100px 0;
+    background:#F5F7FD;
+}
+
+.bos-pricing-packages .bos-section-tag{
+    display:inline-block;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:#111827;
+    margin-bottom:15px;
+}
+
+.bos-pricing-packages .bos-section-title{
+    font-size:54px;
+    font-weight:700;
+    color:#111827;
+    line-height:1.2;
+    margin-bottom:15px;
+}
+
+.bos-pricing-packages .bos-section-title span{
+    color:#58AF43;
+}
+
+.bos-pricing-packages .bos-section-desc{
+    max-width:650px;
+    margin:auto;
+    font-size:18px;
+    color:#666;
+    line-height:1.8;
+}
+
+/*=========================
+Package Card
+=========================*/
+
+.bos-package-card{
+
+    position:relative;
+
+    background:#fff;
+
+    border-radius:24px;
+
+    padding:35px;
+
+    height:100%;
+
+    border:1px solid #E8EDF5;
+
+    transition:.35s;
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.bos-package-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:0 25px 60px rgba(0,0,0,.08);
+
+}
+
+.bos-package-card.active{
+
+    border:2px solid #D3920E;
+
+    transform:scale(1.03);
+
+    box-shadow:0 25px 70px rgba(0,0,0,.10);
+
+}
+
+/*=========================
+Popular
+=========================*/
+
+.bos-popular{
+
+    position:absolute;
+
+    top:-18px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    background:#D3920E;
+
+    color:#fff;
+
+    padding:8px 20px;
+
+    border-radius:50px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+
+/*=========================
+Plan Badge
+=========================*/
+
+.bos-plan-badge{
+    text-align: center;
+
+    display:inline-block;
+
+    background:#EDF5FF;
+
+    color:#3D63C8;
+
+    padding:8px 16px;
+
+    border-radius:30px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    margin-bottom:25px;
+
+}
+
+/*=========================
+Heading
+=========================*/
+
+.bos-package-head h3{
+
+    font-size:34px;
+
+    font-weight:700;
+
+    color:#111827;
+
+    margin-bottom:12px;
+    text-align: center;
+
+}
+
+.bos-package-head p{
+
+    font-size:15px;
+
+    color:#666;
+
+    line-height:1.7;
+
+
+    text-align: center;
+}
+
+/*=========================
+Price
+=========================*/
+
+.bos-price{
+justify-content: center;
+    display:flex;
+
+    align-items:flex-end;
+
+
+
+}
+
+.bos-price .currency{
+
+    font-size:28px;
+
+    font-weight:700;
+
+    margin-bottom:8px;
+
+}
+
+.bos-price .amount{
+
+    font-size:72px;
+
+    line-height:1;
+
+    font-weight:700;
+
+    color:#111827;
+
+    margin:0 6px;
+
+}
+
+.bos-price .month{
+
+    font-size:18px;
+
+    color:#666;
+
+    margin-bottom:10px;
+
+}
+
+.custom-price{
+
+    font-size:54px;
+
+    font-weight:700;
+
+    color:#111827;
+
+}
+
+/*=========================
+Divider
+=========================*/
+
+.bos-package-card hr{
+
+    margin:0 0 25px;
+
+    border-color:#E8EDF5;
+
+}
+
+/*=========================
+Feature Title
+=========================*/
+
+.bos-package-card h5{
+
+    font-size:18px;
+
+    font-weight:700;
+
+    color:#111827;
+
+    margin-bottom:20px;
+
+}
+
+/*=========================
+Features
+=========================*/
+
+.bos-feature-list{
+
+    list-style:none;
+
+    padding:0;
+
+    margin:0 0 35px;
+
+    flex:1;
+
+}
+
+.bos-feature-list li{
+
+    display:flex;
+
+    align-items:flex-start;
+
+    gap:12px;
+
+    margin-bottom:16px;
+
+    color:#444;
+
+    font-size:15px;
+
+    line-height:1.6;
+
+}
+
+.bos-feature-list li:last-child{
+
+    margin-bottom:0;
+
+}
+
+.bos-feature-list li i{
+
+    width:20px;
+
+    height:20px;
+
+    min-width:20px;
+
+    border-radius:50%;
+
+    background:#D3920E;
+
+    color:#fff;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:11px;
+
+    margin-top:2px;
+
+}
+
+/*=========================
+Buttons
+=========================*/
+
+.bos-btn-primary{
+
+    background:#D3920E;
+
+    color:#fff;
+
+    border-radius:10px;
+
+    padding:14px;
+
+    font-weight:600;
+
+}
+
+.bos-btn-primary:hover{
+
+    background:#B7810A;
+
+    color:#fff;
+
+}
+
+.bos-btn-outline{
+
+    border:2px solid #D3920E;
+
+    color:#D3920E;
+
+    border-radius:10px;
+
+    padding:14px;
+
+    font-weight:600;
+
+}
+
+.bos-btn-outline:hover{
+
+    background:#D3920E;
+
+    color:#fff;
+
+}
+
+/*=========================
+Responsive
+=========================*/
+
+@media(max-width:1199px){
+
+    .bos-pricing-packages .bos-section-title{
+
+        font-size:46px;
+
+    }
+
+    .bos-price .amount{
+
+        font-size:62px;
+
+    }
+
+}
+
+@media(max-width:991.98px){
+
+    .bos-pricing-packages{
+
+        padding:80px 0;
+
+    }
+
+    .bos-pricing-packages .bos-section-title{
+
+        font-size:40px;
+
+    }
+
+    .bos-package-card.active{
+
+        transform:none;
+
+    }
+
+}
+
+@media(max-width:767.98px){
+
+    .bos-pricing-packages{
+
+        padding:60px 0;
+
+    }
+
+    .bos-pricing-packages .bos-section-title{
+
+        font-size:32px;
+
+    }
+
+    .bos-package-card{
+
+        padding:28px;
+
+    }
+
+    .bos-package-head h3{
+
+        font-size:28px;
+
+    }
+
+    .bos-price .amount{
+
+        font-size:54px;
+
+    }
+
+}
+
+@media(max-width:575.98px){
+
+    .bos-pricing-packages .bos-section-title{
+
+        font-size:28px;
+
+    }
+
+    .bos-pricing-packages .bos-section-desc{
+
+        font-size:16px;
+
+    }
+
+    .bos-package-card{
+
+        padding:22px;
+
+    }
+
+    .bos-price{
+
+        justify-content:center;
+
+    }
+
+    .bos-package-head{
+
+        text-align:center;
+
+    }
+
+    .bos-plan-badge{
+
+        display:block;
+
+        text-align:center;
+
+    }
+
+}
+
+
+/*==================================
+Testimonial Section
+==================================*/
+
+.bos-testimonial{
+    padding:100px 0;
+   
+    overflow:hidden;
+}
+
+.bos-testimonial .bos-section-tag{
+    display:inline-block;
+    font-size:14px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:#111827;
+    margin-bottom:15px;
+}
+
+.bos-testimonial .bos-section-title{
+    font-size:54px;
+    font-weight:700;
+    color:#111827;
+    line-height:1.2;
+    margin-bottom:18px;
+}
+
+.bos-testimonial .bos-section-title span{
+    color:#58AF43;
+}
+
+.bos-testimonial .bos-section-desc{
+    max-width:700px;
+    margin:auto;
+    font-size:18px;
+    color:#666;
+    line-height:1.8;
+}
+
+/*=========================
+Swiper
+=========================*/
+
+.bosTestimonialSwiper{
+    width:100%;
+    padding:20px 8px 30px;
+}
+
+.bosTestimonialSwiper .swiper-wrapper{
+    align-items:stretch;
+}
+
+.bosTestimonialSwiper .swiper-slide{
+    height:auto;
+}
+
+/*=========================
+Card
+=========================*/
+
+.bos-testimonial-card{
+
+    background:#fff;
+
+    border-radius:20px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+    height:100%;
+
+    display:flex;
+
+    flex-direction:column;
+
+    transition:.35s;
+
+}
+
+.bos-testimonial-card:hover{
+
+    transform:translateY(-8px);
+
+}
+
+.bos-quote{
+
+    width:60px;
+
+    height:60px;
+
+    margin:25px;
+
+    border-radius:50%;
+
+    background:#EEF3FF;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+.bos-quote i{
+
+    color:#3D63C8;
+
+    font-size:30px;
+
+}
+
+.bos-testimonial-card p{
+
+    padding:0 25px;
+
+    color:#555;
+
+    font-size:16px;
+
+    line-height:1.8;
+
+    flex:1;
+
+}
+
+.bos-user{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+    padding:22px 25px;
+
+    margin-top:25px;
+
+    border-top:1px solid #ECECEC;
+
+}
+
+.bos-user img{
+
+    width:55px;
+
+    height:55px;
+
+    border-radius:50%;
+
+    object-fit:cover;
+
+}
+
+.bos-user h5{
+
+    margin:0;
+
+    font-size:18px;
+
+    font-weight:700;
+
+    color:#111827;
+
+}
+
+.bos-user span{
+
+    color:#777;
+
+    font-size:14px;
+
+}
+
+/*=========================
+Navigation
+=========================*/
+
+.bos-testimonial-prev,
+.bos-testimonial-next{
+
+    position:absolute;
+
+    top:50%;
+
+    transform:translateY(-50%);
+
+    width:55px;
+
+    height:55px;
+
+    border-radius:50%;
+
+    background:#fff;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    cursor:pointer;
+
+    z-index:99;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.12);
+
+    transition:.3s;
+
+}
+
+.bos-testimonial-prev{
+
+    left:-28px;
+
+}
+
+.bos-testimonial-next{
+
+    right:-28px;
+
+}
+
+.bos-testimonial-prev:hover,
+.bos-testimonial-next:hover{
+
+    background:#D3920E;
+
+    color:#fff;
+
+}
+
+.bos-testimonial-prev i,
+.bos-testimonial-next i{
+
+    font-size:22px;
+
+}
+
+/*=========================
+Responsive
+=========================*/
+
+@media(max-width:1199px){
+
+    .bos-testimonial .bos-section-title{
+
+        font-size:46px;
+
+    }
+
+}
+
+@media(max-width:991px){
+
+    .bos-testimonial{
+
+        padding:80px 0;
+
+    }
+
+    .bos-testimonial .bos-section-title{
+
+        font-size:40px;
+
+    }
+
+    .bos-testimonial-prev{
+
+        left:0;
+
+    }
+
+    .bos-testimonial-next{
+
+        right:0;
+
+    }
+
+}
+
+@media(max-width:767px){
+
+    .bos-testimonial{
+
+        padding:60px 0;
+
+    }
+
+    .bos-testimonial .bos-section-title{
+
+        font-size:32px;
+
+    }
+
+    .bos-testimonial-prev,
+    .bos-testimonial-next{
+
+        display:none;
+
+    }
+
+}
+
+@media(max-width:575px){
+
+    .bos-testimonial .bos-section-title{
+
+        font-size:28px;
+
+    }
+
+    .bos-testimonial .bos-section-desc{
+
+        font-size:16px;
+
+    }
+
+    .bos-testimonial-card{
+
+        border-radius:16px;
+
+    }
+
+}
+
+/*==================================
+Security Section
+==================================*/
+
+.bos-security{
+
+    padding:100px 0;
+
+    background:#F5F7FD;
+
+}
+
+.bos-security .bos-section-title{
+
+    font-size:54px;
+
+    font-weight:700;
+
+    color:#111827;
+
+    line-height:1.2;
+
+    margin-bottom:18px;
+
+}
+
+.bos-security .bos-section-title span{
+
+    color:#58AF43;
+
+}
+
+.bos-security .bos-section-desc{
+
+    max-width:650px;
+
+    margin:auto;
+
+    font-size:18px;
+
+    color:#555;
+
+    line-height:1.8;
+
+}
+
+/*====================*/
+
+.bos-security-item{
+
+    text-align:center;
+
+    padding:20px;
+
+    transition:.35s;
+
+}
+
+.bos-security-item:hover{
+
+    transform:translateY(-8px);
+
+}
+
+.bos-security-icon{
+
+    width:72px;
+
+    height:72px;
+
+    border-radius:50%;
+
+    margin:0 auto 22px;
+
+    background:#97E09F;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+.bos-security-icon i{
+
+    font-size:32px;
+
+    color:#111827;
+
+}
+
+.bos-security-item h5{
+
+    font-size:22px;
+
+    font-weight:700;
+
+    color:#111827;
+
+    margin-bottom:15px;
+
+}
+
+.bos-security-item p{
+
+    font-size:15px;
+
+    color:#666;
+
+    line-height:1.8;
+
+    margin:0;
+
+}
+
+/*====================*/
+
+@media(max-width:1199px){
+
+    .bos-security .bos-section-title{
+
+        font-size:46px;
+
+    }
+
+}
+
+@media(max-width:991px){
+
+    .bos-security{
+
+        padding:80px 0;
+
+    }
+
+    .bos-security .bos-section-title{
+
+        font-size:40px;
+
+    }
+
+}
+
+@media(max-width:767px){
+
+    .bos-security{
+
+        padding:60px 0;
+
+    }
+
+    .bos-security .bos-section-title{
+
+        font-size:32px;
+
+    }
+
+    .bos-security-item{
+
+        padding:10px;
+
+    }
+
+}
+
+@media(max-width:575px){
+
+    .bos-security .bos-section-title{
+
+        font-size:28px;
+
+    }
+
+    .bos-security .bos-section-desc{
+
+        font-size:16px;
+
+    }
+
+    .bos-security-icon{
+
+        width:64px;
+
+        height:64px;
+
+    }
+
+    .bos-security-icon i{
+
+        font-size:28px;
+
+    }
+
+}
+
+
+/*==================================
+CTA Section
+==================================*/
+
+.bos-cta-section{
+
+    padding:100px 0;
+
+
+
+}
+
+.bos-cta-section .bos-cta-box{
+
+    background:#4162BB;
+
+    border-radius:28px;
+
+    padding:70px 30px;
+
+}
+
+.bos-cta-section .bos-cta-box h2{
+
+    font-size:42px;
+
+    font-weight:700;
+
+    line-height:1.35;
+
+    color:#fff;
+
+    margin-bottom:40px;
+
+}
+
+.bos-cta-section .bos-cta-btn{
+
+    background:#D3920E;
+
+    color:#fff;
+
+    font-size:20px;
+
+    font-weight:600;
+
+    padding:16px 60px;
+
+    border-radius:50px;
+
+    transition:.3s;
+
+}
+
+.bos-cta-section .bos-cta-btn:hover{
+
+    background:#b8810a;
+
+    color:#fff;
+
+    transform:translateY(-3px);
+
+}
+
+/*==========================
+Responsive
+==========================*/
+
+@media(max-width:1199px){
+
+    .bos-cta-section .bos-cta-box h2{
+
+        font-size:44px;
+
+    }
+
+}
+
+@media(max-width:991px){
+
+    .bos-cta-section{
+
+        padding:80px 0;
+
+    }
+
+    .bos-cta-section .bos-cta-box{
+
+        padding:60px 25px;
+
+    }
+
+    .bos-cta-section .bos-cta-box h2{
+
+        font-size:38px;
+
+    }
+
+}
+
+@media(max-width:767px){
+
+    .bos-cta-section{
+
+        padding:60px 0;
+
+    }
+
+    .bos-cta-section .bos-cta-box{
+
+        padding:45px 20px;
+
+        border-radius:22px;
+
+    }
+
+    .bos-cta-section .bos-cta-box h2{
+
+        font-size:30px;
+
+        line-height:1.45;
+
+    }
+
+    .bos-cta-section .bos-cta-btn{
+
+        font-size:17px;
+
+        padding:14px 34px;
+
+    }
+
+}
+
+@media(max-width:575px){
+
+    .bos-cta-section .bos-cta-box{
+
+        padding:40px 18px;
+
+    }
+
+    .bos-cta-section .bos-cta-box h2{
+
+        font-size:24px;
+
+    }
+
+    .bos-cta-section .bos-cta-btn{
+
+        width:100%;
+
+        max-width:260px;
+
+    }
+
+}
+
+
+
+/*==================================
+Footer
+==================================*/
+
+.bos-footer{
+
+    padding:100px 0 30px;
+
+    background:#F5F7FD;
+
+}
+
+/*==========================
+Newsletter
+==========================*/
+
+.bos-footer-tag{
+
+    display:inline-block;
+
+    font-size:14px;
+
+    font-weight:700;
+
+    color:#111827;
+
+    text-transform:uppercase;
+
+    letter-spacing:1px;
+
+    margin-bottom:15px;
+
+}
+
+.bos-footer-title{
+
+    font-size:54px;
+
+    font-weight:700;
+
+    color:#111827;
+
+    margin-bottom:35px;
+
+}
+
+.bos-footer-title span{
+
+    color:#58AF43;
+
+}
+
+/*==========================
+Newsletter Form
+==========================*/
+
+.bos-newsletter{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:18px;
+
+    flex-wrap:wrap;
+
+}
+
+.bos-input-box{
+
+    position:relative;
+
+    width:100%;
+
+    max-width:520px;
+
+}
+
+.bos-input-box i{
+
+    position:absolute;
+
+    top:50%;
+
+    left:20px;
+
+    transform:translateY(-50%);
+
+    color:#4162BB;
+
+    font-size:18px;
+
+}
+
+.bos-input-box .form-control{
+
+    height:58px;
+
+    border:2px solid #4162BB;
+
+    border-radius:50px;
+
+    padding-left:55px;
+
+    font-size:15px;
+
+    box-shadow:none;
+
+}
+
+.bos-input-box .form-control:focus{
+
+    border-color:#4162BB;
+
+    box-shadow:none;
+
+}
+
+.bos-submit-btn{
+
+    min-width:180px;
+
+    height:58px;
+
+    border-radius:50px;
+
+    background:#D3920E;
+
+    color:#fff;
+
+    font-size:20px;
+
+    font-weight:600;
+
+    transition:.3s;
+
+}
+
+.bos-submit-btn:hover{
+
+    background:#b8830a;
+
+    color:#fff;
+
+}
+
+/*==========================
+Footer Logo
+==========================*/
+
+.bos-footer-logo{
+
+    max-width:180px;
+
+    margin-bottom:20px;
+
+}
+
+.bos-footer-about p{
+
+    color:#000000;
+
+    line-height:1.9;
+
+    font-size:15px;
+
+    max-width:320px;
+font-weight: 500;
+}
+
+/*==========================
+Social
+==========================*/
+
+.bos-social{
+
+    display:flex;
+
+    gap:12px;
+
+    margin-top:25px;
+
+}
+
+.bos-social a{
+
+    width:42px;
+
+    height:42px;
+
+    border:1px solid #4162BB;
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#111827;
+
+    transition:.3s;
+
+}
+
+.bos-social a:hover{
+
+    background:#4162BB;
+
+    color:#fff;
+
+}
+
+/*==========================
+Links
+==========================*/
+
+.bos-footer-links h5,
+.bos-footer-contact h5{
+
+    font-size:20px;
+
+    font-weight:700;
+
+    margin-bottom:22px;
+
+    color:#111827;
+
+}
+
+.bos-footer-links ul,
+.bos-footer-contact ul{
+
+    margin:0;
+
+    padding:0;
+
+    list-style:none;
+
+}
+
+.bos-footer-links li{
+
+    margin-bottom:16px;
+
+}
+
+.bos-footer-links a{
+
+    text-decoration:none;
+
+    color:#000000;
+
+    font-size:15px;
+
+    transition:.3s;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    font-weight: 500;
+
+}
+
+.bos-footer-links a:hover{
+
+    color:#4162BB;
+
+    padding-left:5px;
+
+}
+
+.bos-footer-links i{
+
+    color:#4162BB;
+
+    font-size:12px;
+
+}
+
+/*==========================
+Contact
+==========================*/
+
+.bos-footer-contact li{
+
+    display:flex;
+
+    align-items:flex-start;
+
+    gap:15px;
+
+    margin-bottom:20px;
+
+}
+
+.bos-footer-contact li i{
+
+    width:42px;
+
+    height:42px;
+
+    min-width:42px;
+
+    border:1px solid #4162BB;
+
+    border-radius:12px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#4162BB;
+
+    font-size:18px;
+
+}
+
+.bos-footer-contact li span{
+
+    color:#000000;
+
+    line-height:1.7;
+
+    font-size:15px;
+font-weight: 500;
+}
+
+/*==========================
+Bottom
+==========================*/
+
+.bos-footer-bottom{
+
+    margin-top:55px;
+
+    padding-top:25px;
+
+    border-top:2px solid #BFD0FF;
+
+}
+
+.bos-footer-bottom p{
+
+    margin:0;
+
+    color:#000000;
+
+    font-size:15px;
+font-weight: 500;
+}
+
+/*==========================
+Responsive
+==========================*/
+
+@media(max-width:1199px){
+
+    .bos-footer-title{
+
+        font-size:46px;
+
+    }
+
+}
+
+@media(max-width:991px){
+
+    .bos-footer{
+
+        padding:80px 0 25px;
+
+    }
+
+    .bos-footer-title{
+
+        font-size:40px;
+
+    }
+
+    .bos-footer-about{
+
+        text-align:center;
+
+    }
+
+    .bos-footer-about p{
+
+        margin:auto;
+
+    }
+
+    .bos-social{
+
+        justify-content:center;
+
+    }
+
+}
+
+@media(max-width:767px){
+
+    .bos-footer{
+
+        padding:60px 0 20px;
+
+    }
+
+    .bos-footer-title{
+
+        font-size:32px;
+
+    }
+
+    .bos-newsletter{
+
+        flex-direction:column;
+
+    }
+
+    .bos-input-box{
+
+        max-width:100%;
+
+    }
+
+    .bos-submit-btn{
+
+        width:100%;
+
+    }
+
+    .bos-footer-links,
+    .bos-footer-contact{
+
+        margin-top:20px;
+
+    }
+
+}
+
+@media(max-width:575px){
+
+    .bos-footer-title{
+
+        font-size:28px;
+
+    }
+
+    .bos-footer-tag{
+
+        font-size:13px;
+
+    }
+
+    .bos-footer-about,
+    .bos-footer-links,
+    .bos-footer-contact{
+
+        text-align:center;
+
+    }
+
+    .bos-footer-contact li{
+
+        justify-content:center;
+
+    }
+
+    .bos-footer-links a{
+
+        justify-content:center;
+
+    }
+
+    .bos-social{
+
+        justify-content:center;
+
+    }
+
+}

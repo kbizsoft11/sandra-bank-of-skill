@@ -8,8 +8,9 @@ import { guestGuard } from '../core/guards/guest.guard';
 export const routes: Routes = [
     {
         path: '',
-        redirectTo: 'auth/login',
-        pathMatch: 'full'
+        // redirectTo: 'auth/login',
+        // pathMatch: 'full'
+        loadComponent: () => import('../features/frontend/home/home').then(c => c.HomeComponent)
     },
 
     {

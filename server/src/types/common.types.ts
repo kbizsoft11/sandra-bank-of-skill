@@ -1,7 +1,6 @@
 export type UserRole =
-  | 'super-admin'
   | 'admin'
-  | 'manager'
+  | 'company'
   | 'employee';
 
 export type SkillLevel =
