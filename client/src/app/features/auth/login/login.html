@@ -1,133 +1,159 @@
-<div class="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8 md:p-12">
+<div class="row justify-content-center">
 
-    <!-- Title -->
-    <div class="text-center mb-10">
-        <h1 class="lg:text-5xl text-4xl font-semibold text-gray-900">
-            Welcome Back
-        </h1>
+    <div class="col-xl-6 col-lg-6 col-md-8">
 
-        <p class="mt-3 text-gray-500 text-sm">
-            Login To Your Bank Of Skill Account
-        </p>
+        <div class="login-form-card">
+
+            <div class="text-center mb-4">
+
+                <h2 class="login-form-title">
+                    Welcome Back
+                </h2>
+
+                <p class="login-form-subtitle">
+                    Login To Your Bank Of Skill Account
+                </p>
+
+            </div>
+
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+
+                <!-- Email -->
+                <div class="mb-4">
+
+                    <label class="form-label login-form-label">
+                        Email Address
+                    </label>
+
+                    <div class="login-input-group">
+
+                        <span>
+                            <i class="bi bi-envelope"></i>
+                        </span>
+
+                        <input id="email" type="email" formControlName="email" placeholder="Enter your email address"
+                            class="form-control login-input">
+
+                    </div>
+
+                    @if (
+                    loginForm.controls.email.touched &&
+                    loginForm.controls.email.invalid
+                    ) {
+                    <p class="mt-1 text-sm text-red-500">
+                        Please enter a valid email address.
+                    </p>
+                    }
+                </div>
+
+                <!-- Password -->
+
+                <div class="mb-3">
+
+                    <label class="form-label login-form-label">
+                        Password
+                    </label>
+                    <div class="login-input-group">
+
+                        <span>
+                            <i class="bi bi-lock"></i>
+                        </span>
+
+                        <input id="password" [type]="viewPassword() ? 'text' : 'password'" formControlName="password"
+                            placeholder="Enter your password" class="form-control login-input">
+
+                        <button type="button" class="login-eye-btn" (click)="togglePassword()">
+                            @if(viewPassword()){
+                            <i class="bi bi-eye-slash"></i>
+                            } @else{
+                            <i class="bi bi-eye"></i>
+                            }
+                        </button>
+
+                    </div>
+                    @if (
+                    loginForm.controls.password.touched &&
+                    loginForm.controls.password.invalid
+                    ) {
+                    <p class="mt-1 text-sm text-red-500">
+                        Password is required.
+                    </p>
+                    }
+                </div>
+
+                <!-- Remember / Forgot -->
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+
+                    <div class="form-check">
+
+                        <input class="form-check-input" type="checkbox" id="remember">
+
+                        <label class="form-check-label" for="remember">
+
+                            Remember me
+
+                        </label>
+
+                    </div>
+
+                    <a href="#" class="login-forgot">
+
+                        Forgot Password?
+
+                    </a>
+
+                </div>
+
+                <!-- Login Button -->
+
+                <button type="submit" [disabled]="loading()" class="btn login-main-btn w-100">
+                    @if (loading()) {
+                    <span>Signing In...</span>
+                    } @else {
+                    <span>Login</span>
+                    }
+                </button>
+
+                <!-- Divider -->
+
+                <div class="login-divider">
+                    <span>
+                        or log in with
+                    </span>
+                </div>
+
+                <!-- Social -->
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <button type="button" class="btn login-social-btn w-100">
+                            <img src="/assets/icons/google-icon.svg" alt="">
+                            Continue with Google
+                        </button>
+                    </div>
+
+                    <div class="col-6">
+                        <button type="button" class="btn login-social-btn w-100">
+                            <i class="bi bi-apple"></i>
+                            Continue with Apple
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- Signup -->
+
+                <p class="login-bottom-text">
+                    Don't have an account?
+                    <a href="#">
+                        Sign Up
+                    </a>
+                </p>
+
+            </form>
+
+        </div>
+
     </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
-
-        <!-- Email -->
-        <div>
-            <label class="block text-xl font-semibold text-gray-900 mb-3">
-                Email Address
-            </label>
-
-            <div class="relative">
-                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M16 12H8m8-4H8m-2 8h12a2 2 0 002-2V8a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                </svg>
-
-                <input id="email" type="email" formControlName="email" placeholder="john@example.com"
-                    class="w-full h-14 border border-gray-300 rounded-md pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-
-                @if (
-                loginForm.controls.email.touched &&
-                loginForm.controls.email.invalid
-                ) {
-                <p class="mt-1 text-sm text-red-500">
-                    Please enter a valid email address.
-                </p>
-                }
-            </div>
-        </div>
-
-        <!-- Password -->
-
-        <div>
-            <label class="block text-xl font-semibold text-gray-900 mb-3">
-                Password
-            </label>
-
-            <div class="relative">
-                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="currentColor"
-                    viewBox="0 0 20 20">
-                    <path
-                        d="M5 8V6a5 5 0 0110 0v2h1a1 1 0 011 1v8a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1h1zm2 0h6V6a3 3 0 10-6 0v2z" />
-                </svg>
-
-                <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-600" (click)="togglePassword()">
-                    @if(viewPassword()){
-                        <img src="/assets/icons/eye-close.svg" class="w-5 h-5" alt="">
-                    } @else{
-                        <img src="/assets/icons/eye-open.svg" class="w-5 h-5" alt="">
-                    }                    
-                </button>
-                <input id="password"  [type]="viewPassword() ? 'text' : 'password'" formControlName="password" placeholder="Enter your password"
-                    class="w-full h-14 border border-gray-300 rounded-md pl-12 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-
-                @if (
-                loginForm.controls.password.touched &&
-                loginForm.controls.password.invalid
-                ) {
-                <p class="mt-1 text-sm text-red-500">
-                    Password is required.
-                </p>
-                }
-            </div>
-        </div>
-
-        <!-- Remember / Forgot -->
-        <div class="flex items-center justify-between">
-            <label class="flex items-center gap-3 text-sm text-gray-700">
-                <input type="checkbox" class="w-5 h-5 rounded border-gray-300">
-                Remember me
-            </label>
-
-            <a href="#" class="text-indigo-700 font-medium text-sm hover:underline">
-                Forgot Password?
-            </a>
-        </div>
-        <!-- Login Button -->
-
-        <button type="submit" [disabled]="loading()"
-            class="w-full h-16 bg-[#3b439b] hover:bg-[#3d3f95] text-white text-3xl font-semibold rounded-md transition">
-            @if (loading()) {
-            <span>Signing In...</span>
-            } @else {
-            <span>Login</span>
-            }
-        </button>
-
-        <!-- Divider -->
-        <div class="flex items-center gap-4">
-            <div class="flex-1 border-t border-gray-300"></div>
-            <span class="text-gray-600 text-sm">or log in with</span>
-            <div class="flex-1 border-t border-gray-300"></div>
-        </div>
-
-        <!-- Social -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-            <button type="button"
-                class="h-14 border border-gray-300 rounded-md flex items-center justify-center gap-3 hover:bg-gray-50  px-4">
-                <img src="/assets/icons/google-icon.svg" class="w-5 h-5" alt="">
-                Continue with Google
-            </button>
-
-            <button type="button"
-                class="h-14 border border-gray-300 rounded-md flex items-center justify-center gap-3 hover:bg-gray-50  px-4">
-                <img src="/assets/icons/apple-icon.svg" class="w-5 h-5" alt="">
-                Continue with Apple
-            </button>
-
-        </div>
-
-        <!-- Signup -->
-        <div class="text-center text-sm">
-            Don't have an account?
-            <a href="#" class="font-semibold underline">
-                Sign Up
-            </a>
-        </div>
-
-    </form>
 </div>

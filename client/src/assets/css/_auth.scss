@@ -1,0 +1,2423 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Inter',sans-serif;
+   
+    color:#111;
+}
+
+img{
+    max-width:100%;
+}
+
+a{
+    text-decoration:none;
+}
+
+/* ==========================
+Page
+========================== */
+
+.login-page{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+/* ==========================
+Header
+========================== */
+
+.login-header{
+    background:#fff;
+    border-bottom:1px solid #ececec;
+    padding:10px 0;
+}
+
+.login-logo{
+    max-width:152px;
+}
+
+/* ==========================
+Main
+========================== */
+
+main{
+    flex:1;
+    display:flex;
+    align-items:center;
+    padding:20px 0;
+}
+
+/* ==========================
+Heading
+========================== */
+
+.login-title{
+    font-size:40px;
+    font-weight:700;
+    color:#111;
+   
+}
+
+.login-subtitle{
+    font-size:18px;
+    color:#666;
+    line-height:30px;
+    max-width:650px;
+    margin:auto;
+}
+
+/* ==========================
+Card
+========================== */
+
+.login-card{
+    background:#fff;
+    border-radius:18px;
+    padding:26px 35px;
+    border:1px solid #ececec;
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+    transition:.3s;
+    height:100%;
+}
+
+.login-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 18px 40px rgba(0,0,0,.12);
+}
+
+.login-icon{
+    width:100px;
+    height:100px;
+    background:#eef2ff;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin:0 auto 30px;
+}
+
+.login-icon i{
+    font-size:46px;
+    color:#3B439B;
+}
+
+.login-card h3{
+    font-size:20px;
+    font-weight:700;
+    line-height:40px;
+    color:#111;
+}
+
+.login-line{
+    width:80px;
+    height:3px;
+    background:#3B439B;
+    display:block;
+    margin:25px auto 30px;
+    border-radius:10px;
+}
+
+/* ==========================
+Button
+========================== */
+
+.login-btn{
+    background:#3B439B;
+    color:#fff;
+    padding:14px 20px;
+    border-radius:8px;
+    font-size:17px;
+    font-weight:600;
+    border:none;
+    transition:.3s;
+}
+
+.login-btn:hover{
+    background:#2f378c;
+    color:#fff;
+}
+
+/* ==========================
+Footer
+========================== */
+
+.login-footer{
+    background:#3B439B;
+    padding:20px 0;
+}
+
+.login-footer p{
+    color:#fff;
+    font-size:14px;
+    margin:0;
+}
+
+/* ==========================
+Responsive
+========================== */
+
+@media(max-width:1199px){
+
+    .login-title{
+        font-size:44px;
+    }
+
+    .login-card h3{
+        font-size:25px;
+        line-height:36px;
+    }
+
+}
+
+@media(max-width:991px){
+
+    main{
+        padding:60px 0;
+    }
+
+    .login-title{
+        font-size:38px;
+    }
+
+    .login-subtitle{
+        font-size:17px;
+    }
+
+    .login-card{
+        padding:35px 25px;
+    }
+
+    .login-card h3{
+        font-size:22px;
+        line-height:32px;
+    }
+
+    .login-icon{
+        width:90px;
+        height:90px;
+    }
+
+    .login-icon i{
+        font-size:40px;
+    }
+
+}
+
+@media(max-width:767px){
+
+    .login-header{
+        padding:20px 0;
+    }
+
+    .login-logo{
+        width:180px;
+    }
+
+    main{
+        padding:45px 0;
+    }
+
+    .login-title{
+        font-size:32px;
+        line-height:42px;
+    }
+
+    .login-subtitle{
+        font-size:16px;
+        line-height:26px;
+    }
+
+    .login-card{
+        margin-bottom:25px;
+    }
+
+}
+
+@media(max-width:576px){
+
+    .login-header{
+        padding:18px 0;
+    }
+
+    .login-logo{
+        width:160px;
+    }
+
+    .login-title{
+        font-size:28px;
+        line-height:38px;
+    }
+
+    .login-subtitle{
+        font-size:15px;
+        line-height:24px;
+    }
+
+    .login-card{
+        padding:28px 20px;
+    }
+
+    .login-icon{
+        width:80px;
+        height:80px;
+    }
+
+    .login-icon i{
+        font-size:34px;
+    }
+
+    .login-card h3{
+        font-size:20px;
+        line-height:30px;
+    }
+
+    .login-btn{
+        font-size:16px;
+        padding:12px;
+    }
+
+    .login-footer{
+        padding:18px 10px;
+    }
+
+    .login-footer p{
+        font-size:13px;
+    }
+
+}
+
+/*=========================
+Page
+=========================*/
+
+.login-form-page{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+/*=========================
+Header
+=========================*/
+
+.login-form-header{
+    background:#fff;
+    border-bottom:1px solid #e5e5e5;
+    padding:20px 0;
+}
+
+.login-form-logo{
+    width:170px;
+}
+
+/*=========================
+Main
+=========================*/
+
+main{
+    flex:1;
+    display:flex;
+    align-items:center;
+    padding:20px 0;
+}
+
+/*=========================
+Card
+=========================*/
+
+.login-form-card{
+    background:#fff;
+    border-radius:14px;
+    padding:40px;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+    border:1px solid #ececec;
+}
+
+.login-form-title{
+    font-size:42px;
+    font-weight:700;
+    margin-bottom:10px;
+}
+
+.login-form-subtitle{
+    font-size:15px;
+    color:#666;
+    margin-bottom:0;
+}
+
+/*=========================
+Label
+=========================*/
+
+.login-form-label{
+    font-weight:600;
+    font-size:15px;
+    margin-bottom:10px;
+}
+
+/*=========================
+Input
+=========================*/
+
+.login-input-group{
+    display:flex;
+    align-items:center;
+    border:1px solid #dcdcdc;
+    border-radius:6px;
+    overflow:hidden;
+    background:#fff;
+}
+
+.login-input-group span{
+    width:48px;
+    text-align:center;
+    color:#000000;
+}
+
+.login-input{
+    border:none;
+    box-shadow:none!important;
+    height:50px;
+    font-size:14px;
+}
+
+.login-eye-btn{
+    width:50px;
+    border:none;
+    background:transparent;
+    color:#3B439B;
+}
+
+/*=========================
+Forgot
+=========================*/
+
+.login-forgot{
+    font-size:13px;
+    color:#3B439B;
+    font-weight:500;
+}
+
+.login-forgot:hover{
+    color:#3B439B;
+}
+
+/*=========================
+Checkbox
+=========================*/
+
+.form-check-label{
+    font-size:14px;
+}
+
+.form-check-input{
+    cursor:pointer;
+}
+
+/*=========================
+Button
+=========================*/
+
+.login-main-btn{
+    background:#3B439B;
+    color:#fff;
+    height:52px;
+    font-weight:600;
+    font-size:18px;
+    border-radius:6px;
+    margin-bottom:30px;
+}
+
+.login-main-btn:hover{
+    background:#31398d;
+    color:#fff;
+}
+
+/*=========================
+Divider
+=========================*/
+
+.login-divider{
+    display:flex;
+    align-items:center;
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.login-divider::before,
+.login-divider::after{
+    content:"";
+    flex:1;
+    border-bottom:1px solid #ddd;
+}
+
+.login-divider span{
+    padding:0 15px;
+    color:#777;
+    font-size:14px;
+}
+
+/*=========================
+Social Button
+=========================*/
+
+.login-social-btn{
+    border:1px solid #ddd;
+    background:#fff;
+    color:#222;
+    height:48px;
+    font-size:13px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+}
+
+.login-social-btn:hover{
+    background:#f8f8f8;
+}
+
+.login-social-btn img{
+    width:18px;
+}
+
+.login-social-btn i{
+    font-size:18px;
+}
+
+/*=========================
+Bottom
+=========================*/
+
+.login-bottom-text{
+    text-align:center;
+    margin-top:25px;
+    font-size:14px;
+}
+
+.login-bottom-text a{
+    color:#3B439B;
+    font-weight:600;
+}
+
+/*=========================
+Footer
+=========================*/
+
+
+/*=========================
+Responsive
+=========================*/
+
+@media(max-width:991px){
+
+    .login-form-card{
+        padding:30px;
+    }
+
+    .login-form-title{
+        font-size:34px;
+    }
+
+}
+
+@media(max-width:767px){
+
+    main{
+        padding:40px 0;
+    }
+
+    .login-form-card{
+        padding:25px;
+    }
+
+    .login-form-title{
+        font-size:30px;
+    }
+
+    .login-form-logo{
+        width:150px;
+    }
+
+    .login-main-btn{
+        height:48px;
+    }
+
+}
+
+@media(max-width:576px){
+
+    .login-form-header{
+        padding:15px 0;
+    }
+
+    .login-form-logo{
+        width:135px;
+    }
+
+    .login-form-card{
+        padding:20px;
+    }
+
+    .login-form-title{
+        font-size:26px;
+    }
+
+    .login-form-subtitle{
+        font-size:14px;
+    }
+
+    .login-social-btn{
+        font-size:12px;
+        height:45px;
+        gap:5px;
+    }
+
+    .login-social-btn img{
+        width:16px;
+    }
+
+    .login-main-btn{
+        font-size:16px;
+    }
+
+    .login-bottom-text{
+        font-size:13px;
+    }
+
+}
+
+
+
+
+/*=========================
+Page
+=========================*/
+
+.signup-option-page{
+    padding:20px 0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+}
+
+/*=========================
+Heading
+=========================*/
+
+.signup-option-title{
+    font-size:48px;
+    font-weight:700;
+    color:#111;
+    margin-bottom:15px;
+}
+
+.signup-option-subtitle{
+    font-size:17px;
+    color:#666;
+    line-height:28px;
+}
+
+/*=========================
+Card
+=========================*/
+
+.signup-option-card{
+    background:#fff;
+    border-radius:16px;
+    padding:26px 30px;
+    border:1px solid #ececec;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+    transition:.3s;
+    height:100%;
+}
+
+.signup-option-card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 15px 35px rgba(0,0,0,.12);
+}
+
+/*=========================
+Icon
+=========================*/
+
+.signup-option-icon{
+    width:110px;
+    height:110px;
+    background:#eef2ff;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin:0 auto 30px;
+}
+
+.signup-option-icon img{
+    width:80px;
+}
+
+/*=========================
+Text
+=========================*/
+
+.signup-option-card h3{
+    font-size:30px;
+    font-weight:700;
+    color:#111;
+    margin-bottom:20px;
+    line-height:40px;
+}
+
+.signup-option-line{
+    width:80px;
+    height:3px;
+    background:#3B439B;
+    display:block;
+    margin:0 auto 25px;
+    border-radius:20px;
+}
+
+.signup-option-card p{
+    font-size:15px;
+    color:#666;
+    line-height:28px;
+    margin-bottom:30px;
+}
+
+/*=========================
+Buttons
+=========================*/
+
+.signup-option-btn{
+    background:#3B439B;
+    color:#fff;
+    border-radius:8px;
+    padding:14px;
+    font-weight:600;
+    border:2px solid #3B439B;
+}
+
+.signup-option-btn:hover{
+    background:#31398d;
+    border-color:#31398d;
+    color:#fff;
+}
+
+.signup-option-outline-btn{
+    background:#fff;
+    color:#111;
+    border:2px solid #3B439B;
+    border-radius:8px;
+    padding:14px;
+    font-weight:600;
+}
+
+.signup-option-outline-btn:hover{
+    background:#3B439B;
+    color:#fff;
+}
+
+/*=========================
+Responsive
+=========================*/
+
+@media(max-width:991px){
+
+  
+
+    .signup-option-title{
+        font-size:38px;
+    }
+
+    .signup-option-card{
+        padding:35px 25px;
+    }
+
+    .signup-option-card h3{
+        font-size:24px;
+        line-height:34px;
+    }
+
+}
+
+@media(max-width:767px){
+
+
+    .signup-option-title{
+        font-size:32px;
+        line-height:42px;
+    }
+
+    .signup-option-subtitle{
+        font-size:16px;
+        line-height:26px;
+    }
+
+    .signup-option-card{
+        margin-bottom:20px;
+    }
+
+    .signup-option-icon{
+        width:90px;
+        height:90px;
+    }
+
+    .signup-option-icon img{
+        width:50px;
+    }
+
+}
+
+@media(max-width:576px){
+
+    .signup-option-title{
+        font-size:28px;
+        line-height:36px;
+    }
+
+    .signup-option-subtitle{
+        font-size:15px;
+    }
+
+    .signup-option-card{
+        padding:25px 20px;
+    }
+
+    .signup-option-card h3{
+        font-size:22px;
+        line-height:30px;
+    }
+
+    .signup-option-card p{
+        font-size:14px;
+        line-height:24px;
+    }
+
+    .signup-option-btn,
+    .signup-option-outline-btn{
+        padding:12px;
+        font-size:15px;
+    }
+
+}
+.bg-change{
+    background: #F4FAF4 !important;
+}
+
+
+.join-org-page{
+    padding:80px 0;
+    min-height:100vh;
+}
+
+/*=========================
+Card
+=========================*/
+
+.join-org-card{
+    background:#fff;
+    border:1px solid #e8e8e8;
+    border-radius:12px;
+    padding:40px;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+}
+
+/*=========================
+Heading
+=========================*/
+
+.join-org-title{
+    font-size:36px;
+    font-weight:700;
+    color:#111;
+    margin-bottom:30px;
+}
+
+/*=========================
+Paragraph
+=========================*/
+
+.join-org-card p{
+    font-size:15px;
+    color:#555;
+    line-height:28px;
+    margin-bottom:18px;
+}
+
+/*=========================
+List
+=========================*/
+
+.join-org-list{
+    margin-bottom:20px;
+    padding-left:22px;
+}
+
+.join-org-list li{
+    font-size:15px;
+    color:#555;
+    line-height:28px;
+    margin-bottom:8px;
+}
+
+/*=========================
+Back Button
+=========================*/
+
+.join-org-back{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    color:#3B439B;
+    font-size:15px;
+    font-weight:600;
+    margin-top:10px;
+    text-decoration:none;
+}
+
+.join-org-back:hover{
+    color:#2c3383;
+}
+
+.join-org-back i{
+    font-size:16px;
+}
+
+/*=========================
+Responsive
+=========================*/
+
+@media(max-width:991px){
+
+    .join-org-page{
+        padding:60px 0;
+    }
+
+    .join-org-card{
+        padding:30px;
+    }
+
+    .join-org-title{
+        font-size:30px;
+    }
+
+}
+
+@media(max-width:767px){
+
+    .join-org-page{
+        padding:40px 0;
+    }
+
+    .join-org-card{
+        padding:25px;
+    }
+
+    .join-org-title{
+        font-size:26px;
+        margin-bottom:20px;
+    }
+
+    .join-org-card p,
+    .join-org-list li{
+        font-size:14px;
+        line-height:24px;
+    }
+
+}
+
+@media(max-width:576px){
+
+    .join-org-card{
+        padding:20px;
+    }
+
+    .join-org-title{
+        font-size:22px;
+    }
+
+    .join-org-back{
+        font-size:14px;
+    }
+
+}
+
+
+.join-org-page{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:30px 0;
+}
+
+/*=================================
+Card
+=================================*/
+
+.join-org-card{
+    background:#fff;
+    border-radius:12px;
+    padding:35px 40px;
+    border:1px solid #ececec;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+}
+
+/*=================================
+Heading
+=================================*/
+
+.join-org-title{
+    font-size:34px;
+    font-weight:700;
+    color:#111;
+    margin-bottom:25px;
+}
+
+/*=================================
+Paragraph
+=================================*/
+
+.join-org-card p{
+    font-size:14px;
+    color:#555;
+    line-height:24px;
+    margin-bottom:12px;
+}
+
+/*=================================
+List
+=================================*/
+
+.join-org-list{
+    padding-left:20px;
+    margin-bottom:15px;
+}
+
+.join-org-list li{
+    font-size:14px;
+    color:#555;
+    line-height:24px;
+    margin-bottom:6px;
+}
+
+/*=================================
+Back Button
+=================================*/
+
+.join-org-back{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    color:#3B439B;
+    font-size:14px;
+    font-weight:600;
+    margin-top:10px;
+    transition:.3s;
+}
+
+.join-org-back:hover{
+    color:#2c3383;
+}
+
+.join-org-back i{
+    font-size:15px;
+}
+
+/*=================================
+Responsive
+=================================*/
+
+@media(max-width:991px){
+
+    .join-org-page{
+        padding:25px 0;
+    }
+
+    .join-org-card{
+        padding:30px;
+    }
+
+    .join-org-title{
+        font-size:30px;
+    }
+
+}
+
+@media(max-width:767px){
+
+    .join-org-page{
+        min-height:auto;
+        padding:30px 0;
+        align-items:flex-start;
+    }
+
+    .join-org-card{
+        padding:25px;
+    }
+
+    .join-org-title{
+        font-size:26px;
+        margin-bottom:20px;
+    }
+
+    .join-org-card p,
+    .join-org-list li{
+        font-size:14px;
+        line-height:23px;
+    }
+
+}
+
+@media(max-width:576px){
+
+    .join-org-card{
+        padding:20px;
+        border-radius:10px;
+    }
+
+    .join-org-title{
+        font-size:22px;
+    }
+
+    .join-org-card p,
+    .join-org-list li{
+        font-size:13px;
+        line-height:22px;
+    }
+
+    .join-org-back{
+        font-size:13px;
+    }
+
+}
+
+
+
+
+.create-account-page{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 0;
+}
+
+/*=========================
+Card
+=========================*/
+
+.create-account-card{
+    background:#fff;
+    border:1px solid #ececec;
+    border-radius:14px;
+    padding:35px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+/*=========================
+Heading
+=========================*/
+
+.create-account-step{
+    display:block;
+    color:#3B439B;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:8px;
+}
+
+.create-account-title{
+    font-size:40px;
+    font-weight:700;
+    margin-bottom:10px;
+}
+
+.create-account-subtitle{
+    font-size:15px;
+    color:#666;
+    line-height:24px;
+    max-width:340px;
+    margin:0 auto 30px;
+}
+
+/*=========================
+Progress
+=========================*/
+
+.create-account-progress{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:35px;
+}
+
+.create-progress-item{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    border:2px solid #3B439B;
+    color:#3B439B;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    font-weight:600;
+    background:#fff;
+}
+
+.create-progress-item.active{
+    background:#3B439B;
+    color:#fff;
+}
+
+.create-progress-line{
+    width:45px;
+    height:3px;
+   
+}
+
+/*=========================
+Labels
+=========================*/
+
+.create-account-label{
+    font-size:15px;
+    font-weight:600;
+    margin-bottom:8px;
+}
+
+/*=========================
+Input
+=========================*/
+
+.create-input-group{
+    display:flex;
+    align-items:center;
+    border:1px solid #d8d8d8;
+    border-radius:6px;
+    overflow:hidden;
+    background:#fff;
+}
+
+.create-input-group span{
+    width:45px;
+    text-align:center;
+    color:#777;
+}
+
+.create-account-input{
+    border:none;
+    box-shadow:none!important;
+    height:50px;
+    font-size:14px;
+}
+
+.create-eye-btn{
+    border:none;
+    background:none;
+    width:45px;
+    color:#777;
+}
+
+/*=========================
+Checkbox
+=========================*/
+
+.create-account-check label{
+    font-size:13px;
+    color:#555;
+}
+
+.create-account-check a{
+    color:#3B439B;
+    font-weight:600;
+}
+
+/*=========================
+Button
+=========================*/
+
+.create-account-btn{
+    background:#3B439B;
+    color:#fff;
+    height:52px;
+    border-radius:6px;
+    font-size:17px;
+    font-weight:600;
+    margin-bottom:25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.create-account-btn:hover{
+    background:#31398d;
+    color:#fff;
+}
+
+/*=========================
+Divider
+=========================*/
+
+.create-account-divider{
+    display:flex;
+    align-items:center;
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.create-account-divider::before,
+.create-account-divider::after{
+    content:"";
+    flex:1;
+    border-bottom:1px solid #ddd;
+}
+
+.create-account-divider span{
+    padding:0 15px;
+    color:#777;
+    font-size:14px;
+}
+
+/*=========================
+Social Buttons
+=========================*/
+
+.create-social-btn{
+    border:1px solid #ddd;
+    background:#fff;
+    height:48px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    font-size:13px;
+    color:#222;
+}
+
+.create-social-btn:hover{
+    background:#f8f8f8;
+}
+
+.create-social-btn img{
+    width:18px;
+}
+
+.create-social-btn i{
+    font-size:18px;
+}
+
+/*=========================
+Responsive
+=========================*/
+
+@media(max-width:991px){
+
+    .create-account-card{
+        padding:30px;
+    }
+
+    .create-account-title{
+        font-size:34px;
+    }
+
+}
+
+@media(max-width:767px){
+
+    .create-account-page{
+        padding:30px 0;
+    }
+
+    .create-account-card{
+        padding:25px;
+    }
+
+    .create-account-title{
+        font-size:30px;
+    }
+
+    .create-progress-item{
+        width:28px;
+        height:28px;
+        font-size:13px;
+    }
+
+    .create-progress-line{
+        width:30px;
+    }
+
+}
+
+@media(max-width:576px){
+
+    .create-account-card{
+        padding:20px;
+    }
+
+    .create-account-title{
+        font-size:26px;
+    }
+
+    .create-account-subtitle{
+        font-size:14px;
+        line-height:22px;
+    }
+
+    .create-progress-item{
+        width:26px;
+        height:26px;
+        font-size:12px;
+    }
+
+    .create-progress-line{
+        width:18px;
+    }
+
+    .create-account-btn{
+        height:48px;
+        font-size:16px;
+    }
+
+    .create-social-btn{
+        font-size:11px;
+        gap:5px;
+        height:44px;
+    }
+
+    .create-social-btn img{
+        width:16px;
+    }
+
+}
+
+/*=========================
+Progress
+=========================*/
+
+.create-account-progress{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin:35px 0;
+}
+
+.create-progress-step{
+    width:42px;
+    height:42px;
+    border:1.5px solid #3B5EDB;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#fff;
+    flex-shrink:0;
+}
+
+.create-progress-step span{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:20px;
+    font-weight:700;
+    color:#111;
+    background:#fff;
+}
+
+.create-progress-step.active span{
+    background:#3B5EDB;
+    color:#fff;
+}
+
+.create-progress-arrow{
+    display:flex;
+    align-items:center;
+    width:80px;
+    margin:0 6px;
+}
+
+.create-progress-line{
+    flex:1;
+    border-top:2px dashed #3B5EDB;
+}
+
+.create-progress-arrow i{
+    color:#3B5EDB;
+    font-size:20px;
+    margin-left:-3px;
+}
+
+
+
+
+.verify-email-page{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:30px 0;
+}
+
+/*=========================
+Card
+=========================*/
+
+.verify-email-card{
+    background:#fff;
+    border-radius:14px;
+    border:1px solid #ececec;
+    padding:40px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+/*=========================
+Heading
+=========================*/
+
+.verify-email-step{
+    display:block;
+    color:#3B439B;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:10px;
+}
+
+.verify-email-title{
+    font-size:46px;
+    font-weight:700;
+    margin-bottom:12px;
+}
+
+.verify-email-subtitle{
+    color:#666;
+    font-size:16px;
+    margin-bottom:30px;
+}
+
+/*=========================
+Progress
+=========================*/
+
+.verify-email-progress{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin-bottom:40px;
+}
+
+.verify-step{
+    width:42px;
+    height:42px;
+    border:1.5px solid #3B5EDB;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#fff;
+    flex-shrink:0;
+}
+
+.verify-step span{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:18px;
+    font-weight:700;
+    color:#111;
+}
+
+/* Completed */
+
+.verify-step.completed{
+    border-color:#69c36d;
+}
+
+.verify-step.completed span{
+    background:#69c36d;
+    color:#fff;
+}
+
+/* Active */
+
+.verify-step.active span{
+    background:#3B5EDB;
+    color:#fff;
+}
+
+.verify-progress-arrow{
+    display:flex;
+    align-items:center;
+    width:55px;
+    margin:0 6px;
+}
+
+.verify-progress-line{
+    flex:1;
+    border-top:2px dashed #3B5EDB;
+}
+
+.verify-progress-line.completed{
+    border-color:#69c36d;
+}
+
+.verify-progress-arrow i{
+    color:#3B5EDB;
+    font-size:18px;
+    margin-left:-3px;
+}
+
+.verify-progress-arrow .completed + i{
+    color:#69c36d;
+}
+
+/*=========================
+OTP
+=========================*/
+
+.verify-label{
+    display:block;
+    font-weight:600;
+    margin-bottom:15px;
+    font-size:15px;
+}
+
+.verify-otp-inputs{
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    margin-bottom:35px;
+}
+
+.verify-otp-input{
+    width:55px;
+    height:65px;
+    text-align:center;
+    font-size:22px;
+    font-weight:700;
+    border:1px solid #d9d9d9;
+    border-radius:8px;
+    box-shadow:none!important;
+}
+
+/*=========================
+Resend
+=========================*/
+
+.verify-resend{
+    text-align:center;
+    color:#666;
+    font-size:15px;
+    margin-bottom:35px;
+}
+
+.verify-resend a{
+    color:#111;
+    font-weight:700;
+}
+
+.verify-resend span{
+    color:#666;
+}
+
+/*=========================
+Buttons
+=========================*/
+
+.verify-back-btn{
+    background:#3B439B;
+    color:#fff;
+    height:52px;
+    font-size:18px;
+    font-weight:600;
+    border-radius:8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.verify-back-btn:hover{
+    background:#31398d;
+    color:#fff;
+}
+
+.verify-continue-btn{
+    background:#fff;
+    color:#111;
+    border:2px solid #3B439B;
+    height:52px;
+    font-size:18px;
+    font-weight:600;
+    border-radius:8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.verify-continue-btn:hover{
+    background:#3B439B;
+    color:#fff;
+}
+
+/*=========================
+Responsive
+=========================*/
+
+@media(max-width:991px){
+
+    .verify-email-card{
+        padding:30px;
+    }
+
+    .verify-email-title{
+        font-size:38px;
+    }
+
+}
+
+@media(max-width:767px){
+
+    .verify-email-page{
+        padding:25px 0;
+    }
+
+    .verify-email-card{
+        padding:25px;
+    }
+
+    .verify-email-title{
+        font-size:32px;
+    }
+
+    .verify-progress-arrow{
+        width:35px;
+        margin:0 3px;
+    }
+
+    .verify-step{
+        width:36px;
+        height:36px;
+    }
+
+    .verify-step span{
+        width:28px;
+        height:28px;
+        font-size:15px;
+    }
+
+    .verify-otp-input{
+        width:45px;
+        height:55px;
+        font-size:18px;
+    }
+
+}
+
+@media(max-width:576px){
+
+    .verify-email-card{
+        padding:20px;
+    }
+
+    .verify-email-title{
+        font-size:26px;
+    }
+
+    .verify-email-subtitle{
+        font-size:14px;
+    }
+
+    .verify-progress-arrow{
+        width:20px;
+    }
+
+    .verify-progress-arrow i{
+        font-size:14px;
+    }
+
+    .verify-step{
+        width:30px;
+        height:30px;
+    }
+
+    .verify-step span{
+        width:22px;
+        height:22px;
+        font-size:12px;
+    }
+
+    .verify-otp-inputs{
+        gap:8px;
+    }
+
+    .verify-otp-input{
+        width:38px;
+        height:48px;
+        font-size:16px;
+    }
+
+    .verify-back-btn,
+    .verify-continue-btn{
+        height:46px;
+        font-size:16px;
+    }
+
+    .verify-resend{
+        font-size:13px;
+    }
+
+}
+
+
+.org-details-page{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:30px 0;
+}
+
+/*=========================
+Card
+=========================*/
+
+.org-details-card{
+    background:#fff;
+    border:1px solid #ececec;
+    border-radius:14px;
+    padding:35px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+/*=========================
+Heading
+=========================*/
+
+.org-details-step{
+    display:block;
+    color:#3B439B;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:8px;
+}
+
+.org-details-title{
+    font-size:40px;
+    font-weight:700;
+    margin-bottom:10px;
+}
+
+.org-details-subtitle{
+    font-size:15px;
+    color:#666;
+    margin-bottom:30px;
+}
+
+/*=========================
+Progress
+=========================*/
+
+.verify-email-progress{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin:30px 0 35px;
+}
+
+.verify-step{
+    width:42px;
+    height:42px;
+    border:1.5px solid #3B5EDB;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#fff;
+    flex-shrink:0;
+}
+
+.verify-step span{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:18px;
+    font-weight:700;
+    color:#111;
+}
+
+/* Completed */
+
+.verify-step.completed{
+    border-color:#69c36d;
+}
+
+.verify-step.completed span{
+    background:#69c36d;
+    color:#fff;
+}
+
+/* Active */
+
+.verify-step.active span{
+    background:#3B5EDB;
+    color:#fff;
+}
+
+.verify-progress-arrow{
+    display:flex;
+    align-items:center;
+    width:55px;
+    margin:0 6px;
+}
+
+.verify-progress-line{
+    flex:1;
+    border-top:2px dashed #3B5EDB;
+}
+
+.verify-progress-line.completed{
+    border-color:#69c36d;
+}
+
+.verify-progress-arrow i{
+    color:#3B5EDB;
+    font-size:18px;
+    margin-left:-3px;
+}
+
+/*=========================
+Labels
+=========================*/
+
+.org-details-label{
+    font-size:15px;
+    font-weight:600;
+    margin-bottom:8px;
+}
+
+/*=========================
+Input & Select
+=========================*/
+
+.org-details-input-group{
+    display:flex;
+    align-items:center;
+    border:1px solid #d8d8d8;
+    border-radius:8px;
+    overflow:hidden;
+    background:#fff;
+    transition:.3s;
+}
+
+.org-details-input-group:focus-within{
+    border-color:#3B439B;
+    box-shadow:0 0 0 3px rgba(59,67,155,.08);
+}
+
+.org-details-input-group span{
+    width:48px;
+    text-align:center;
+    color:#666;
+}
+
+.org-details-input{
+    border:none;
+    box-shadow:none!important;
+    height:52px;
+    font-size:14px;
+}
+
+.org-details-select{
+    border:none!important;
+    box-shadow:none!important;
+    height:52px;
+    font-size:14px;
+    cursor:pointer;
+    background-color:#fff;
+}
+
+.org-details-select option{
+    padding:10px;
+}
+
+/*=========================
+Buttons
+=========================*/
+
+.org-details-back-btn{
+    background:#3B439B;
+    color:#fff;
+    height:52px;
+    border-radius:8px;
+    font-size:18px;
+    font-weight:600;
+    border:none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.org-details-back-btn:hover{
+    background:#31398d;
+    color:#fff;
+}
+
+.org-details-continue-btn{
+    background:#fff;
+    color:#111;
+    border:2px solid #3B439B;
+    height:52px;
+    border-radius:8px;
+    font-size:18px;
+    font-weight:600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.org-details-continue-btn:hover{
+    background:#3B439B;
+    color:#fff;
+}
+
+/*=========================
+Bottom
+=========================*/
+
+.org-details-bottom{
+    text-align:center;
+    margin-top:20px;
+    font-size:13px;
+    color:#666;
+}
+
+.org-details-bottom strong{
+    color:#3B439B;
+    font-weight:600;
+}
+
+/*=========================
+Responsive
+=========================*/
+
+@media(max-width:991px){
+
+    .org-details-card{
+        padding:30px;
+    }
+
+    .org-details-title{
+        font-size:34px;
+    }
+
+}
+
+@media(max-width:767px){
+
+    .org-details-page{
+        padding:25px 0;
+    }
+
+    .org-details-card{
+        padding:25px;
+    }
+
+    .org-details-title{
+        font-size:30px;
+    }
+
+    .verify-step{
+        width:36px;
+        height:36px;
+    }
+
+    .verify-step span{
+        width:28px;
+        height:28px;
+        font-size:15px;
+    }
+
+    .verify-progress-arrow{
+        width:35px;
+        margin:0 3px;
+    }
+
+}
+
+@media(max-width:576px){
+
+    .org-details-card{
+        padding:20px;
+    }
+
+    .org-details-title{
+        font-size:24px;
+    }
+
+    .org-details-subtitle{
+        font-size:14px;
+    }
+
+    .verify-step{
+        width:30px;
+        height:30px;
+    }
+
+    .verify-step span{
+        width:22px;
+        height:22px;
+        font-size:12px;
+    }
+
+    .verify-progress-arrow{
+        width:20px;
+        margin:0 2px;
+    }
+
+    .verify-progress-arrow i{
+        font-size:14px;
+    }
+
+    .org-details-input,
+    .org-details-select{
+        height:48px;
+        font-size:13px;
+    }
+
+    .org-details-back-btn,
+    .org-details-continue-btn{
+        height:46px;
+        font-size:16px;
+    }
+
+    .org-details-bottom{
+        font-size:12px;
+    }
+
+}
+
+
+/*=========================
+Page
+=========================*/
+
+.welcome-step-page{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:30px 0;
+}
+
+/*=========================
+Card
+=========================*/
+
+.welcome-step-card{
+    background:#fff;
+    border:1px solid #ececec;
+    border-radius:16px;
+    padding:40px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+/*=========================
+Heading
+=========================*/
+
+.welcome-step-number{
+    display:block;
+    color:#3B439B;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:8px;
+}
+
+.welcome-step-title{
+    font-size:42px;
+    font-weight:700;
+    margin-bottom:15px;
+}
+
+.welcome-step-subtitle{
+    color:#666;
+    font-size:16px;
+    line-height:26px;
+    margin-bottom:35px;
+}
+
+/*=========================
+Progress
+=========================*/
+
+.verify-email-progress{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin-bottom:40px;
+}
+
+.verify-step{
+    width:42px;
+    height:42px;
+    border:1.5px solid #3B5EDB;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#fff;
+    flex-shrink:0;
+}
+
+.verify-step span{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:18px;
+    font-weight:700;
+    color:#111;
+}
+
+/* Completed */
+
+.verify-step.completed{
+    border-color:#67C15A;
+}
+
+.verify-step.completed span{
+    background:#67C15A;
+    color:#fff;
+}
+
+/* Active */
+
+.verify-step.active span{
+    background:#3B439B;
+    color:#fff;
+}
+
+.verify-progress-arrow{
+    display:flex;
+    align-items:center;
+    width:55px;
+    margin:0 6px;
+}
+
+.verify-progress-line{
+    flex:1;
+    border-top:2px dashed #3B5EDB;
+}
+
+.verify-progress-line.completed{
+    border-color:#67C15A;
+}
+
+.verify-progress-arrow i{
+    color:#3B5EDB;
+    font-size:18px;
+    margin-left:-3px;
+}
+
+/*=========================
+Info Cards
+=========================*/
+
+.welcome-info-card{
+    background:#fff;
+    border:1px solid #ececec;
+    border-radius:14px;
+    padding:18px;
+    display:flex;
+    align-items:flex-start;
+    gap:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    transition:.3s;
+    height:100%;
+}
+
+.welcome-info-card:hover{
+    transform:translateY(-5px);
+}
+
+.welcome-icon{
+    width:60px;
+    height:60px;
+    background:#EEF8EC;
+    border-radius:12px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-shrink:0;
+}
+
+.welcome-icon i{
+    font-size:34px;
+    color:#58AF43;
+}
+
+.welcome-info-card h5{
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:10px;
+}
+
+.welcome-info-card p{
+    font-size:14px;
+    color:#666;
+    line-height:24px;
+    margin:0;
+}
+
+/*=========================
+Button
+=========================*/
+
+.welcome-dashboard-btn{
+    height:58px;
+    background:#fff;
+    border:2px solid #3B439B;
+    color:#111;
+    font-size:22px;
+    font-weight:700;
+    border-radius:10px;
+    transition:.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.welcome-dashboard-btn:hover{
+    background:#3B439B;
+    color:#fff;
+}
+
+/*=========================
+Responsive
+=========================*/
+
+@media(max-width:991px){
+
+    .welcome-step-card{
+        padding:30px;
+    }
+
+    .welcome-step-title{
+        font-size:36px;
+    }
+
+}
+
+@media(max-width:767px){
+
+    .welcome-step-page{
+        padding:25px 0;
+    }
+
+    .welcome-step-card{
+        padding:25px;
+    }
+
+    .welcome-step-title{
+        font-size:30px;
+    }
+
+    .welcome-step-subtitle{
+        font-size:15px;
+    }
+
+    .welcome-info-card{
+        margin-bottom:15px;
+    }
+
+    .verify-step{
+        width:36px;
+        height:36px;
+    }
+
+    .verify-step span{
+        width:28px;
+        height:28px;
+        font-size:15px;
+    }
+
+    .verify-progress-arrow{
+        width:35px;
+        margin:0 3px;
+    }
+
+}
+
+@media(max-width:576px){
+
+    .welcome-step-card{
+        padding:20px;
+    }
+
+    .welcome-step-title{
+        font-size:26px;
+    }
+
+    .welcome-step-subtitle{
+        font-size:14px;
+        line-height:22px;
+    }
+
+    .verify-step{
+        width:30px;
+        height:30px;
+    }
+
+    .verify-step span{
+        width:22px;
+        height:22px;
+        font-size:12px;
+    }
+
+    .verify-progress-arrow{
+        width:20px;
+        margin:0 2px;
+    }
+
+    .verify-progress-arrow i{
+        font-size:14px;
+    }
+
+    .welcome-info-card{
+        flex-direction:column;
+        text-align:center;
+        align-items:center;
+    }
+
+    .welcome-info-card h5{
+        font-size:18px;
+    }
+
+    .welcome-info-card p{
+        font-size:13px;
+        line-height:22px;
+    }
+
+    .welcome-dashboard-btn{
+        height:50px;
+        font-size:18px;
+    }
+
+}

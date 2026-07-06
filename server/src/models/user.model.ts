@@ -40,7 +40,6 @@ const UserSchema = new Schema<IUser>(
 
         tenantId: {
             type: String,
-            required: true,
         },
 
         department: {
