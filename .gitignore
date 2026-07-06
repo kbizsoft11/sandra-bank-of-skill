@@ -37,3 +37,6 @@ client/dist/
 
 # Express generated
 server/dist/
+
+server/dist.zip/
+server/src.zip/
