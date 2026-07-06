@@ -78,16 +78,6 @@ jobs:
           name: client-dist
           path: client/dist
 
-          - name: Rename index.csr.html to index.html
-  run: |
-    if [ -f client/index.csr.html ]; then
-      mv client/index.csr.html client/index.html
-      echo "Renamed index.csr.html to index.html"
-    else
-      echo "index.csr.html not found"
-      find client -type f
-    fi
-
       - name: Download server build
         uses: actions/download-artifact@v4
         with:
