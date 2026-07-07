@@ -29,6 +29,7 @@ export const userRepository = {
 
   },
 
+
   update: async (
     id: string,
     payload: Partial<IUser>

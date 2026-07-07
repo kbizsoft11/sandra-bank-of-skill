@@ -66,7 +66,7 @@
 
             <!-- Form -->
 
-            <form>
+            <form [formGroup]="organisationForm" (ngSubmit)="onSubmit()">
 
                 <!-- Organisation -->
 
@@ -83,7 +83,7 @@
                         </span>
 
                         <input type="text" class="form-control org-details-input"
-                            placeholder="Enter your organisation name">
+                            placeholder="Enter your organisation name" formControlName="organisationName">
 
                     </div>
 
@@ -103,7 +103,7 @@
                             <i class="bi bi-briefcase"></i>
                         </span>
 
-                        <select class="form-select org-details-select">
+                        <select class="form-select org-details-select" formControlName="industry">
 
                             <option selected disabled>Select your industry</option>
 
@@ -139,18 +139,18 @@
                             <i class="bi bi-people"></i>
                         </span>
 
-                        <select class="form-select org-details-select">
+                        <select class="form-select org-details-select" formControlName="teamSize">
 
-                            <option selected disabled>Select team size</option>
+                            <option selected disabled value="">Select team size</option>
 
-                            <option>1 - 10 Employees</option>
-                            <option>11 - 25 Employees</option>
-                            <option>26 - 50 Employees</option>
-                            <option>51 - 100 Employees</option>
-                            <option>101 - 250 Employees</option>
-                            <option>251 - 500 Employees</option>
-                            <option>500 - 1000 Employees</option>
-                            <option>1000+ Employees</option>
+                            <option value="1-10">1 - 10 Employees</option>
+                            <option value="11-25">11 - 25 Employees</option>
+                            <option value="26-50">26 - 50 Employees</option>
+                            <option value="51-100">51 - 100 Employees</option>
+                            <option value="101-250">101 - 250 Employees</option>
+                            <option value="251-500">251 - 500 Employees</option>
+                            <option value="500-1000">500 - 1000 Employees</option>
+                            <option value="1000+">1000+ Employees</option>
 
                         </select>
 
@@ -172,7 +172,7 @@
                             <i class="bi bi-globe"></i>
                         </span>
 
-                        <select class="form-select org-details-select">
+                        <select class="form-select org-details-select" formControlName="country">
 
                             <option selected disabled>Select your country</option>
 
@@ -193,23 +193,26 @@
 
                 </div>
 
-                <!-- Buttons -->
-
-                <div class="row g-3">
-
-                    <div class="col-6">
-                        <a href="e-mail-verify.html" class="btn org-details-back-btn w-100">
-                            Back
-                        </a>
+                <!-- Error Message -->
+                @if (errorMessage) {
+                    <div class="alert alert-danger" role="alert">
+                        {{ errorMessage }}
                     </div>
+                }
 
-                    <div class="col-6">
-                        <a routerLink="/auth/setup-complete" class="btn org-details-continue-btn w-100">
-                            Continue
-                        </a>
-                    </div>
+                <!-- Continue Button -->
 
-                </div>
+                <button 
+                    type="submit" 
+                    class="btn org-details-continue-btn w-100"
+                    [disabled]="isLoading || organisationForm.invalid">
+                    @if (isLoading) {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Saving...
+                    } @else {
+                        Continue
+                    }
+                </button>
 
                 <!-- Bottom -->
 

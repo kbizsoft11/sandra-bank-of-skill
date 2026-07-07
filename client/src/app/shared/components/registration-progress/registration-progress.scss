@@ -1,0 +1,121 @@
+.registration-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 2rem 0;
+  padding: 0 1rem;
+
+  .progress-step {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    border: 2px solid #e5e7eb;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
+
+    .step-number {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #9ca3af;
+      transition: all 0.3s ease;
+    }
+
+    // Pending state (default)
+    &.pending {
+      background: #f3f4f6;
+      border-color: #e5e7eb;
+
+      .step-number {
+        color: #9ca3af;
+      }
+    }
+
+    // Active state
+    &.active {
+      background: #4F46E5;
+      border-color: #4F46E5;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+
+      .step-number {
+        color: #ffffff;
+      }
+    }
+
+    // Completed state
+    &.completed {
+      background: #10b981;
+      border-color: #10b981;
+
+      .step-number {
+        color: #ffffff;
+        
+        i {
+          font-size: 1.5rem;
+        }
+      }
+    }
+
+    @media (max-width: 576px) {
+      width: 40px;
+      height: 40px;
+
+      .step-number {
+        font-size: 1rem;
+      }
+    }
+  }
+
+  .progress-arrow {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding: 0 0.5rem;
+
+    .progress-line {
+      width: 40px;
+      height: 2px;
+      background: #e5e7eb;
+      transition: all 0.3s ease;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+
+      &.completed {
+        background: #10b981;
+      }
+
+      @media (max-width: 576px) {
+        width: 30px;
+      }
+    }
+
+    i {
+      font-size: 1rem;
+      color: #e5e7eb;
+      position: relative;
+      z-index: 2;
+      background: #ffffff;
+      padding: 0 2px;
+    }
+
+    @media (max-width: 576px) {
+      padding: 0 0.25rem;
+
+      i {
+        font-size: 0.875rem;
+      }
+    }
+  }
+
+  @media (max-width: 576px) {
+    gap: 0;
+    margin: 1.5rem 0;
+  }
+}

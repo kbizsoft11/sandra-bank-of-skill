@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
+import { JwtUserPayload } from '../types/jwt-payload.types';
 
 export const generateToken = (
   payload: Record<string, unknown>
@@ -11,4 +12,11 @@ export const generateToken = (
       expiresIn: env.JWT_EXPIRES_IN,
     }
   );
+};
+
+export const verifyToken = (token: string): JwtUserPayload => {
+  return jwt.verify(
+    token,
+    env.JWT_SECRET!
+  ) as JwtUserPayload;
 };

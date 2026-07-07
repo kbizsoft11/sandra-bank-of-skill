@@ -1,0 +1,30 @@
+<div class="registration-progress">
+  @for (step of steps; track step; let isLast = $last) {
+    <!-- Step Circle -->
+    <div 
+      class="progress-step"
+      [class.completed]="isStepCompleted(step)"
+      [class.active]="isStepActive(step)"
+      [class.pending]="isStepPending(step)"
+    >
+      <span class="step-number">
+        @if (isStepCompleted(step)) {
+          <i class="bi bi-check"></i>
+        } @else {
+          {{ step }}
+        }
+      </span>
+    </div>
+
+    <!-- Arrow (not shown after last step) -->
+    @if (!isLast) {
+      <div class="progress-arrow">
+        <span 
+          class="progress-line"
+          [class.completed]="isStepCompleted(step)"
+        ></span>
+        <i class="bi bi-chevron-right"></i>
+      </div>
+    }
+  }
+</div>

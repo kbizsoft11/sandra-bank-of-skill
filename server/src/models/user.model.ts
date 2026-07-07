@@ -23,6 +23,12 @@ const UserSchema = new Schema<IUser>(
             trim: true,
         },
 
+        phone: {
+            type: String,
+            required: false,
+            trim: true,
+        },
+
         password: {
             type: String,
             required: true,
@@ -42,6 +48,10 @@ const UserSchema = new Schema<IUser>(
             type: String,
         },
 
+        organisationId: {
+            type: String,
+        },
+
         department: {
             type: String,
         },
@@ -53,6 +63,29 @@ const UserSchema = new Schema<IUser>(
         profileCompleted: {
             type: Boolean,
             default: false,
+        },
+
+        emailVerified: {
+            type: Boolean,
+            default: false,
+        },
+
+        verificationCode: {
+            type: String,
+        },
+
+        verificationCodeExpiresAt: {
+            type: Date,
+        },
+
+        onboardingStatus: {
+            type: String,
+            enum: [
+                'registered',
+                'email_verified',
+                'completed'
+            ],
+            default: 'registered',
         },
 
         isActive: {

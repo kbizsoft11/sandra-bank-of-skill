@@ -88,6 +88,21 @@ export class AuthService {
 
     }
 
+    setSession(token: string): void {
+
+        this.token.set(
+            token
+        );
+
+        this.storage.setItem(
+            'accessToken',
+            token
+        );
+
+        this.loadCurrentUser();
+
+    }
+
     getCurrentUser(): Observable<ApiResponse<AuthUser>> {
 
         return this.http

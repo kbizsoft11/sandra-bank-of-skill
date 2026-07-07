@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { stepRedirectorGuard } from '../core/guards/step-rememberer.guard';
 
 export const authRoutes: Routes = [
     {
@@ -21,23 +22,32 @@ export const authRoutes: Routes = [
         loadComponent: () => import('../features/auth/login/login').then(c => c.Login)
     },
 
+    // Registration Flow with Step Rememberer
     {
         path: 'register',
-        loadComponent: () => import('../features/auth/register/register').then(c => c.Register)
+        loadComponent: () => import('../features/auth/register/register').then(c => c.Register),
+        canActivate: [stepRedirectorGuard],
+        data: { step: 1 }
     },
 
     {
         path: 'verify-email',
-        loadComponent: () => import('../features/auth/verify-email/verify-email').then(c => c.VerifyEmail)
+        loadComponent: () => import('../features/auth/verify-email/verify-email').then(c => c.VerifyEmail),
+        canActivate: [stepRedirectorGuard],
+        data: { step: 2 }
     },
 
     {
         path: 'organisation-details',
-        loadComponent: () => import('../features/auth/organisation-details/organisation-details').then(c => c.OrganisationDetails)
+        loadComponent: () => import('../features/auth/organisation-details/organisation-details').then(c => c.OrganisationDetails),
+        canActivate: [stepRedirectorGuard],
+        data: { step: 3 }
     },
 
     {
         path: 'setup-complete',
-        loadComponent: () => import('../features/auth/setup-complete/setup-complete').then(c => c.SetupComplete)
+        loadComponent: () => import('../features/auth/setup-complete/setup-complete').then(c => c.SetupComplete),
+        canActivate: [stepRedirectorGuard],
+        data: { step: 4 }
     }
 ];

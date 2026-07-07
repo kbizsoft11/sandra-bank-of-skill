@@ -1,14 +1,42 @@
 import { Router } from 'express';
 
-import { register, getMe, login } from '../controllers/auth.controller';
+import { 
+  register, 
+  getMe, 
+  login,
+  registerStep1,
+  verifyOTP,
+  registerStep3,
+  completeRegistration,
+  resendOTP
+} from '../controllers/auth.controller';
+
 import { validate } from '../middlewares/validate.middleware';
 
-import { loginSchema, registerSchema } from '../validators/auth.validator';
+import { 
+  loginSchema, 
+  registerSchema,
+  registerStep1Schema,
+  verifyOTPSchema,
+  registerStep3Schema,
+  resendOTPSchema
+} from '../validators/auth.validator';
+
 import { authenticate } from '../middlewares/auth.middleware';
 
 const router = Router();
 
+// Legacy registration route (keep for backward compatibility)
 router.post('/register', validate(registerSchema), register);
+
+// Multi-step registration routes
+router.post('/register/step1', validate(registerStep1Schema), registerStep1);
+router.post('/register/verify-otp', validate(verifyOTPSchema), verifyOTP);
+router.post('/register/step3', authenticate, validate(registerStep3Schema), registerStep3);
+router.post('/register/complete', authenticate, completeRegistration);
+router.post('/register/resend-otp', validate(resendOTPSchema), resendOTP);
+
+// Authentication routes
 router.get('/me', authenticate, getMe);
 router.post('/login', validate(loginSchema), login);
 

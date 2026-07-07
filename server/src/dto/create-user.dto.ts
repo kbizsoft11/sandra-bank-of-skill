@@ -1,4 +1,4 @@
-import { UserRole } from "../types/common.types";
+import { OnboardingStatus, UserRole } from "../types/common.types";
 
 export interface CreateUserDto {
 
@@ -7,6 +7,8 @@ export interface CreateUserDto {
   lastName?: string;
 
   email: string;
+
+  phone?: string;
 
   password: string;
 
@@ -17,5 +19,13 @@ export interface CreateUserDto {
   profileCompleted?: boolean;
 
   isActive?: boolean;
+
+  emailVerified?: boolean;
+
+  verificationCode?: string;
+
+  verificationCodeExpiresAt?: Date;
+
+  onboardingStatus?: OnboardingStatus;
 
 }

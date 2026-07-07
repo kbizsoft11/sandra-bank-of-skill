@@ -17,10 +17,17 @@
                 </h2>
 
                 <p class="verify-email-subtitle">
-                    We've Sent A 6-Digit Verification Code To
+                    We've Sent A 6-Digit Verification Code To <strong>{{ maskedEmail }}</strong>
                 </p>
 
             </div>
+
+            <!-- Error Message -->
+            @if (errorMessage) {
+                <div class="alert alert-danger" role="alert">
+                    {{ errorMessage }}
+                </div>
+            }
 
             <!-- Progress -->
 
@@ -66,54 +73,100 @@
 
             <!-- OTP -->
 
-            <div class="verify-otp-section">
+            <form [formGroup]="otpForm" (ngSubmit)="onSubmit()">
 
-                <label class="verify-label">
-                    Verification Code
-                </label>
+                <div class="verify-otp-section">
 
-                <div class="verify-otp-inputs">
+                    <label class="verify-label">
+                        Verification Code
+                    </label>
 
-                    <input type="text" maxlength="1" class="form-control verify-otp-input">
-                    <input type="text" maxlength="1" class="form-control verify-otp-input">
-                    <input type="text" maxlength="1" class="form-control verify-otp-input">
-                    <input type="text" maxlength="1" class="form-control verify-otp-input">
-                    <input type="text" maxlength="1" class="form-control verify-otp-input">
-                    <input type="text" maxlength="1" class="form-control verify-otp-input">
+                    <div class="verify-otp-inputs">
+
+                        <input 
+                            type="text" 
+                            maxlength="1" 
+                            class="form-control verify-otp-input"
+                            formControlName="digit1"
+                            (input)="onOtpInput($event, 0)"
+                            (keydown)="onOtpKeyDown($event, 0)"
+                            (paste)="onOtpPaste($event)"
+                            #otpInput>
+                        <input 
+                            type="text" 
+                            maxlength="1" 
+                            class="form-control verify-otp-input"
+                            formControlName="digit2"
+                            (input)="onOtpInput($event, 1)"
+                            (keydown)="onOtpKeyDown($event, 1)"
+                            #otpInput>
+                        <input 
+                            type="text" 
+                            maxlength="1" 
+                            class="form-control verify-otp-input"
+                            formControlName="digit3"
+                            (input)="onOtpInput($event, 2)"
+                            (keydown)="onOtpKeyDown($event, 2)"
+                            #otpInput>
+                        <input 
+                            type="text" 
+                            maxlength="1" 
+                            class="form-control verify-otp-input"
+                            formControlName="digit4"
+                            (input)="onOtpInput($event, 3)"
+                            (keydown)="onOtpKeyDown($event, 3)"
+                            #otpInput>
+                        <input 
+                            type="text" 
+                            maxlength="1" 
+                            class="form-control verify-otp-input"
+                            formControlName="digit5"
+                            (input)="onOtpInput($event, 4)"
+                            (keydown)="onOtpKeyDown($event, 4)"
+                            #otpInput>
+                        <input 
+                            type="text" 
+                            maxlength="1" 
+                            class="form-control verify-otp-input"
+                            formControlName="digit6"
+                            (input)="onOtpInput($event, 5)"
+                            (keydown)="onOtpKeyDown($event, 5)"
+                            #otpInput>
+
+                    </div>
 
                 </div>
 
-            </div>
+                <!-- Resend -->
 
-            <!-- Resend -->
+                <p class="verify-resend">
 
-            <p class="verify-resend">
+                    Didn't receive the code?
 
-                Didn't receive the code?
+                    @if (canResend) {
+                        <a href="javascript:void(0)" (click)="onResendOtp()">Resend Code</a>
+                    } @else {
+                        <span class="text-muted">Resend Code</span>
+                        <span>in {{ formattedCountdown }}</span>
+                    }
 
-                <a href="#">Resend Code</a>
+                </p>
 
-                <span>in 00:30</span>
+                <!-- Continue Button -->
 
-            </p>
-
-            <!-- Buttons -->
-
-            <div class="row g-3">
-
-                <div class="col-6">
-                    <a href="sign-up.html" class="btn verify-back-btn w-100">
-                        Back
-                    </a>
-                </div>
-
-                <div class="col-6">
-                    <a routerLink="/auth/organisation-details" class="btn verify-continue-btn w-100">
+                <button 
+                    type="submit" 
+                    class="btn verify-continue-btn w-100"
+                    [disabled]="isLoading || otpForm.invalid">
+                    @if (isLoading) {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Verifying...
+                    } @else {
                         Continue
-                    </a>
-                </div>
+                    }
+                </button>
 
-            </div>
+            </form>
 
         </div>
 

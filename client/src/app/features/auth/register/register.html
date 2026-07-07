@@ -56,13 +56,18 @@
                 <div class="create-progress-step">
                     <span>4</span>
                 </div>
-
-
-
             </div>
+
+            <!-- ✅ Error Message – now a signal -->
+            @if (errorMessage()) {
+                <div class="alert alert-danger" role="alert">
+                    {{ errorMessage() }}
+                </div>
+            }
+
             <!-- Form -->
 
-            <form>
+            <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
 
                 <!-- Full Name -->
 
@@ -78,9 +83,21 @@
                             <i class="bi bi-person"></i>
                         </span>
 
-                        <input type="text" class="form-control create-account-input" placeholder="Enter your full name">
+                        <input 
+                            type="text" 
+                            class="form-control create-account-input" 
+                            [class.is-invalid]="hasError('fullName')"
+                            formControlName="fullName"
+                            placeholder="Enter your full name">
 
                     </div>
+
+                    @if (hasError('fullName', 'required')) {
+                        <small class="text-danger">Full name is required</small>
+                    }
+                    @if (hasError('fullName', 'fullName')) {
+                        <small class="text-danger">Please enter your full name</small>
+                    }
 
                 </div>
 
@@ -98,10 +115,21 @@
                             <i class="bi bi-envelope"></i>
                         </span>
 
-                        <input type="email" class="form-control create-account-input"
+                        <input 
+                            type="email" 
+                            class="form-control create-account-input"
+                            [class.is-invalid]="hasError('email')"
+                            formControlName="email"
                             placeholder="Enter your email address">
 
                     </div>
+
+                    @if (hasError('email', 'required')) {
+                        <small class="text-danger">Email is required</small>
+                    }
+                    @if (hasError('email', 'email')) {
+                        <small class="text-danger">Please enter a valid email address</small>
+                    }
 
                 </div>
 
@@ -119,10 +147,21 @@
                             <i class="bi bi-telephone"></i>
                         </span>
 
-                        <input type="tel" class="form-control create-account-input"
+                        <input 
+                            type="tel" 
+                            class="form-control create-account-input"
+                            [class.is-invalid]="hasError('phone')"
+                            formControlName="phone"
                             placeholder="Enter your phone number">
 
                     </div>
+
+                    @if (hasError('phone', 'required')) {
+                        <small class="text-danger">Phone number is required</small>
+                    }
+                    @if (hasError('phone', 'phoneFormat')) {
+                        <small class="text-danger">Please enter a valid phone number (e.g., +1234567890)</small>
+                    }
 
                 </div>
 
@@ -140,14 +179,45 @@
                             <i class="bi bi-lock"></i>
                         </span>
 
-                        <input type="password" class="form-control create-account-input"
+                        <input 
+                            [type]="showPassword ? 'text' : 'password'" 
+                            class="form-control create-account-input"
+                            [class.is-invalid]="hasError('password')"
+                            formControlName="password"
                             placeholder="Create your password">
 
-                        <button type="button" class="create-eye-btn">
-                            <i class="bi bi-eye"></i>
+                        <button 
+                            type="button" 
+                            class="create-eye-btn"
+                            (click)="togglePasswordVisibility('password')">
+                            <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
                         </button>
 
                     </div>
+
+                    @if (hasError('password', 'required')) {
+                        <small class="text-danger">Password is required</small>
+                    }
+                    @if (hasError('password', 'passwordStrength')) {
+                        <small class="text-danger d-block">Password must contain:</small>
+                        @if (getPasswordErrors(); as errors) {
+                            @if (!errors.hasMinLength) {
+                                <small class="text-danger d-block">• At least 8 characters</small>
+                            }
+                            @if (!errors.hasUpperCase) {
+                                <small class="text-danger d-block">• One uppercase letter</small>
+                            }
+                            @if (!errors.hasLowerCase) {
+                                <small class="text-danger d-block">• One lowercase letter</small>
+                            }
+                            @if (!errors.hasNumeric) {
+                                <small class="text-danger d-block">• One number</small>
+                            }
+                            <!-- @if (!errors.hasSpecialChar) {
+                                <small class="text-danger d-block">• One special character (@$!%*?&#)</small>
+                            } -->
+                        }
+                    }
 
                 </div>
 
@@ -165,14 +235,28 @@
                             <i class="bi bi-lock"></i>
                         </span>
 
-                        <input type="password" class="form-control create-account-input"
+                        <input 
+                            [type]="showConfirmPassword ? 'text' : 'password'" 
+                            class="form-control create-account-input"
+                            [class.is-invalid]="hasError('confirmPassword')"
+                            formControlName="confirmPassword"
                             placeholder="Confirm your password">
 
-                        <button type="button" class="create-eye-btn">
-                            <i class="bi bi-eye"></i>
+                        <button 
+                            type="button" 
+                            class="create-eye-btn"
+                            (click)="togglePasswordVisibility('confirmPassword')">
+                            <i class="bi" [class.bi-eye]="!showConfirmPassword" [class.bi-eye-slash]="showConfirmPassword"></i>
                         </button>
 
                     </div>
+
+                    @if (hasError('confirmPassword', 'required')) {
+                        <small class="text-danger">Please confirm your password</small>
+                    }
+                    @if (hasError('confirmPassword', 'passwordMismatch')) {
+                        <small class="text-danger">Passwords do not match</small>
+                    }
 
                 </div>
 
@@ -180,7 +264,11 @@
 
                 <div class="form-check create-account-check mb-4">
 
-                    <input class="form-check-input" type="checkbox" id="terms">
+                    <input 
+                        class="form-check-input" 
+                        type="checkbox" 
+                        id="terms"
+                        formControlName="termsAccepted">
 
                     <label class="form-check-label" for="terms">
 
@@ -191,13 +279,34 @@
 
                     </label>
 
+                    @if (hasError('termsAccepted', 'required')) {
+                        <div>
+                            <small class="text-danger">You must accept the terms and conditions</small>
+                        </div>
+                    }
+
                 </div>
 
-                <!-- Continue -->
+                <!-- ✅ Registered email warning – now a signal -->
+                @if (registeredEmailWarning()) {
+                    <div class="alert alert-warning" role="alert">
+                        {{ registeredEmailWarning() }}
+                        <a routerLink="/auth/login" class="alert-link">Login instead</a>.
+                    </div>
+                }
 
-                <a routerLink="/auth/verify-email" class="btn create-account-btn w-100">
-                    Continue
-                </a>
+                <!-- Continue -->
+                <button 
+                    type="submit" 
+                    class="btn create-account-btn w-100"
+                    [disabled]="isLoading()">
+                    @if (isLoading()) {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Processing...
+                    } @else {
+                        Continue
+                    }
+                </button>
 
                 <!-- Divider -->
 
