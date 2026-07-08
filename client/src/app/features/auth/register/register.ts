@@ -66,6 +66,7 @@ export class Register implements OnInit {
     }
   }
 
+  
   /**
    * Initialize registration form with validation
    */
