@@ -1,1 +1,1 @@
-export const API_CONFIG = {BASE_URL: 'http://localhost:5000/api'} as const;
+export const API_CONFIG = {BASE_URL: 'https://bank-of-skill.scalon.in/api'} as const;
