@@ -1,9 +1,8 @@
-/**
- * Email Service for sending verification and welcome emails
- * 
- * TODO: Integrate with actual email provider (NodeMailer, SendGrid, AWS SES, etc.)
- * For now, this logs emails to console for development purposes
- */
+// emailService.ts
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+
+dotenv.config(); // if you haven't already loaded env elsewhere
 
 interface EmailOptions {
     to: string;
@@ -12,19 +11,53 @@ interface EmailOptions {
     text?: string;
 }
 
+// Create transporter once and reuse it
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT),
+    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+    auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+    },
+    // Optional: add TLS settings if needed
+    // tls: { rejectUnauthorized: false }
+});
+
+// Verify transporter connection (optional, but good for debugging)
+transporter.verify((error, success) => {
+    if (error) {
+        console.error('SMTP connection error:', error);
+    } else {
+        console.log('SMTP server is ready to send emails');
+    }
+});
+
 /**
- * Send email (mock implementation for development)
+ * Send email using Nodemailer
  */
 const sendEmail = async (options: EmailOptions): Promise<void> => {
-    // TODO: Replace with actual email sending logic
-    console.log('\n========== EMAIL SENT ==========');
-    console.log('To:', options.to);
-    console.log('Subject:', options.subject);
-    console.log('Body:', options.text || options.html);
-    console.log('================================\n');
+    const from = process.env.SMTP_FROM || 'noreply@example.com';
 
-    // Simulate async operation
-    await new Promise(resolve => setTimeout(resolve, 100));
+    const mailOptions = {
+        from: `"Bank of Skill" <${from}>`,
+        to: options.to,
+        subject: options.subject,
+        text: options.text || '',          // plain text fallback
+        html: options.html,
+    };
+
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent successfully:', info.messageId);
+        // In development, you might also want to log the preview URL (for Ethereal)
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('📧 Preview URL:', nodemailer.getTestMessageUrl(info) || 'No preview available');
+        }
+    } catch (error) {
+        console.error('❌ Failed to send email:', error);
+        throw new Error('Email sending failed'); // rethrow to let the caller handle
+    }
 };
 
 /**
