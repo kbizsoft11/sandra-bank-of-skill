@@ -6,6 +6,7 @@ import skillCategoryRoutes from "./skill-category.route";
 import skillRoutes from "./skill.route";
 import { authenticate } from '../middlewares/auth.middleware';
 import { allowRoles } from '../middlewares/role.middleware';
+import waitlistRouter from './waitlist.route';
 
 const router = Router();
 
@@ -18,6 +19,7 @@ router.get('/', (_, res) => {
 
 router.use('/users', userRouter);
 router.use('/auth', authRouter);
+router.use('/waitlist', waitlistRouter);
 router.use('/skill-categories', authenticate, skillCategoryRoutes);
 router.use("/skills", authenticate, skillRoutes);
 // router.use("/skills", authenticate, allowRoles('admin'), skillRoutes);
