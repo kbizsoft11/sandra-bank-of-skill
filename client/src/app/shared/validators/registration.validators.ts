@@ -41,21 +41,45 @@ export function passwordStrengthValidator(): ValidatorFn {
 }
 
 /**
- * Validator to check if confirm password matches password
- * Use this on the FormGroup, not individual controls
+ * Validator to check if confirm password matches password.
+ * Use this on the FormGroup (it needs access to sibling controls),
+ * but it also writes the `passwordMismatch` error onto the
+ * `confirmPassword` control itself so field-level checks like
+ * `confirmPassword.hasError('passwordMismatch')` work as expected.
  */
 export function passwordMatchValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const password = control.get('password');
     const confirmPassword = control.get('confirmPassword');
 
-    if (!password || !confirmPassword || confirmPassword.value === '') {
+    if (!password || !confirmPassword) {
       return null;
     }
 
-    return password.value !== confirmPassword.value
-      ? { passwordMismatch: true }
-      : null;
+    // Helper to strip just the `passwordMismatch` key from a control's
+    // errors without clobbering any other errors it may have
+    // (e.g. `required`).
+    const clearMismatch = () => {
+      if (confirmPassword.hasError('passwordMismatch')) {
+        const { passwordMismatch, ...rest } = confirmPassword.errors ?? {};
+        confirmPassword.setErrors(Object.keys(rest).length ? rest : null);
+      }
+    };
+
+    // Nothing to compare yet (e.g. confirmPassword untouched/empty) —
+    // let its own `required` validator handle that case.
+    if (confirmPassword.value === '') {
+      clearMismatch();
+      return null;
+    }
+
+    if (password.value !== confirmPassword.value) {
+      confirmPassword.setErrors({ ...confirmPassword.errors, passwordMismatch: true });
+      return { passwordMismatch: true };
+    }
+
+    clearMismatch();
+    return null;
   };
 }
 

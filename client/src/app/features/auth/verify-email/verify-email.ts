@@ -31,7 +31,7 @@ export class VerifyEmail implements OnInit, OnDestroy {
   maskedEmail = '';
 
   // Countdown timer
-  countdownSeconds = 30;
+  countdownSeconds = 60;
   canResend = false;
   private countdownTimer?: number;
 
