@@ -7,6 +7,7 @@ interface EmailOptions {
     subject: string;
     html: string;
     text?: string;
+    
 }
 
 const smtpAuth = env.SMTP_USER && env.SMTP_PASSWORD
