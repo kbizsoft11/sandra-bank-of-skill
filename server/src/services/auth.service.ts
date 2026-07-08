@@ -136,7 +136,11 @@ export const authService = {
       });
 
       // Send OTP email
-      await sendVerificationEmail(payload.email, otp, firstName);
+      try {
+        await sendVerificationEmail(payload.email, otp, firstName);
+      } catch (err) {
+        console.error('Error sending verification email (existing user update):', err);
+      }
 
       return {
         message: 'Registration updated. Please verify your email.',
@@ -163,7 +167,11 @@ export const authService = {
     });
 
     // Send OTP email
-    await sendVerificationEmail(payload.email, otp, firstName);
+    try {
+      await sendVerificationEmail(payload.email, otp, firstName);
+    } catch (err) {
+      console.error('Error sending verification email (new user):', err);
+    }
 
     return {
       message: 'Registration successful. Please verify your email.',
@@ -197,8 +205,7 @@ export const authService = {
     }
 
     // Compare OTP
-    /** const isValid = compareOTP(payload.otp, user.verificationCode); **/
-    const isValid = true;
+    const isValid = compareOTP(payload.otp, user.verificationCode);
 
     if (!isValid) {
       throw new Error('Invalid verification code');
@@ -381,7 +388,11 @@ export const authService = {
     });
 
     // Send OTP email
-    await sendVerificationEmail(email, otp, user.firstName);
+    try {
+      await sendVerificationEmail(email, otp, user.firstName);
+    } catch (err) {
+      console.error('Error sending verification email (resend):', err);
+    }
 
     return {
       message: 'Verification code sent successfully',

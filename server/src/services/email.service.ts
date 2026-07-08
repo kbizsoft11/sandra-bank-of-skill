@@ -1,8 +1,6 @@
 // emailService.ts
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-
-dotenv.config(); // if you haven't already loaded env elsewhere
+import { env } from '../config/env';
 
 interface EmailOptions {
     to: string;
@@ -11,21 +9,21 @@ interface EmailOptions {
     text?: string;
 }
 
-// Create transporter once and reuse it
+const smtpAuth = env.SMTP_USER && env.SMTP_PASSWORD
+    ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD }
+    : undefined;
+
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+    host: env.SMTP_HOST,
+    port: env.SMTP_PORT,
+    secure: env.SMTP_SECURE,
+    auth: smtpAuth,
+    tls: {
+        rejectUnauthorized: false,
     },
-    // Optional: add TLS settings if needed
-    // tls: { rejectUnauthorized: false }
 });
 
-// Verify transporter connection (optional, but good for debugging)
-transporter.verify((error, success) => {
+transporter.verify((error) => {
     if (error) {
         console.error('SMTP connection error:', error);
     } else {
@@ -37,26 +35,23 @@ transporter.verify((error, success) => {
  * Send email using Nodemailer
  */
 const sendEmail = async (options: EmailOptions): Promise<void> => {
-    const from = process.env.SMTP_FROM || 'noreply@example.com';
-
     const mailOptions = {
-        from: `"Bank of Skill" <${from}>`,
+        from: env.EMAIL_FROM,
         to: options.to,
         subject: options.subject,
-        text: options.text || '',          // plain text fallback
+        text: options.text || '',
         html: options.html,
     };
 
     try {
         const info = await transporter.sendMail(mailOptions);
         console.log('✅ Email sent successfully:', info.messageId);
-        // In development, you might also want to log the preview URL (for Ethereal)
         if (process.env.NODE_ENV !== 'production') {
             console.log('📧 Preview URL:', nodemailer.getTestMessageUrl(info) || 'No preview available');
         }
     } catch (error) {
         console.error('❌ Failed to send email:', error);
-        throw new Error('Email sending failed'); // rethrow to let the caller handle
+        throw new Error('Email sending failed');
     }
 };
 
