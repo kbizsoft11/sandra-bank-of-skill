@@ -92,7 +92,7 @@ export class VerifyEmail implements OnInit, OnDestroy {
       window.clearInterval(this.countdownTimer);
     }
 
-    this.countdownSeconds = 30;
+    this.countdownSeconds = 60;
     this.canResend = false;
     this.cdr.markForCheck();
 
