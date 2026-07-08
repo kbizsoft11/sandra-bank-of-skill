@@ -159,7 +159,9 @@ export class Register implements OnInit {
     });
 
     if (this.registerForm.invalid) {
-      this.errorMessage.set('Please fix the errors in the form');
+      // No generic banner for form validation — every field (including
+      // password mismatch on Confirm Password) already shows its own
+      // inline error message right below it.
       return;
     }
 

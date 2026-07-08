@@ -58,13 +58,6 @@
                 </div>
             </div>
 
-            <!-- ✅ Error Message – now a signal -->
-            @if (errorMessage()) {
-                <div class="alert alert-danger" role="alert">
-                    {{ errorMessage() }}
-                </div>
-            }
-
             <!-- Form -->
 
             <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
@@ -292,6 +285,13 @@
                     <div class="alert alert-warning" role="alert">
                         {{ registeredEmailWarning() }}
                         <a routerLink="/auth/login" class="alert-link">Login instead</a>.
+                    </div>
+                }
+
+                <!-- ✅ Error Message – now a signal, shown just before the submit button -->
+                @if (errorMessage()) {
+                    <div class="alert alert-danger" role="alert">
+                        {{ errorMessage() }}
                     </div>
                 }
 
