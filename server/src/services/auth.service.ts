@@ -156,7 +156,7 @@ export const authService = {
       email: payload.email,
       phone: payload.phone,
       password: hashedPassword,
-      role: 'employee',
+      role: 'company',
       tenantId: '',
       profileCompleted: false,
       isActive: true,
