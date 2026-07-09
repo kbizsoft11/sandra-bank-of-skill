@@ -1,11 +1,8 @@
 import { Component } from '@angular/core';
-import { StatCard } from '../../../shared/components/stat-card/stat-card';
 
 @Component({
   selector: 'app-dashboard-home',
-    imports: [
-    StatCard
-  ],
+  standalone: true,
   templateUrl: './dashboard-home.html',
   styleUrl: './dashboard-home.scss',
 })

@@ -1,37 +1,41 @@
-<aside
-  class="hidden h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:flex dark:border-slate-800 dark:bg-slate-900 lg:flex"
->
-  <!-- Logo Area -->
-  <div
-    class="flex h-16 items-center border-b border-slate-200 px-6 dark:border-slate-800"
-  >
-    <div>
-      <h2 class="text-xl font-bold text-slate-900 dark:text-white">
-        Bank of Skill
-      </h2>
-
-      <p class="text-xs text-slate-500 dark:text-slate-400">
-        Admin Portal
-      </p>
-    </div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <img src="/assets/images/logo- 1.png" alt="Bank of Skill" />
   </div>
 
-  <!-- Navigation -->
-  <nav class="flex-1 px-4 py-6">
-    <p
-      class="mb-3 px-3 text-xs font-semibold uppercase text-slate-400 dark:text-slate-500"
-    >
-      Main Menu
-    </p>
-
-    @for (item of menuItems; track item.route) {
+  <nav class="sidebar-nav">
+    @for (item of menuItems; track item.label) {
       <a
-        [routerLink]="item.route"
-        routerLinkActive="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400"
-        class="mb-2 flex items-center rounded-xl px-4 py-3 text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+        [href]="item.href"
+        class="nav-item-link"
+        [class.active]="item.active"
       >
+        <span class="nav-icon-circle">
+          <i [class]="item.icon"></i>
+        </span>
         {{ item.label }}
       </a>
     }
   </nav>
+
+  <div class="sidebar-footer">
+    <div class="org-card">
+      <div class="icon-box">
+        <i class="bi bi-building"></i>
+      </div>
+      <div>
+        <div style="font-weight: 600; font-size: 13.5px;">Abc Corporation</div>
+        <small class="org-plan">Enterprise Plan</small>
+      </div>
+    </div>
+
+    <div class="user-card">
+      <img src="https://i.pravatar.cc/80?img=13" alt="Alex Ray" />
+      <div class="flex-grow-1">
+        <div style="font-weight: 600; font-size: 13.5px;">Alex Ray</div>
+        <small>Admin</small>
+      </div>
+      <i class="bi bi-chevron-down" style="color: #9aa3af;"></i>
+    </div>
+  </div>
 </aside>

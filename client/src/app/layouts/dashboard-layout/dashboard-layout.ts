@@ -19,11 +19,13 @@ import { UserList } from '../../features/users/user-list/user-list';
   styleUrl: './dashboard-layout.scss',
 })
 export class DashboardLayout {
-  
-  sidebarOpen = true;
+  sidebarOpen = false;
 
-  closeSidebar = () => {
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  closeSidebar(): void {
     this.sidebarOpen = false;
-  };
-
+  }
 }

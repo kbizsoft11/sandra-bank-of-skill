@@ -1,0 +1,37 @@
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #f6f8fb;
+  color: #1f2937;
+}
+
+.main-content {
+  margin-left: 270px;
+  flex: 1;
+  min-width: 0;
+  padding: 22px 28px 60px;
+}
+
+.dashboard-main {
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  z-index: 1030;
+}
+
+.sidebar-backdrop.show {
+  display: block;
+}
+
+@media (max-width: 991.98px) {
+  .main-content {
+    margin-left: 0;
+    padding: 16px 16px 50px;
+  }
+}

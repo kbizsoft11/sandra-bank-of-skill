@@ -1,21 +1,246 @@
-<div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-  <app-stat-card
-    title="Total Users"
-    value="124"
-  />
+<div class="main-content">
+  <h1 class="welcome-title">Welcome back, Alex! 👋</h1>
+  <p class="welcome-sub">Here's what's happening in ABC Corporation today</p>
 
-  <app-stat-card
-    title="Skills Library"
-    value="89"
-  />
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-4 col-lg">
+      <div class="stat-card">
+        <div class="stat-icon bg-blue-soft"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-label">Total Employees</div>
+        <div class="stat-value">1,248</div>
+        <div class="stat-delta"><i class="bi bi-arrow-up-short"></i>12% <span>vs last month</span></div>
+      </div>
+    </div>
 
-  <app-stat-card
-    title="Assessments"
-    value="42"
-  />
+    <div class="col-6 col-md-4 col-lg">
+      <div class="stat-card">
+        <div class="stat-icon bg-purple-soft"><i class="bi bi-lightbulb-fill"></i></div>
+        <div class="stat-label">Skills Captured</div>
+        <div class="stat-value">8,569</div>
+        <div class="stat-delta"><i class="bi bi-arrow-up-short"></i>18% <span>vs last month</span></div>
+      </div>
+    </div>
 
-  <app-stat-card
-    title="Qualifications"
-    value="27"
-  />
+    <div class="col-6 col-md-4 col-lg">
+      <div class="stat-card">
+        <div class="stat-icon bg-green-soft"><i class="bi bi-cpu-fill"></i></div>
+        <div class="stat-label">AI Knowledge</div>
+        <div class="stat-value">1,035</div>
+        <div class="stat-delta"><i class="bi bi-arrow-up-short"></i>15% <span>vs last month</span></div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-lg">
+      <div class="stat-card">
+        <div class="stat-icon bg-orange-soft"><i class="bi bi-mortarboard-fill"></i></div>
+        <div class="stat-label">Qualifications</div>
+        <div class="stat-value">2,187</div>
+        <div class="stat-delta"><i class="bi bi-arrow-up-short"></i>9% <span>vs last month</span></div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-lg">
+      <div class="stat-card">
+        <div class="stat-icon bg-red-soft"><i class="bi bi-person-plus-fill"></i></div>
+        <div class="stat-label">Open Opportunities</div>
+        <div class="stat-value">43</div>
+        <div class="stat-delta"><i class="bi bi-arrow-up-short"></i>5% <span>vs last month</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-4">
+      <div class="dash-card">
+        <div class="dash-card-title">People Directory</div>
+
+        <div class="mini-search">
+          <div class="search-input-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search employees..." />
+          </div>
+          <button class="filter-btn" type="button"><i class="bi bi-sliders"></i></button>
+        </div>
+
+        <div>
+          <div class="person-row">
+            <div class="person-left">
+              <img src="https://i.pravatar.cc/80?img=47" alt="Sarah Johnson" />
+              <div class="min-w-0">
+                <div class="person-name">Sarah Johnson</div>
+                <div class="person-role">Product Designer</div>
+              </div>
+            </div>
+            <div class="person-right">
+              <div class="text-center">
+                <div class="person-skills-label">Skills</div>
+                <span class="skills-badge">24</span>
+              </div>
+              <i class="bi bi-three-dots-vertical dots-btn"></i>
+            </div>
+          </div>
+
+          <div class="person-row">
+            <div class="person-left">
+              <img src="https://i.pravatar.cc/80?img=68" alt="Michael Chen" />
+              <div class="min-w-0">
+                <div class="person-name">Michael Chen</div>
+                <div class="person-role">Data Scientist</div>
+              </div>
+            </div>
+            <div class="person-right">
+              <div class="text-center">
+                <div class="person-skills-label">Skills</div>
+                <span class="skills-badge">31</span>
+              </div>
+              <i class="bi bi-three-dots-vertical dots-btn"></i>
+            </div>
+          </div>
+
+          <div class="person-row">
+            <div class="person-left">
+              <img src="https://i.pravatar.cc/80?img=12" alt="David Lee" />
+              <div class="min-w-0">
+                <div class="person-name">David Lee</div>
+                <div class="person-role">DevOps Engineer</div>
+              </div>
+            </div>
+            <div class="person-right">
+              <div class="text-center">
+                <div class="person-skills-label">Skills</div>
+                <span class="skills-badge">26</span>
+              </div>
+              <i class="bi bi-three-dots-vertical dots-btn"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer-link">
+          <a href="#" class="view-link">View all people <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="dash-card">
+        <div class="dash-card-title">Skills Distribution</div>
+
+        <div class="donut-wrap">
+          <div class="donut">
+            <div class="donut-center">
+              <div class="num">8,569</div>
+              <div class="lbl">Total Skills</div>
+            </div>
+          </div>
+
+          <ul class="legend">
+            <li><span class="dot" style="background: #2f6fed"></span><span class="lname">Technical</span><span class="lpct">45%</span></li>
+            <li><span class="dot" style="background: #8b5cf6"></span><span class="lname">Business</span><span class="lpct">25%</span></li>
+            <li><span class="dot" style="background: #16a34a"></span><span class="lname">People</span><span class="lpct">15%</span></li>
+            <li><span class="dot" style="background: #22c3c3"></span><span class="lname">Tools</span><span class="lpct">10%</span></li>
+            <li><span class="dot" style="background: #f2994a"></span><span class="lname">Other</span><span class="lpct">5%</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="dash-card">
+        <div class="dash-card-title">Talent Search</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-lg-4">
+      <div class="dash-card">
+        <div class="dash-card-title">
+          Skills Gap Insights
+          <div class="icon-square"><i class="bi bi-bar-chart-fill"></i></div>
+        </div>
+
+        <div class="gap-row">
+          <span class="gap-dot"></span>
+          <span class="gap-name">Cloud Computing</span>
+          <span class="gap-tag high">High Gap</span>
+          <div class="gap-bar-track"><div class="gap-bar-fill" style="width: 78%; background: #f6b3b3"></div></div>
+          <span class="gap-pct">78%</span>
+        </div>
+
+        <div class="gap-row">
+          <span class="gap-dot"></span>
+          <span class="gap-name">Data Engineering</span>
+          <span class="gap-tag mid">Mid Gap</span>
+          <div class="gap-bar-track"><div class="gap-bar-fill" style="width: 58%; background: #f6d9a8"></div></div>
+          <span class="gap-pct">58%</span>
+        </div>
+
+        <div class="gap-row">
+          <span class="gap-dot"></span>
+          <span class="gap-name">Cloud Computing</span>
+          <span class="gap-tag low">Low Gap</span>
+          <div class="gap-bar-track"><div class="gap-bar-fill" style="width: 28%; background: #c7cdf7"></div></div>
+          <span class="gap-pct">28%</span>
+        </div>
+
+        <div class="card-footer-link">
+          <a href="#" class="view-link">View Insights <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="dash-card">
+        <div class="dash-card-title">Recent Activity</div>
+
+        <div class="activity-row">
+          <span class="activity-dot"></span>
+          <span class="activity-text">John Doe completed a skill assessment</span>
+          <span class="activity-time">2h ago</span>
+        </div>
+
+        <div class="activity-row">
+          <span class="activity-dot"></span>
+          <span class="activity-text">New skill "Kubernetes" added to Skills Bank</span>
+          <span class="activity-time">5h ago</span>
+        </div>
+
+        <div class="activity-row">
+          <span class="activity-dot"></span>
+          <span class="activity-text">New opportunity "Data Analyst" published</span>
+          <span class="activity-time">8h ago</span>
+        </div>
+
+        <div class="card-footer-link">
+          <a href="#" class="view-link">View all <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="dash-card">
+        <div class="bank-header">
+          <div class="dash-card-title mb-0">Skill Banking Overview</div>
+        </div>
+
+        <div class="credit-boxes">
+          <div class="credit-box">
+            <div class="clabel">Credits Earned</div>
+            <div class="cvalue">2,450</div>
+            <div class="cdelta">+320 this month</div>
+          </div>
+
+          <div class="credit-box">
+            <div class="clabel">Rewards Redeemed</div>
+            <div class="cvalue">1,250 <span class="coin-icon">TC</span></div>
+            <div class="cdelta link">View Rewards →</div>
+          </div>
+        </div>
+
+        <div class="top-earner-note">
+          🏆 Great going! You're in the top 10% of earners this month. 🎉
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
