@@ -18,13 +18,18 @@
       <i class="bi bi-question-circle"></i>
     </button>
 
-    <div class="profile-chip dropdown">
-      <img src="https://i.pravatar.cc/80?u={{ auth.user()?._id }}" alt="" />
+    <div class="profile-chip dropdown" (click)="toggleProfileMenu($event)">
+      <img src="https://i.pravatar.cc/80?u={{ auth.user()?._id }}" alt="{{ auth.user()?.fullName }}" />
       <div>
         <div class="name">{{ auth.user()?.fullName || 'Alex' }}</div>
         <div class="role">{{ auth.user()?.role || 'Admin' }}</div>
       </div>
       <i class="bi bi-chevron-down" style="color: #9aa3af; font-size: 13px"></i>
+
+      <div class="profile-menu" *ngIf="showProfileMenu" (click)="$event.stopPropagation()">
+        <a class="profile-menu-item" routerLink="/profile">Profile</a>
+        <button class="profile-menu-item btn-logout" type="button" (click)="logout()">Logout</button>
+      </div>
     </div>
   </div>
 </header>

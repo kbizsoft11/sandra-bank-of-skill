@@ -92,6 +92,7 @@
 
 .org-card,
 .user-card {
+    position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -99,6 +100,37 @@
   border-radius: 10px;
   border: 1px solid #eef0f4;
   margin-bottom: 10px;
+  cursor: pointer; 
+}
+
+/* Sidebar user menu */
+.sidebar-user-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 8px); 
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #eef0f4;
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+  z-index: 1100;
+}
+
+.sidebar-user-item {
+  padding: 8px 10px;
+  font-size: 14px;
+  color: #374151;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.sidebar-user-item:hover {
+  background: #f5f6fa;
 }
 
 .org-card .icon-box {

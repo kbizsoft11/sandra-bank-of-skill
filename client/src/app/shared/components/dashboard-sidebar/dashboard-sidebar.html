@@ -43,13 +43,18 @@
       </div>
     </div>
 
-    <div class="user-card">
+    <div class="user-card" (click)="toggleUserMenu($event)">
       <img src="https://i.pravatar.cc/80?u={{ auth.user()?._id }}" alt="{{ auth.user()?.fullName }}" />
       <div class="flex-grow-1">
         <div style="font-weight: 600; font-size: 13.5px;">{{ auth.user()?.fullName || 'Alex' }}</div>
         <small>{{ auth.user()?.role || 'Admin' }}</small>
       </div>
       <i class="bi bi-chevron-down" style="color: #9aa3af;"></i>
+
+      <div class="sidebar-user-menu" *ngIf="showUserMenu" (click)="$event.stopPropagation()">
+        <a class="sidebar-user-item" routerLink="/profile">View Profile</a>
+        <button class="sidebar-user-item btn-logout" type="button" (click)="logout()">Logout</button>
+      </div>
     </div>
   </div>
 </aside>
