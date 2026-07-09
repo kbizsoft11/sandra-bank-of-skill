@@ -133,13 +133,18 @@
   font-weight: 600;
 }
 
+.sidebar.show {
+  transform: translateX(0);
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.12);
+}
+
 @media (max-width: 991.98px) {
   .sidebar {
     transform: translateX(-100%);
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0);
   }
 
-  :host.show .sidebar {
+  .sidebar.show {
     transform: translateX(0);
     box-shadow: 10px 0 30px rgba(0, 0, 0, 0.12);
   }

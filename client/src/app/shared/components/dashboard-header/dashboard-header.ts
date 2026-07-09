@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { ThemeService } from '../../../core/services/theme.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Router } from '@angular/router';
@@ -14,8 +14,14 @@ export class DashboardHeader {
   private readonly router = inject(Router);
   readonly auth = inject(AuthService);
 
+  @Output() toggleSidebar = new EventEmitter<void>();
+
   toggleTheme(): void {
     this.themeService.toggleTheme();
+  }
+
+  onToggleSidebar(): void {
+    this.toggleSidebar.emit();
   }
 
   logout(): void {

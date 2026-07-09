@@ -1,57 +1,60 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard-sidebar',
   standalone: true,
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './dashboard-sidebar.html',
   styleUrl: './dashboard-sidebar.scss',
 })
 export class DashboardSidebar {
+  @Input() sidebarOpen = false;
+  @Output() sidebarItemClicked = new EventEmitter<void>();
+
+  closeSidebar(): void {
+    this.sidebarItemClicked.emit();
+  }
+
   menuItems = [
     {
       label: 'Dashboard',
-      href: '#',
+      route: '/admin/dashboard',
       icon: 'bi bi-grid-1x2-fill',
-      active: true,
+    },
+    {
+      label: 'Users',
+      route: '/admin/users',
+      icon: 'bi bi-people-fill',
+    },
+    {
+      label: 'Skill Categories',
+      route: '/admin/skill-categories',
+      icon: 'bi bi-diagram-3-fill',
+    },
+    {
+      label: 'Skills',
+      route: '/admin/skills',
+      icon: 'bi bi-lightbulb-fill',
     },
     {
       label: 'Talent Search',
-      href: '#',
       icon: 'bi bi-search',
     },
     {
-      label: 'Skills Bank',
-      href: '#',
-      icon: 'bi bi-bank',
-    },
-    {
       label: 'AI Insights',
-      href: '#',
       icon: 'bi bi-graph-up',
     },
     {
       label: 'Opportunities',
-      href: '#',
-      icon: 'bi bi-lightbulb-fill',
-    },
-    {
-      label: 'Skill Banking',
-      href: '#',
-      icon: 'bi bi-person-lines-fill',
-    },
-    {
-      label: 'Rewards',
-      href: '#',
-      icon: 'bi bi-gift-fill',
+      icon: 'bi bi-briefcase-fill',
     },
     {
       label: 'Reports',
-      href: '#',
       icon: 'bi bi-clipboard-fill',
     },
     {
       label: 'Settings',
-      href: '#',
       icon: 'bi bi-gear-fill',
     },
   ];

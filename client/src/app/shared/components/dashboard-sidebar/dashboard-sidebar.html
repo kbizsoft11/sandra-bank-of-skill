@@ -1,20 +1,34 @@
-<aside class="sidebar" id="sidebar">
+<aside class="sidebar" id="sidebar" [class.show]="sidebarOpen">
   <div class="sidebar-brand">
     <img src="/assets/images/logo- 1.png" alt="Bank of Skill" />
   </div>
 
   <nav class="sidebar-nav">
     @for (item of menuItems; track item.label) {
-      <a
-        [href]="item.href"
-        class="nav-item-link"
-        [class.active]="item.active"
-      >
-        <span class="nav-icon-circle">
-          <i [class]="item.icon"></i>
-        </span>
-        {{ item.label }}
-      </a>
+      @if (item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          class="nav-item-link"
+          (click)="closeSidebar()"
+        >
+          <span class="nav-icon-circle">
+            <i [class]="item.icon"></i>
+          </span>
+          {{ item.label }}
+        </a>
+      } @else {
+        <a
+          href="#"
+          class="nav-item-link"
+          (click)="closeSidebar()"
+        >
+          <span class="nav-icon-circle">
+            <i [class]="item.icon"></i>
+          </span>
+          {{ item.label }}
+        </a>
+      }
     }
   </nav>
 
