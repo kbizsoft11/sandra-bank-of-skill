@@ -19,6 +19,7 @@ import { Router, RouterLink } from '@angular/router';
     TableActions
   ],
   templateUrl: './user-list.html',
+  styleUrl: './user-list.scss',
 })
 export class UserList implements OnInit {
 

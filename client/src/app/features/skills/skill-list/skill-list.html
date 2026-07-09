@@ -1,22 +1,19 @@
-<div
-  class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+<div class="rounded-4 border bg-white shadow-sm overflow-hidden">
 
-  <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+  <div class="d-flex align-items-center justify-content-between border-bottom px-4 py-3">
 
     <div>
-      <h2 class="text-xl font-semibold text-slate-900 dark:text-white">
+      <h2 class="h5 fw-semibold mb-0 text-dark">
         Skills
       </h2>
 
-      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      <p class="mt-1 mb-0 small text-secondary">
         Manage all skills
       </p>
 
     </div>
 
-    <a
-      routerLink="/admin/skills/create"
-      class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
+    <a routerLink="/admin/skills/create" class="btn btn-primary btn-sm px-3">
 
       Add Skill
 
@@ -24,35 +21,35 @@
 
   </div>
 
-  <div class="overflow-x-auto">
+  <div class="table-responsive">
 
-    <table class="min-w-full">
+    <table class="table align-middle mb-0">
 
       <thead>
 
-        <tr class="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
+        <tr class="table-light">
 
-          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
             Skill
           </th>
 
-          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
             Category
           </th>
 
-          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
             Employee
           </th>
 
-          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
             Level
           </th>
 
-          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
             Score
           </th>
 
-          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
             Actions
           </th>
 
@@ -64,29 +61,29 @@
 
         @for(skill of skills(); track skill._id){
 
-        <tr class="border-b border-slate-100 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/30">
+        <tr>
 
-          <td class="px-6 py-4">
+          <td class="px-4 py-3">
             {{ skill.skill_name }}
           </td>
 
-          <td class="px-6 py-4">
+          <td class="px-4 py-3">
             {{ skill.cat_id.cat_name }}
           </td>
 
-          <td class="px-6 py-4">
+          <td class="px-4 py-3 text-secondary">
             {{ skill?.user_id?.fullName }}
           </td>
 
-          <td class="px-6 py-4">
+          <td class="px-4 py-3">
             {{ skill.skill_level }}
           </td>
 
-          <td class="px-6 py-4">
+          <td class="px-4 py-3">
             {{ skill.skill_score }}
           </td>
 
-          <td class="px-6 py-4">
+          <td class="px-4 py-3">
 
             <app-table-actions
               [actions]="['edit','delete']"

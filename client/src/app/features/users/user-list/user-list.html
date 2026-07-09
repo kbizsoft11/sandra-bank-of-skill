@@ -1,45 +1,43 @@
-<div
-  class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+<div class="rounded-4 border bg-white shadow-sm overflow-hidden">
 
-  <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+  <div class="d-flex align-items-center justify-content-between border-bottom px-4 py-3">
 
     <div>
-      <h2 class="text-xl font-semibold text-slate-900 dark:text-white">
+      <h2 class="h5 fw-semibold mb-0 text-dark">
         Users
       </h2>
 
-      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      <p class="mt-1 mb-0 small text-secondary">
         Manage all users from one place
       </p>
     </div>
 
-    <a routerLink="/admin/users/create"
-      class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 cursor-pointer">
+    <a routerLink="/admin/users/create" class="btn btn-primary btn-sm px-3">
       Add User
     </a>
 
   </div>
 
-  <div class="overflow-x-auto">
+  <div class="table-responsive">
 
-    <table class="min-w-full">
+    <table class="table align-middle mb-0">
 
       <thead>
-        <tr class="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
+        <tr class="table-light">
 
-          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
             Name
           </th>
 
-          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
             Email
           </th>
 
-          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
             Role
           </th>
 
-          <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
             Actions
           </th>
 
@@ -50,20 +48,18 @@
 
         @for (user of users(); track user._id) {
 
-        <tr
-          class="border-b border-slate-100 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/30">
+        <tr>
 
-          <td class="px-6 py-4">
+          <td class="px-4 py-3">
 
-            <div class="flex items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
 
-              <div
-                class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+              <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-semibold" style="width: 40px; height: 40px;">
                 {{ user.fullName?.charAt(0) }}
               </div>
 
               <div>
-                <p class="font-medium text-slate-900 dark:text-white">
+                <p class="fw-medium mb-0 text-dark">
                   {{ user.fullName }}
                 </p>
               </div>
@@ -72,20 +68,19 @@
 
           </td>
 
-          <td class="px-6 py-4 text-slate-600 dark:text-slate-300">
+          <td class="px-4 py-3 text-secondary">
             {{ user.email }}
           </td>
 
-          <td class="px-6 py-4">
+          <td class="px-4 py-3">
 
-            <span
-              class="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700 dark:bg-green-500/10 dark:text-green-400">
+            <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-2 fw-medium">
               {{ user.role }}
             </span>
 
           </td>
 
-          <td class="px-6 py-4">
+          <td class="px-4 py-3">
             <app-table-actions [actions]="['edit','delete']" (edit)="editUser(user)"
               (delete)="deleteUser(user)">
             </app-table-actions>
