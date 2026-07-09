@@ -31,8 +31,7 @@ export interface RegisterStep3Dto {
 // ==================== LEGACY (for backwards compatibility) ====================
 
 export interface RegisterDto {
-    firstName: string;
-    lastName: string;
+    fullName: string;
     email: string;
     password: string;
 }

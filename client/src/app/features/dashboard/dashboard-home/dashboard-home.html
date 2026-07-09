@@ -1,5 +1,5 @@
 <div class="main-content">
-  <h1 class="welcome-title">Welcome back, Alex! 👋</h1>
+  <h1 class="welcome-title">Welcome back, {{ currentUserName || 'Alex' }}! 👋</h1>
   <p class="welcome-sub">Here's what's happening in ABC Corporation today</p>
 
   <div class="row g-3 mb-3">
@@ -7,7 +7,7 @@
       <div class="stat-card">
         <div class="stat-icon bg-blue-soft"><i class="bi bi-people-fill"></i></div>
         <div class="stat-label">Total Employees</div>
-        <div class="stat-value">1,248</div>
+        <div class="stat-value">{{ totalEmployees() }}</div>
         <div class="stat-delta"><i class="bi bi-arrow-up-short"></i>12% <span>vs last month</span></div>
       </div>
     </div>
@@ -16,7 +16,7 @@
       <div class="stat-card">
         <div class="stat-icon bg-purple-soft"><i class="bi bi-lightbulb-fill"></i></div>
         <div class="stat-label">Skills Captured</div>
-        <div class="stat-value">8,569</div>
+        <div class="stat-value">{{ totalSkills() }}</div>
         <div class="stat-delta"><i class="bi bi-arrow-up-short"></i>18% <span>vs last month</span></div>
       </div>
     </div>

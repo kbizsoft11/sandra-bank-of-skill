@@ -2,9 +2,7 @@ import { OnboardingStatus, UserRole } from "../types/common.types";
 
 export interface CreateUserDto {
 
-  firstName: string;
-
-  lastName?: string;
+  fullName: string;
 
   email: string;
 

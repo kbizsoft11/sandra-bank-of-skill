@@ -3,15 +3,9 @@ import { IUser } from "../types/user.types";
 
 const UserSchema = new Schema<IUser>(
     {
-        firstName: {
+        fullName: {
             type: String,
             required: true,
-            trim: true,
-        },
-
-        lastName: {
-            type: String,
-            required: false,
             trim: true,
         },
 

@@ -2,9 +2,7 @@ import { UserRole, OnboardingStatus } from "./common.types";
 
 export interface IUser {
 
-  firstName: string;
-
-  lastName: string;
+  fullName: string;
 
   email: string;
 

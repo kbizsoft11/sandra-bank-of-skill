@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-dashboard-sidebar',
@@ -11,6 +12,8 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 export class DashboardSidebar {
   @Input() sidebarOpen = false;
   @Output() sidebarItemClicked = new EventEmitter<void>();
+
+  readonly auth = inject(AuthService);
 
   closeSidebar(): void {
     this.sidebarItemClicked.emit();

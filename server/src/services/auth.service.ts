@@ -46,6 +46,12 @@ export const authService = {
    * Legacy register method (keep for backward compatibility)
    */
   register: async (payload: RegisterDto) => {
+    const fullName = payload.fullName?.trim() || `${payload.firstName || ''} ${payload.lastName || ''}`.trim();
+
+    if (!fullName) {
+      throw new ApiError(400, 'Full name is required');
+    }
+
     const existingUser = await userRepository.findByEmail(payload.email);
 
     if (existingUser) {
@@ -55,8 +61,7 @@ export const authService = {
     const hashedPassword = await hashPassword(payload.password);
 
     const user = await userRepository.create({
-      firstName: payload.firstName,
-      lastName: payload.lastName,
+      fullName,
       email: payload.email,
       password: hashedPassword,
       role: 'employee',
@@ -73,8 +78,7 @@ export const authService = {
 
     const userResponse = {
       _id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      fullName: user.fullName,
       email: user.email,
       role: user.role,
     };
@@ -91,7 +95,7 @@ export const authService = {
   registerStep1: async (payload: RegisterStep1Dto) => {
     console.log('\n🔵 registerStep1 called');
     console.log('Environment:', process.env.NODE_ENV);
-    console.log('Payload email:', payload.email);
+    console.log('Payload body:', payload);
     
     // Check if user already exists
     const existingUser = await userRepository.findByEmail(payload.email);
@@ -103,10 +107,12 @@ export const authService = {
       );
     }
 
-    // Split full name into first and last name
-    const nameParts = payload.fullName.trim().split(' ');
-    const firstName = nameParts[0];
-    const lastName = nameParts.slice(1).join(' ') || '';
+    const fullName = payload.fullName?.trim() ||
+      `${payload.firstName || ''} ${payload.lastName || ''}`.trim();
+
+    if (!fullName) {
+      throw new ApiError(400, 'Full name is required');
+    }
 
     // Hash password
     const hashedPassword = await hashPassword(payload.password);
@@ -126,8 +132,7 @@ export const authService = {
     // If user exists but not verified, update their info
     if (existingUser && !existingUser.emailVerified) {
       await userRepository.update(existingUser._id.toString(), {
-        firstName,
-        lastName,
+        fullName: payload.fullName,
         phone: payload.phone,
         password: hashedPassword,
         verificationCode: hashedOTP,
@@ -137,7 +142,7 @@ export const authService = {
 
       // Send OTP email
       try {
-        await sendVerificationEmail(payload.email, otp, firstName);
+        await sendVerificationEmail(payload.email, otp, fullName);
       } catch (err) {
         console.error('Error sending verification email (existing user update):', err);
       }
@@ -151,8 +156,7 @@ export const authService = {
 
     // Create new user
     const user = await userRepository.create({
-      firstName,
-      lastName,
+      fullName,
       email: payload.email,
       phone: payload.phone,
       password: hashedPassword,
@@ -168,7 +172,7 @@ export const authService = {
 
     // Send OTP email
     try {
-      await sendVerificationEmail(payload.email, otp, firstName);
+      await sendVerificationEmail(payload.email, otp, fullName);
     } catch (err) {
       console.error('Error sending verification email (new user):', err);
     }
@@ -231,8 +235,7 @@ export const authService = {
       token,
       user: {
         _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        fullName: user.fullName,
         email: user.email,
         phone: user.phone,
         onboardingStatus: 'email_verified',
@@ -330,7 +333,7 @@ export const authService = {
 
     // Send welcome email
     if (!wasAlreadyCompleted) {
-      await sendWelcomeEmail(user.email, user.firstName);
+      await sendWelcomeEmail(user.email, user.fullName);
     }
 
     // Generate final token
@@ -346,8 +349,7 @@ export const authService = {
       token,
       user: {
         _id: updatedUser?._id,
-        firstName: updatedUser?.firstName,
-        lastName: updatedUser?.lastName,
+        fullName: updatedUser?.fullName,
         email: updatedUser?.email,
         role: updatedUser?.role,
         tenantId: updatedUser?.tenantId,
@@ -389,7 +391,7 @@ export const authService = {
 
     // Send OTP email
     try {
-      await sendVerificationEmail(email, otp, user.firstName);
+      await sendVerificationEmail(email, otp, user.fullName);
     } catch (err) {
       console.error('Error sending verification email (resend):', err);
     }
@@ -430,8 +432,7 @@ export const authService = {
     return {
       user: {
         _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        fullName: user.fullName,
         email: user.email,
         role: user.role,
       },

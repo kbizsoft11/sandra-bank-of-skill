@@ -44,10 +44,10 @@
     </div>
 
     <div class="user-card">
-      <img src="https://i.pravatar.cc/80?img=13" alt="Alex Ray" />
+      <img src="https://i.pravatar.cc/80?u={{ auth.user()?._id }}" alt="{{ auth.user()?.fullName }}" />
       <div class="flex-grow-1">
-        <div style="font-weight: 600; font-size: 13.5px;">Alex Ray</div>
-        <small>Admin</small>
+        <div style="font-weight: 600; font-size: 13.5px;">{{ auth.user()?.fullName || 'Alex' }}</div>
+        <small>{{ auth.user()?.role || 'Admin' }}</small>
       </div>
       <i class="bi bi-chevron-down" style="color: #9aa3af;"></i>
     </div>

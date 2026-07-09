@@ -65,8 +65,7 @@ export interface VerifyOTPResponse {
   token: string;
   user: {
     _id: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
     email: string;
     phone: string;
     onboardingStatus: string;
@@ -112,8 +111,7 @@ export interface CompleteRegistrationResponse {
   token: string;
   user: {
     _id: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
     email: string;
     role: string;
     tenantId: string;

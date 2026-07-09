@@ -2,8 +2,7 @@ import { z } from 'zod';
 
 // Legacy registration schema (keep for backward compatibility)
 export const registerSchema = z.object({
-    firstName: z.string().min(1, 'First name is required'),
-    lastName: z.string().min(1, 'Last name is required'),
+    fullName: z.string().min(2, 'Name is required'),
     email: z.email('Invalid email address'),
     password: z
         .string()
