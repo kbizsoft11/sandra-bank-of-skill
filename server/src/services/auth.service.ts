@@ -46,7 +46,7 @@ export const authService = {
    * Legacy register method (keep for backward compatibility)
    */
   register: async (payload: RegisterDto) => {
-    const fullName = payload.fullName?.trim() || `${payload.firstName || ''} ${payload.lastName || ''}`.trim();
+    const fullName = payload.fullName?.trim();
 
     if (!fullName) {
       throw new ApiError(400, 'Full name is required');
@@ -107,8 +107,7 @@ export const authService = {
       );
     }
 
-    const fullName = payload.fullName?.trim() ||
-      `${payload.firstName || ''} ${payload.lastName || ''}`.trim();
+    const fullName = payload.fullName?.trim();
 
     if (!fullName) {
       throw new ApiError(400, 'Full name is required');
