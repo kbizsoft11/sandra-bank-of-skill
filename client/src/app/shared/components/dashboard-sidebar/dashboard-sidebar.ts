@@ -1,10 +1,17 @@
-import { Component, EventEmitter, Input, Output, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, signal, OnInit, OnDestroy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { API_CONFIG } from '../../../core/config/api.config';
+
+interface MenuItem {
+  label: string;
+  path: string;  // Just the path without role prefix (e.g., 'dashboard', 'users')
+  icon: string;
+  roles: string[];
+}
 
 @Component({
   selector: 'app-dashboard-sidebar',
@@ -91,46 +98,113 @@ export class DashboardSidebar implements OnInit, OnDestroy {
     });
   }
 
-  menuItems = [
+  getProfileRoute(): string {
+    const role = this.auth.role();
+    if (role === 'admin') return '/admin/profile';
+    if (role === 'company') return '/company/profile';
+    if (role === 'employee') return '/employee/profile';
+    return '/auth/login';
+  }
+
+  // Get role prefix for URLs
+  getRolePrefix(): string {
+    const role = this.auth.role();
+    return role || 'admin';
+  }
+
+  // Define all menu items with their allowed roles
+  private allMenuItems: MenuItem[] = [
     {
       label: 'Dashboard',
-      route: '/admin/dashboard',
+      path: 'dashboard',
       icon: 'bi bi-grid-1x2-fill',
+      roles: ['admin', 'company', 'employee'],
     },
     {
       label: 'Users',
-      route: '/admin/users',
+      path: 'users',
       icon: 'bi bi-people-fill',
+      roles: ['admin', 'company'],
     },
     {
       label: 'Skill Categories',
-      route: '/admin/skill-categories',
+      path: 'skill-categories',
       icon: 'bi bi-diagram-3-fill',
+      roles: ['admin'],
     },
     {
       label: 'Skills',
-      route: '/admin/skills',
+      path: 'skills',
       icon: 'bi bi-lightbulb-fill',
+      roles: ['admin'],
     },
     {
-      label: 'Talent Search',
-      icon: 'bi bi-search',
-    },
-    {
-      label: 'AI Insights',
-      icon: 'bi bi-graph-up',
+      label: 'My Skills',
+      path: 'my-skills',
+      icon: 'bi bi-lightbulb-fill',
+      roles: ['employee', 'company'],
     },
     {
       label: 'Opportunities',
+      path: 'opportunities',
       icon: 'bi bi-briefcase-fill',
+      roles: ['employee', 'company'],
+    },
+    {
+      label: 'Talent Search',
+      path: 'talent-search',
+      icon: 'bi bi-search',
+      roles: ['admin', 'company'],
+    },
+    {
+      label: 'AI Insights',
+      path: 'ai-insights',
+      icon: 'bi bi-graph-up',
+      roles: ['admin', 'company', 'employee'],
     },
     {
       label: 'Reports',
+      path: 'reports',
       icon: 'bi bi-clipboard-fill',
+      roles: ['admin', 'company'],
     },
     {
       label: 'Settings',
+      path: 'settings',
       icon: 'bi bi-gear-fill',
+      roles: ['admin'],
     },
   ];
+
+  // Get the label for "Users" menu item based on role
+  getUsersMenuLabel(): string {
+    const userRole = this.auth.role();
+    if (userRole === 'company') {
+      return 'Employees';
+    }
+    return 'Users';
+  }
+
+  // Computed property to get role-filtered menu items with correct URLs
+  menuItems = computed(() => {
+    const userRole = this.auth.role();
+    if (!userRole) return [];
+    
+    const rolePrefix = this.getRolePrefix();
+    
+    return this.allMenuItems
+      .filter(item => item.roles.includes(userRole))
+      .map(item => {
+        // Dynamically change label for users item
+        let label = item.label;
+        if (item.path === 'users' && userRole === 'company') {
+          label = 'Employees';
+        }
+        return {
+          label,
+          route: `/${rolePrefix}/${item.path}`,
+          icon: item.icon,
+        };
+      });
+  });
 }

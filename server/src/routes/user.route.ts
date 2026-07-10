@@ -42,12 +42,22 @@ router.post(
     userController.updateProfilePicture
 );
 
-// General user routes
+// Get all users - filtered by role
+// Admin can see all users/companies
+// Company can see their employees
 router.get(
     '/',
     authenticate,
     validateQuery(getUsersQuerySchema),
     userController.getAllUsers
+);
+
+// Get employees by company ID - Admin only
+router.get(
+    '/company/:companyId/employees',
+    authenticate,
+    allowRoles('admin'),
+    userController.getEmployeesByCompany
 );
 
 router.get(
@@ -57,9 +67,11 @@ router.get(
     userController.getUserById
 );
 
+// Create user - Admin only (can create employees or companies)
 router.post(
     '/',
     authenticate,
+    allowRoles('admin'),
     validate(createUserSchema),
     userController.createUser
 );
@@ -67,6 +79,7 @@ router.post(
 router.put(
     '/:id',
     authenticate,
+    allowRoles('admin'),
     validateParams(userIdParamSchema),
     validate(updateUserSchema),
     userController.updateUser
@@ -75,13 +88,16 @@ router.put(
 router.delete(
     '/:id',
     authenticate,
+    allowRoles('admin'),
     validateParams(userIdParamSchema),
     userController.deleteUser
 );
 
+// Invite user - Company only (can invite employees to their organization)
 router.post(
     '/invite',
     authenticate,
+    allowRoles('company'),
     validate(inviteUserSchema),
     userController.inviteUser
 );
@@ -89,6 +105,7 @@ router.post(
 router.post(
     '/:id/reset-password',
     authenticate,
+    allowRoles('admin'),
     validateParams(userIdParamSchema),
     userController.resetPassword
 );

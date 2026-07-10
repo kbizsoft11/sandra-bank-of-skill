@@ -4,31 +4,18 @@
   </div>
 
   <nav class="sidebar-nav">
-    @for (item of menuItems; track item.label) {
-      @if (item.route) {
-        <a
-          [routerLink]="item.route"
-          routerLinkActive="active"
-          class="nav-item-link"
-          (click)="closeSidebar()"
-        >
-          <span class="nav-icon-circle">
-            <i [class]="item.icon"></i>
-          </span>
-          {{ item.label }}
-        </a>
-      } @else {
-        <a
-          href="#"
-          class="nav-item-link"
-          (click)="closeSidebar()"
-        >
-          <span class="nav-icon-circle">
-            <i [class]="item.icon"></i>
-          </span>
-          {{ item.label }}
-        </a>
-      }
+    @for (item of menuItems(); track item.label) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        class="nav-item-link"
+        (click)="closeSidebar()"
+      >
+        <span class="nav-icon-circle">
+          <i [class]="item.icon"></i>
+        </span>
+        {{ item.label }}
+      </a>
     }
   </nav>
 

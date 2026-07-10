@@ -8,8 +8,11 @@ import { asyncHandler } from '../utils/async-handler';
 export const getAllUsers = asyncHandler(
   async (req: Request, res: Response) => {
 
+    const userRole = (req as any).user?.role;
+    const userTenantId = (req as any).user?.tenantId;
+    
     const users =
-      await userService.getAllUsers();
+      await userService.getAllUsers(userRole, userTenantId);
 
     return sendResponse(
       res,
@@ -183,6 +186,23 @@ export const updateProfilePicture = asyncHandler(
       200,
       'Profile picture updated successfully',
       user
+    );
+
+  }
+);
+
+export const getEmployeesByCompany = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const employees = await userService.getEmployeesByCompany(
+      req.params.companyId as string
+    );
+
+    return sendResponse(
+      res,
+      200,
+      'Employees fetched successfully',
+      employees
     );
 
   }

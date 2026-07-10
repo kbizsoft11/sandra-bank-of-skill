@@ -64,7 +64,11 @@ export class Login {
       .subscribe({
         next: () => {
           this.loading.set(false);
-          this.router.navigate(['admin/dashboard']);
+          // Give a small delay to ensure user data is set, then redirect to role-specific dashboard
+          setTimeout(() => {
+            const dashboardPath = this.authService.getRoleDashboardPath();
+            this.router.navigate([dashboardPath]);
+          }, 100);
         },
         error: () => {
           this.loading.set(false);

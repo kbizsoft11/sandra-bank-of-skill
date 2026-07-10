@@ -2,26 +2,40 @@
 
   <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 border-bottom px-3 px-sm-4 py-3">
 
-    <div>
-      <h2 class="h5 fw-semibold mb-0 text-dark">
-        Users
-      </h2>
+    <div class="d-flex align-items-center gap-2">
+      
+      @if (isViewingCompanyEmployees()) {
+        <button (click)="backToCompanies()" class="btn btn-light btn-sm d-inline-flex align-items-center gap-1">
+          <i class="bi bi-arrow-left"></i>
+          <span>Back</span>
+        </button>
+      }
 
-      <p class="mt-1 mb-0 small text-secondary">
-        Manage employee users from one place
-      </p>
+      <div>
+        <h2 class="h5 fw-semibold mb-0 text-dark">
+          {{ getPageTitle() }}
+        </h2>
+
+        <p class="mt-1 mb-0 small text-secondary">
+          {{ getPageSubtitle() }}
+        </p>
+      </div>
     </div>
 
     <div class="d-flex gap-2 w-100 w-sm-auto justify-content-sm-end">
-      <button (click)="openInviteModal()" class="btn btn-outline-primary btn-sm px-3 flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center gap-2">
-        <i class="bi bi-envelope-fill"></i>
-        <span>Invite User</span>
-      </button>
+      @if (canInviteUsers() && !isViewingCompanyEmployees()) {
+        <button (click)="openInviteModal()" class="btn btn-outline-primary btn-sm px-3 flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-envelope-fill"></i>
+          <span>Invite User</span>
+        </button>
+      }
 
-      <a routerLink="/admin/users/create" class="btn btn-primary btn-sm px-3 flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center gap-2">
-        <i class="bi bi-person-plus-fill"></i>
-        <span>Add User</span>
-      </a>
+      @if (canCreateUsers() && !isViewingCompanyEmployees()) {
+        <a routerLink="/admin/users/create" class="btn btn-primary btn-sm px-3 flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-person-plus-fill"></i>
+          <span>Add Company</span>
+        </a>
+      }
     </div>
 
   </div>
@@ -41,9 +55,11 @@
             Email
           </th>
 
-          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
-            Role
-          </th>
+          @if (!isViewingCompanies()) {
+            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
+              Role
+            </th>
+          }
 
           <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
             Actions
@@ -54,16 +70,20 @@
 
       <tbody>
 
-        @if (employeeUsers().length === 0) {
+        @if (displayedUsers().length === 0) {
         <tr>
-          <td colspan="4" class="px-4 py-4 text-center text-secondary">
-            No employee users found.
+          <td [attr.colspan]="isViewingCompanies() ? 3 : 4" class="px-4 py-4 text-center text-secondary">
+            @if (isViewingCompanyEmployees()) {
+              No employees found for this company.
+            } @else {
+              No {{ isViewingCompanies() ? 'companies' : 'users' }} found.
+            }
           </td>
         </tr>
         } @else {
-        @for (user of employeeUsers(); track user._id) {
+        @for (user of displayedUsers(); track user._id) {
 
-        <tr>
+        <tr [class.cursor-pointer]="isViewingCompanies()" (click)="isViewingCompanies() ? viewCompanyEmployees(user) : null">
 
           <td class="px-4 py-3">
 
@@ -87,18 +107,27 @@
             {{ user.email }}
           </td>
 
+          @if (!isViewingCompanies()) {
+            <td class="px-4 py-3">
+
+              <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-2 fw-medium">
+                {{ user.role }}
+              </span>
+
+            </td>
+          }
+
           <td class="px-4 py-3">
-
-            <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-2 fw-medium">
-              {{ user.role }}
-            </span>
-
-          </td>
-
-          <td class="px-4 py-3">
-            <app-table-actions [actions]="['edit','delete']" (edit)="editUser(user)"
-              (delete)="deleteUser(user)">
-            </app-table-actions>
+            @if (isViewingCompanies()) {
+              <button (click)="viewCompanyEmployees(user); $event.stopPropagation()" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+                <i class="bi bi-people-fill"></i>
+                <span>View Employees</span>
+              </button>
+            } @else {
+              <app-table-actions [actions]="['edit','delete']" (edit)="editUser(user)"
+                (delete)="deleteUser(user)">
+              </app-table-actions>
+            }
           </td>
 
         </tr>

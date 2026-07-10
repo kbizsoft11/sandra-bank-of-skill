@@ -36,11 +36,7 @@ export class AuthService {
         signal<AuthUser | null>(null);
 
     readonly token =
-        signal<string | null>(
-            this.storage.getItem(
-                'accessToken'
-            )
-        );
+        signal<string | null>(null);
 
     readonly isAuthenticated =
         computed(() => !!this.token());
@@ -48,12 +44,29 @@ export class AuthService {
     readonly role =
         computed(() => this.user()?.role);
 
+    private isLoadingUser = false;
+    private userLoadPromise: Promise<boolean> | null = null;
+
     constructor() {
 
-        if (this.token()) {
+        // Initialize token from storage
+        const storedToken = this.storage.getItem('accessToken');
+        this.token.set(storedToken);
 
+        const token = this.token();
+        const user = this.user();
+        
+        console.log('👤 [AUTH SERVICE] Constructor called');
+        console.log('👤 [AUTH SERVICE] Token exists:', !!token);
+        console.log('👤 [AUTH SERVICE] User exists:', !!user);
+
+        if (token && !user) {
+            console.log('👤 [AUTH SERVICE] Token exists but no user, loading...');
             this.loadCurrentUser();
-
+        } else if (!token) {
+            console.log('👤 [AUTH SERVICE] No token, skipping user load');
+        } else {
+            console.log('👤 [AUTH SERVICE] User already loaded');
         }
 
     }
@@ -99,7 +112,10 @@ export class AuthService {
             token
         );
 
-        this.loadCurrentUser();
+        // Don't call loadCurrentUser here if it's already loading
+        if (!this.isLoadingUser && !this.user()) {
+            this.loadCurrentUser();
+        }
 
     }
 
@@ -125,19 +141,59 @@ export class AuthService {
 
     private loadCurrentUser(): void {
 
-        this.getCurrentUser()
-        .subscribe({
+        // Prevent multiple simultaneous calls
+        if (this.isLoadingUser) {
+            console.log('👤 [AUTH SERVICE] Already loading user, skipping');
+            return;
+        }
 
-            next: (response) => {
-                console.log(this.user());
-            },
+        console.log('👤 [AUTH SERVICE] Starting to load current user');
+        this.isLoadingUser = true;
 
-            error: (err) => {
-                this.logout();
-            }
+        this.userLoadPromise = new Promise((resolve) => {
+            this.getCurrentUser()
+            .subscribe({
 
+                next: (response) => {
+                    console.log('👤 [AUTH SERVICE] ✅ User loaded successfully:', response.data);
+                    this.isLoadingUser = false;
+                    this.userLoadPromise = null;
+                    resolve(true);
+                },
+
+                error: (err) => {
+                    console.error('👤 [AUTH SERVICE] ❌ Error loading user:', err);
+                    console.error('👤 [AUTH SERVICE] Error status:', err.status);
+                    this.isLoadingUser = false;
+                    this.userLoadPromise = null;
+                    // Only logout if it's a 401 unauthorized error
+                    if (err.status === 401) {
+                        console.log('👤 [AUTH SERVICE] 401 error, logging out');
+                        this.logout();
+                    }
+                    resolve(false);
+                }
+
+            });
         });
 
+    }
+
+    async waitForUserLoad(): Promise<boolean> {
+        console.log('👤 [AUTH SERVICE] waitForUserLoad called');
+        console.log('👤 [AUTH SERVICE] userLoadPromise exists:', !!this.userLoadPromise);
+        console.log('👤 [AUTH SERVICE] current user:', this.user());
+        
+        if (this.userLoadPromise) {
+            console.log('👤 [AUTH SERVICE] Waiting for existing promise...');
+            const result = await this.userLoadPromise;
+            console.log('👤 [AUTH SERVICE] Promise resolved with:', result);
+            return result;
+        }
+        // If user is already loaded or no token, return immediately
+        const hasUser = !!this.user();
+        console.log('👤 [AUTH SERVICE] No pending load, user exists:', hasUser);
+        return hasUser;
     }
 
     logout(): void {
@@ -173,6 +229,22 @@ export class AuthService {
     isSuperAdmin(): boolean {
 
         return this.role() === 'super_admin';
+
+    }
+
+    getRoleDashboardPath(): string {
+
+        const userRole = this.role();
+
+        if (userRole === 'admin') {
+            return '/admin/dashboard';
+        } else if (userRole === 'company') {
+            return '/company/dashboard';
+        } else if (userRole === 'employee') {
+            return '/employee/dashboard';
+        }
+
+        return '/auth/login';
 
     }
 

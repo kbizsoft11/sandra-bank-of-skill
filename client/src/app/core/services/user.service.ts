@@ -121,4 +121,14 @@ export class UserService {
 
   }
 
+  getEmployeesByCompany(
+    companyId: string
+  ): Observable<any> {
+
+    return this.http.get(
+      `${this.api}/company/${companyId}/employees`
+    );
+
+  }
+
 }

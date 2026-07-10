@@ -14,10 +14,36 @@ import path from 'path';
 
 export const userService = {
 
-  getAllUsers: async () => {
+  getAllUsers: async (userRole?: string, userTenantId?: string) => {
 
-    return await userRepository.findAll();
+    // Admin sees only companies (not employees or other admins)
+    if (userRole === 'admin') {
+      return await userRepository.findAll('company');
+    } 
+    // Company sees only their employees with same tenantId
+    else if (userRole === 'company') {
+      return await userRepository.findAll('employee', userTenantId);
+    }
+    
+    // Default: return empty array for other roles
+    return [];
 
+  },
+
+  getEmployeesByCompany: async (companyId: string) => {
+    // Get company user to find tenantId
+    const company = await userRepository.findById(companyId);
+    
+    if (!company) {
+      throw new Error('Company not found');
+    }
+
+    if (company.role !== 'company') {
+      throw new Error('User is not a company');
+    }
+
+    // Get all employees with the same tenantId
+    return await userRepository.findAll('employee', company.tenantId);
   },
 
   getUserById: async (id: string) => {
