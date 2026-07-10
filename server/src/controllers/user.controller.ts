@@ -91,3 +91,44 @@ export const deleteUser = asyncHandler(
 
   }
 );
+
+export const inviteUser = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    // Get the inviter's name from the authenticated user
+    const invitedByName = (req as any).user?.fullName || 'Administrator';
+
+    const result = await userService.inviteUser(
+      req.body,
+      invitedByName
+    );
+
+    return sendResponse(
+      res,
+      201,
+      result.message,
+      result.user
+    );
+
+  }
+);
+
+export const resetPassword = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    // Get the resetter's name from the authenticated user
+    const resetByName = (req as any).user?.fullName || 'Administrator';
+
+    const result = await userService.resetUserPassword(
+      req.params.id as string,
+      resetByName
+    );
+
+    return sendResponse(
+      res,
+      200,
+      result.message
+    );
+
+  }
+);

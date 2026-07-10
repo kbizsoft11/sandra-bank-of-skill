@@ -66,4 +66,26 @@ export class UserService {
 
   }
 
+  inviteUser(
+    payload: { email: string; role?: string; fullName?: string }
+  ): Observable<any> {
+
+    return this.http.post(
+      `${this.api}/invite`,
+      payload
+    );
+
+  }
+
+  resetUserPassword(
+    userId: string
+  ): Observable<any> {
+
+    return this.http.post(
+      `${this.api}/${userId}/reset-password`,
+      {}
+    );
+
+  }
+
 }

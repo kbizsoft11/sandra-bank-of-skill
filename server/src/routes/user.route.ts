@@ -13,6 +13,7 @@ import {
     updateUserSchema,
     userIdParamSchema,
     getUsersQuerySchema,
+    inviteUserSchema,
 } from '../validators/user.validator';
 
 const router = Router();
@@ -51,6 +52,20 @@ router.delete(
     authenticate,
     validateParams(userIdParamSchema),
     userController.deleteUser
+);
+
+router.post(
+    '/invite',
+    authenticate,
+    validate(inviteUserSchema),
+    userController.inviteUser
+);
+
+router.post(
+    '/:id/reset-password',
+    authenticate,
+    validateParams(userIdParamSchema),
+    userController.resetPassword
 );
 
 export default router;

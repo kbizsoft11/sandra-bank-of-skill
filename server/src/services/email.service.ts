@@ -275,8 +275,193 @@ export const sendPasswordResetEmail = async (
     await sendEmail({ to: email, subject, html, text });
 };
 
+/**
+ * Send invitation email with generated password
+ */
+export const sendInvitationEmail = async (
+    email: string,
+    password: string,
+    name: string,
+    invitedBy: string
+): Promise<void> => {
+    const subject = 'You\'re Invited to Bank of Skill!';
+    
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('\n========== INVITATION EMAIL ==========');
+        console.log('Email:', email);
+        console.log('Temporary Password:', password);
+        console.log('======================================\n');
+    }
+    
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #4F46E5; color: white; padding: 20px; text-align: center; }
+                .content { padding: 30px; background: #f9f9f9; }
+                .password-box { background: white; padding: 20px; text-align: center; margin: 20px 0; border: 2px solid #4F46E5; border-radius: 8px; }
+                .password { font-size: 24px; font-weight: bold; letter-spacing: 2px; color: #4F46E5; font-family: monospace; }
+                .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                .button { display: inline-block; padding: 12px 24px; background: #4F46E5; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+                .warning { background: #FEF3C7; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #F59E0B; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🎉 Welcome to Bank of Skill!</h1>
+                </div>
+                <div class="content">
+                    <h2>Hi ${name},</h2>
+                    <p>You've been invited to join <strong>Bank of Skill</strong> by ${invitedBy}.</p>
+                    
+                    <p>Your account has been created with the following credentials:</p>
+                    
+                    <div style="background: white; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                        <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
+                    </div>
+                    
+                    <div class="password-box">
+                        <p style="margin: 0 0 10px 0;"><strong>Temporary Password:</strong></p>
+                        <div class="password">${password}</div>
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>⚠️ Important:</strong> Please change this password after your first login for security purposes.
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <a href="${env.CLIENT_URL || 'http://localhost:4200'}/login" class="button">Login to Your Account</a>
+                    </div>
+                    
+                    <p>If you have any questions, feel free to reach out to our support team.</p>
+                </div>
+                <div class="footer">
+                    <p>&copy; ${new Date().getFullYear()} Bank of Skill. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    const text = `
+        Welcome to Bank of Skill!
+        
+        Hi ${name},
+        
+        You've been invited to join Bank of Skill by ${invitedBy}.
+        
+        Your Login Credentials:
+        Email: ${email}
+        Temporary Password: ${password}
+        
+        ⚠️ IMPORTANT: Please change this password after your first login.
+        
+        Login URL: ${env.CLIENT_URL || 'http://localhost:4200'}/login
+        
+        If you have any questions, feel free to reach out to our support team.
+    `;
+
+    await sendEmail({ to: email, subject, html, text });
+};
+
+/**
+ * Send password reset notification email with new password
+ */
+export const sendPasswordResetNotificationEmail = async (
+    email: string,
+    password: string,
+    name: string,
+    resetBy: string
+): Promise<void> => {
+    const subject = 'Your Password Has Been Reset - Bank of Skill';
+    
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('\n========== PASSWORD RESET ==========');
+        console.log('Email:', email);
+        console.log('New Password:', password);
+        console.log('====================================\n');
+    }
+    
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #4F46E5; color: white; padding: 20px; text-align: center; }
+                .content { padding: 30px; background: #f9f9f9; }
+                .password-box { background: white; padding: 20px; text-align: center; margin: 20px 0; border: 2px solid #4F46E5; border-radius: 8px; }
+                .password { font-size: 24px; font-weight: bold; letter-spacing: 2px; color: #4F46E5; font-family: monospace; }
+                .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                .button { display: inline-block; padding: 12px 24px; background: #4F46E5; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+                .warning { background: #FEF3C7; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #F59E0B; }
+                .alert { background: #FEE2E2; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #EF4444; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🔐 Password Reset</h1>
+                </div>
+                <div class="content">
+                    <h2>Hi ${name},</h2>
+                    <p>Your password has been reset by ${resetBy}.</p>
+                    
+                    <div class="password-box">
+                        <p style="margin: 0 0 10px 0;"><strong>Your New Temporary Password:</strong></p>
+                        <div class="password">${password}</div>
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>⚠️ Important:</strong> Please change this password after logging in for security purposes.
+                    </div>
+                    
+                    <div class="alert">
+                        <strong>🔒 Security Notice:</strong> If you didn't request this password reset, please contact your administrator immediately.
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <a href="${env.CLIENT_URL || 'http://localhost:4200'}/login" class="button">Login to Your Account</a>
+                    </div>
+                    
+                    <p>If you have any concerns, please contact your administrator or our support team.</p>
+                </div>
+                <div class="footer">
+                    <p>&copy; ${new Date().getFullYear()} Bank of Skill. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    const text = `
+        Password Reset - Bank of Skill
+        
+        Hi ${name},
+        
+        Your password has been reset by ${resetBy}.
+        
+        Your New Temporary Password: ${password}
+        
+        ⚠️ IMPORTANT: Please change this password after logging in.
+        
+        🔒 SECURITY NOTICE: If you didn't request this reset, contact your administrator immediately.
+        
+        Login URL: ${env.CLIENT_URL || 'http://localhost:4200'}/login
+    `;
+
+    await sendEmail({ to: email, subject, html, text });
+};
+
 export const emailService = {
     sendVerificationEmail,
     sendWelcomeEmail,
     sendPasswordResetEmail,
+    sendInvitationEmail,
+    sendPasswordResetNotificationEmail,
 };

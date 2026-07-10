@@ -30,4 +30,7 @@ export const env = {
   
   // Registration Configuration
   REGISTRATION_EXPIRY_HOURS: parseInt(process.env.REGISTRATION_EXPIRY_HOURS || '24', 10),
+  
+  // Client Configuration
+  CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:4200',
 };

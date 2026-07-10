@@ -115,24 +115,11 @@ export class UserList implements OnInit {
 
     const email = this.inviteForm.get('email')?.value;
 
-    // TODO: Call invite API endpoint
-    // For now, just simulate the API call
-    setTimeout(() => {
-      this.isInviting = false;
-      this.inviteSuccess = `Invitation sent successfully to ${email}`;
-      
-      // Close modal after 2 seconds
-      setTimeout(() => {
-        this.closeInviteModal();
-      }, 2000);
-    }, 1000);
-
-    // UNCOMMENT THIS WHEN BACKEND IS READY:
-    /*
     this.userService.inviteUser({ email }).subscribe({
       next: (response) => {
         this.isInviting = false;
         this.inviteSuccess = `Invitation sent successfully to ${email}`;
+        this.loadUsers(); // Refresh user list
         
         // Close modal after 2 seconds
         setTimeout(() => {
@@ -144,7 +131,6 @@ export class UserList implements OnInit {
         this.inviteError = error.error?.message || 'Failed to send invitation. Please try again.';
       }
     });
-    */
   }
 
   viewUser(user: any): void { }

@@ -1,7 +1,8 @@
 import {
   Component,
   OnInit,
-  inject
+  inject,
+  signal
 } from '@angular/core';
 
 import {
@@ -17,6 +18,8 @@ import {
   Router,
   RouterLink
 } from '@angular/router';
+
+import { finalize } from 'rxjs';
 
 import { UserService } from '../../../core/services/user.service';
 
@@ -45,6 +48,10 @@ export class EditUser implements OnInit {
     inject(UserService);
 
   private userId = '';
+
+  readonly isResettingPassword = signal(false);
+  readonly resetPasswordSuccess = signal('');
+  readonly resetPasswordError = signal('');
 
   readonly form =
     this.fb.nonNullable.group({
@@ -94,9 +101,6 @@ export class EditUser implements OnInit {
         next: (response) => {
 
           const userData = response.data;
-          
-
-
 
           const fullName = userData.fullName;
 
@@ -140,6 +144,51 @@ export class EditUser implements OnInit {
 
       });
 
+  }
+
+  /**
+   * Reset user password
+   */
+  resetPassword(): void {
+    const userEmail = this.form.get('email')?.value;
+    const confirmed = confirm(
+      `Are you sure you want to reset the password for ${userEmail}?\n\nA new password will be generated and sent to the user's email.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.isResettingPassword.set(true);
+    this.resetPasswordSuccess.set('');
+    this.resetPasswordError.set('');
+
+    this.userService.resetUserPassword(this.userId)
+      .pipe(
+        finalize(() => this.isResettingPassword.set(false))
+      )
+      .subscribe({
+        next: () => {
+          this.resetPasswordSuccess.set(
+            'Password reset successfully! A new password has been sent to the user\'s email.'
+          );
+
+          // Clear success message after 5 seconds
+          setTimeout(() => {
+            this.resetPasswordSuccess.set('');
+          }, 5000);
+        },
+        error: (error) => {
+          this.resetPasswordError.set(
+            error.error?.message || 'Failed to reset password. Please try again.'
+          );
+
+          // Clear error message after 5 seconds
+          setTimeout(() => {
+            this.resetPasswordError.set('');
+          }, 5000);
+        }
+      });
   }
 
 }

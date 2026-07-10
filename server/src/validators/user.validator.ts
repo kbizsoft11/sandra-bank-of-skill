@@ -103,3 +103,26 @@ export const getUsersQuerySchema = z.object({
         .optional(),
 
 });
+
+export const inviteUserSchema = z.object({
+
+    email: z
+        .string()
+        .email('Invalid email address'),
+
+    role: z
+        .enum([
+            'admin',
+            'company',
+            'employee'
+        ])
+        .optional(),
+
+    fullName: z
+        .string()
+        .trim()
+        .min(2)
+        .max(100)
+        .optional(),
+
+});

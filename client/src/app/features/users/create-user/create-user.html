@@ -78,23 +78,37 @@
                 Password
             </label>
 
-            <input 
-                type="password" 
-                formControlName="password" 
-                class="form-control"
-                [class.is-invalid]="form.controls.password.invalid && (form.controls.password.dirty || form.controls.password.touched)"
-                placeholder="Enter password">
+            <div class="input-group">
+                <input 
+                    type="password" 
+                    formControlName="password" 
+                    class="form-control"
+                    [class.is-invalid]="form.controls.password.invalid && (form.controls.password.dirty || form.controls.password.touched)"
+                    placeholder="Enter password">
 
-            @if (form.controls.password.invalid && (form.controls.password.dirty || form.controls.password.touched)) {
-                <div class="invalid-feedback">
-                    @if (form.controls.password.errors?.['required']) {
-                        <div>Password is required</div>
-                    }
-                    @if (form.controls.password.errors?.['minlength']) {
-                        <div>Password must be at least 6 characters</div>
-                    }
-                </div>
-            }
+                <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    (click)="generatePassword()"
+                    title="Generate Password">
+                    <i class="bi bi-key"></i> Generate
+                </button>
+
+                @if (form.controls.password.invalid && (form.controls.password.dirty || form.controls.password.touched)) {
+                    <div class="invalid-feedback">
+                        @if (form.controls.password.errors?.['required']) {
+                            <div>Password is required</div>
+                        }
+                        @if (form.controls.password.errors?.['minlength']) {
+                            <div>Password must be at least 6 characters</div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <small class="text-muted d-block mt-1">
+                <i class="bi bi-info-circle"></i> Click "Generate" to create a secure password automatically
+            </small>
 
         </div>
 
