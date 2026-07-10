@@ -1,8 +1,9 @@
-import { Component, EventEmitter, Input, Output, inject, signal, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
+import { AlertService } from '../../../core/services/alert.service';
 import { API_CONFIG } from '../../../core/config/api.config';
 
 @Component({
@@ -12,19 +13,26 @@ import { API_CONFIG } from '../../../core/config/api.config';
   templateUrl: './dashboard-sidebar.html',
   styleUrl: './dashboard-sidebar.scss',
 })
-export class DashboardSidebar implements OnInit {
+export class DashboardSidebar implements OnInit, OnDestroy {
   @Input() sidebarOpen = false;
   @Output() sidebarItemClicked = new EventEmitter<void>();
 
   readonly auth = inject(AuthService);
   private readonly userService = inject(UserService);
+  private readonly alertService = inject(AlertService);
   private readonly router = inject(Router);
 
   showUserMenu = false;
   profileImage = signal<string | null>(null);
+  private docClickHandler = () => { this.showUserMenu = false; };
 
   ngOnInit(): void {
     this.loadUserProfile();
+    document.addEventListener('click', this.docClickHandler);
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('click', this.docClickHandler);
   }
 
   loadUserProfile(): void {
@@ -69,10 +77,18 @@ export class DashboardSidebar implements OnInit {
   }
 
   logout(): void {
-    const confirmed = confirm('Are you sure you want to logout?');
-    if (!confirmed) return;
-    this.auth.logout();
-    this.router.navigate(['/auth/login']);
+    this.alertService.confirm(
+      'You will be logged out of your account.',
+      'Are you sure you want to logout?',
+      'Yes, logout',
+      'Cancel'
+    ).then((confirmed) => {
+      if (confirmed) {
+        this.auth.logout();
+        this.router.navigate(['/auth/login']);
+        this.alertService.toast('Logged out successfully', 'success');
+      }
+    });
   }
 
   menuItems = [

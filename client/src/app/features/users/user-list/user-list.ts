@@ -9,6 +9,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
+import { AlertService } from '../../../core/services/alert.service';
 import { TableActions } from '../../../shared/components/table-actions/table-actions';
 import { Router, RouterLink } from '@angular/router';
 
@@ -27,6 +28,7 @@ import { Router, RouterLink } from '@angular/router';
 export class UserList implements OnInit {
 
   private userService = inject(UserService);
+  private readonly alertService = inject(AlertService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
 
@@ -147,31 +149,20 @@ export class UserList implements OnInit {
 
   deleteUser(user: any): void {
 
-    const confirmed =
-      confirm(
-        `Are you sure you want to delete ${user.fullName}?`
-      );
-
-    if (!confirmed) {
-
-      return;
-
-    }
-
-    this.userService
-      .deleteUser(user._id)
-      .subscribe({
-
-        next: () => {
-
-          this.loadUsers();
-
-        },
-
-        error: (err) =>
-          console.error(err)
-
-      });
+    this.alertService.confirmDelete(user.fullName).then((confirmed) => {
+      if (confirmed) {
+        this.userService.deleteUser(user._id).subscribe({
+          next: () => {
+            this.loadUsers();
+            this.alertService.toast('User deleted successfully', 'success');
+          },
+          error: (err) => {
+            console.error(err);
+            this.alertService.error('Failed to delete user. Please try again.');
+          }
+        });
+      }
+    });
 
   }
 

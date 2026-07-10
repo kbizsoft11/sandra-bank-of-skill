@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
 import { RegistrationService } from '../../../core/services/registration.service';
+import { AlertService } from '../../../core/services/alert.service';
 import { finalize } from 'rxjs';
 
 @Component({
@@ -16,6 +17,7 @@ import { finalize } from 'rxjs';
 export class VerifyEmail implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly registrationService = inject(RegistrationService);
+  private readonly alertService = inject(AlertService);
   private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -267,7 +269,7 @@ export class VerifyEmail implements OnInit, OnDestroy {
         this.startCountdown();
         
         // Show success message
-        alert('Verification code sent successfully!');
+        this.alertService.toast('Verification code sent successfully!', 'success');
       },
       error: (error) => {
         console.error('Resend OTP error:', error);

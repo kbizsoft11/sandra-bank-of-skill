@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ThemeService } from '../../../core/services/theme.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
+import { AlertService } from '../../../core/services/alert.service';
 import { Router } from '@angular/router';
 import { API_CONFIG } from '../../../core/config/api.config';
 
@@ -18,6 +19,7 @@ export class DashboardHeader implements OnInit, OnDestroy {
   private readonly themeService = inject(ThemeService);
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
+  private readonly alertService = inject(AlertService);
   private readonly router = inject(Router);
   readonly auth = inject(AuthService);
   
@@ -82,18 +84,18 @@ export class DashboardHeader implements OnInit, OnDestroy {
   }
 
   logout(): void {
-
-    const confirmed = confirm(
-      'Are you sure you want to logout?'
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    this.authService.logout();
-
-    this.router.navigate(['/auth/login']);
+    this.alertService.confirm(
+      'You will be logged out of your account.',
+      'Are you sure you want to logout?',
+      'Yes, logout',
+      'Cancel'
+    ).then((confirmed) => {
+      if (confirmed) {
+        this.authService.logout();
+        this.router.navigate(['/auth/login']);
+        this.alertService.toast('Logged out successfully', 'success');
+      }
+    });
   }
 
   get isDark(): boolean {

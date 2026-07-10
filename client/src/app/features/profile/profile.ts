@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
+import { AlertService } from '../../core/services/alert.service';
 import { API_CONFIG } from '../../core/config/api.config';
 
 @Component({
@@ -17,6 +18,7 @@ export class Profile implements OnInit {
 
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
+  private readonly alertService = inject(AlertService);
   private readonly fb = inject(FormBuilder);
 
   // Profile data signals
@@ -217,13 +219,13 @@ export class Profile implements OnInit {
       
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
+        this.alertService.error('Please select an image file', 'Invalid File Type');
         return;
       }
 
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
+        this.alertService.error('File size must be less than 5MB', 'File Too Large');
         return;
       }
 
@@ -258,10 +260,11 @@ export class Profile implements OnInit {
         }));
 
         this.closeImageUpload();
+        this.alertService.toast('Profile picture updated successfully!', 'success');
       },
       error: (error) => {
         this.isUploadingImage.set(false);
-        alert(error.error?.message || 'Failed to upload image. Please try again.');
+        this.alertService.error(error.error?.message || 'Failed to upload image. Please try again.');
       }
     });
   }

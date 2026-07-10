@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
 import { RegistrationService } from '../../../core/services/registration.service';
+import { AlertService } from '../../../core/services/alert.service';
 import { RegistrationProgress } from '../../../shared/components/registration-progress/registration-progress';
 
 import {
@@ -22,6 +23,7 @@ import {
 export class Register implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly registrationService = inject(RegistrationService);
+  private readonly alertService = inject(AlertService);
   private readonly router = inject(Router);
 
   registerForm!: FormGroup;
@@ -57,13 +59,21 @@ export class Register implements OnInit {
    * Clear existing registration and start fresh
    */
   clearExistingRegistration(): void {
-    if (confirm('Are you sure you want to start a new registration? Your current progress will be lost.')) {
-      this.registrationService.clearRegistration();
-      this.hasExistingRegistration = false;
-      this.registerForm.reset({
-        termsAccepted: false
-      });
-    }
+    this.alertService.confirm(
+      'Your current progress will be lost.',
+      'Are you sure you want to start a new registration?',
+      'Yes, start fresh',
+      'Cancel'
+    ).then((confirmed) => {
+      if (confirmed) {
+        this.registrationService.clearRegistration();
+        this.hasExistingRegistration = false;
+        this.registerForm.reset({
+          termsAccepted: false
+        });
+        this.alertService.toast('Registration cleared successfully', 'success');
+      }
+    });
   }
 
 

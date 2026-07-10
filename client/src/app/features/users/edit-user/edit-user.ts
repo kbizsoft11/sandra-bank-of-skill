@@ -22,6 +22,7 @@ import {
 import { finalize } from 'rxjs';
 
 import { UserService } from '../../../core/services/user.service';
+import { AlertService } from '../../../core/services/alert.service';
 
 @Component({
   selector: 'app-edit-user',
@@ -46,6 +47,9 @@ export class EditUser implements OnInit {
 
   private readonly userService =
     inject(UserService);
+
+  private readonly alertService =
+    inject(AlertService);
 
   private userId = '';
 
@@ -151,44 +155,39 @@ export class EditUser implements OnInit {
    */
   resetPassword(): void {
     const userEmail = this.form.get('email')?.value;
-    const confirmed = confirm(
-      `Are you sure you want to reset the password for ${userEmail}?\n\nA new password will be generated and sent to the user's email.`
-    );
+    
+    this.alertService.confirm(
+      `A new password will be generated and sent to ${userEmail}`,
+      'Are you sure you want to reset the password?',
+      'Yes, reset password',
+      'Cancel'
+    ).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
 
-    if (!confirmed) {
-      return;
-    }
+      this.isResettingPassword.set(true);
+      this.resetPasswordSuccess.set('');
+      this.resetPasswordError.set('');
 
-    this.isResettingPassword.set(true);
-    this.resetPasswordSuccess.set('');
-    this.resetPasswordError.set('');
-
-    this.userService.resetUserPassword(this.userId)
-      .pipe(
-        finalize(() => this.isResettingPassword.set(false))
-      )
-      .subscribe({
-        next: () => {
-          this.resetPasswordSuccess.set(
-            'Password reset successfully! A new password has been sent to the user\'s email.'
-          );
-
-          // Clear success message after 5 seconds
-          setTimeout(() => {
-            this.resetPasswordSuccess.set('');
-          }, 5000);
-        },
-        error: (error) => {
-          this.resetPasswordError.set(
-            error.error?.message || 'Failed to reset password. Please try again.'
-          );
-
-          // Clear error message after 5 seconds
-          setTimeout(() => {
-            this.resetPasswordError.set('');
-          }, 5000);
-        }
-      });
+      this.userService.resetUserPassword(this.userId)
+        .pipe(
+          finalize(() => this.isResettingPassword.set(false))
+        )
+        .subscribe({
+          next: () => {
+            this.alertService.success(
+              'A new password has been sent to the user\'s email.',
+              'Password Reset Successfully'
+            );
+          },
+          error: (error) => {
+            this.alertService.error(
+              error.error?.message || 'Failed to reset password. Please try again.'
+            );
+          }
+        });
+    });
   }
 
 }
