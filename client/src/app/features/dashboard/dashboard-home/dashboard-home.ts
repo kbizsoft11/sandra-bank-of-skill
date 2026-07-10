@@ -1,6 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { take } from 'rxjs';
 
+import { RouterLink } from '@angular/router';
+
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { SkillService } from '../../../core/services/skill.service';
@@ -8,6 +10,7 @@ import { SkillService } from '../../../core/services/skill.service';
 @Component({
   selector: 'app-dashboard-home',
   standalone: true,
+  imports: [RouterLink],
   templateUrl: './dashboard-home.html',
   styleUrl: './dashboard-home.scss',
 })

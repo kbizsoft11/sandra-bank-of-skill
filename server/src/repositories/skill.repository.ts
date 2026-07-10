@@ -13,7 +13,7 @@ export class SkillRepository {
     async findById(id: string) {
         return Skill.findById(id)
             .populate("cat_id", "cat_name")
-            .populate("user_id", "firstName lastName email");
+            .populate("user_id", "fullName email");
     }
 
     async findByName(
@@ -77,7 +77,7 @@ export class SkillRepository {
         const [skills, total] = await Promise.all([
             Skill.find(filter)
                 .populate("cat_id", "cat_name")
-                .populate("user_id", "firstName lastName email")
+                .populate("user_id", "fullName email")
                 .sort({ created_at: -1 })
                 .skip((Number(page) - 1) * Number(limit))
                 .limit(Number(limit)),

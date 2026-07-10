@@ -31,7 +31,6 @@ export const userService = {
   createUser: async (
     payload: CreateUserDto
   ) => {
-
     const existingUser =
       await userRepository.findByEmail(
         payload.email
@@ -49,13 +48,13 @@ export const userService = {
       );
 
     return await userRepository.create({
-
-      ...payload,
+      fullName: payload.fullName,
+      email: payload.email,
       password: hashedPassword,
-      tenantId: 'company-1',
-      profileCompleted: false,
-      isActive: true,
-
+      role: payload.role,
+      tenantId: payload.tenantId || 'company-1',
+      profileCompleted: payload.profileCompleted || false,
+      isActive: payload.isActive !== undefined ? payload.isActive : true,
     });
 
   },

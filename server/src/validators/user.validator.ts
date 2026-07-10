@@ -5,17 +5,11 @@ const objectIdRegex =
 
 export const createUserSchema = z.object({
 
-    firstName: z
+    fullName: z
         .string()
         .trim()
         .min(2)
         .max(100),
-
-    lastName: z
-        .string()
-        .trim()
-        .max(100)
-        .optional(),
 
     email: z
         .email(),
@@ -48,17 +42,10 @@ export const createUserSchema = z.object({
 
 export const updateUserSchema = z.object({
 
-
-    firstName: z
+    fullName: z
         .string()
         .trim()
         .min(2)
-        .max(100)
-        .optional(),
-
-    lastName: z
-        .string()
-        .trim()
         .max(100)
         .optional(),
 
@@ -85,7 +72,6 @@ export const updateUserSchema = z.object({
     isActive: z
         .boolean()
         .optional(),
-
 
 });
 

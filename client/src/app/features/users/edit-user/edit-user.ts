@@ -49,12 +49,13 @@ export class EditUser implements OnInit {
   readonly form =
     this.fb.nonNullable.group({
 
-      firstName: [
+      fullName: [
         '',
-        Validators.required
+        [
+          Validators.required,
+          Validators.minLength(2)
+        ]
       ],
-
-      lastName: [''],
 
       email: [
         '',
@@ -92,7 +93,19 @@ export class EditUser implements OnInit {
 
         next: (response) => {
 
-          this.form.patchValue(response.data);
+          const userData = response.data;
+          
+
+
+
+          const fullName = userData.fullName;
+
+          this.form.patchValue({
+            fullName,
+            email: userData.email,
+            role: userData.role,
+            isActive: userData.isActive
+          });
 
         }
 

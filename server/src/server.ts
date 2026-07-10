@@ -2,6 +2,7 @@ import { env } from "./config/env";
 import app from "./app";
 import { connectDB } from './config/database';
 
+
 const startServer = async () => {
   try {
     await connectDB();

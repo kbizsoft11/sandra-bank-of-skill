@@ -1,6 +1,6 @@
 <div class="rounded-4 border bg-white shadow-sm overflow-hidden">
 
-  <div class="d-flex align-items-center justify-content-between border-bottom px-4 py-3">
+  <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 border-bottom px-3 px-sm-4 py-3">
 
     <div>
       <h2 class="h5 fw-semibold mb-0 text-dark">
@@ -8,13 +8,21 @@
       </h2>
 
       <p class="mt-1 mb-0 small text-secondary">
-        Manage all users from one place
+        Manage employee users from one place
       </p>
     </div>
 
-    <a routerLink="/admin/users/create" class="btn btn-primary btn-sm px-3">
-      Add User
-    </a>
+    <div class="d-flex gap-2 w-100 w-sm-auto justify-content-sm-end">
+      <button (click)="openInviteModal()" class="btn btn-outline-primary btn-sm px-3 flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center gap-2">
+        <i class="bi bi-envelope-fill"></i>
+        <span>Invite User</span>
+      </button>
+
+      <a routerLink="/admin/users/create" class="btn btn-primary btn-sm px-3 flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center gap-2">
+        <i class="bi bi-person-plus-fill"></i>
+        <span>Add User</span>
+      </a>
+    </div>
 
   </div>
 
@@ -46,7 +54,14 @@
 
       <tbody>
 
-        @for (user of users(); track user._id) {
+        @if (employeeUsers().length === 0) {
+        <tr>
+          <td colspan="4" class="px-4 py-4 text-center text-secondary">
+            No employee users found.
+          </td>
+        </tr>
+        } @else {
+        @for (user of employeeUsers(); track user._id) {
 
         <tr>
 
@@ -55,7 +70,7 @@
             <div class="d-flex align-items-center gap-3">
 
               <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-semibold" style="width: 40px; height: 40px;">
-                {{ user.fullName?.charAt(0) }}
+                {{ user.fullName?.charAt(0) || user.fullName?.charAt(0) }}
               </div>
 
               <div>
@@ -89,6 +104,7 @@
         </tr>
 
         }
+        }
 
       </tbody>
 
@@ -97,3 +113,79 @@
   </div>
 
 </div>
+
+<!-- Invite User Modal -->
+@if (showInviteModal) {
+  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-semibold">Invite User</h5>
+          <button type="button" class="btn-close" (click)="closeInviteModal()"></button>
+        </div>
+        <div class="modal-body pt-2">
+          <p class="text-secondary small mb-4">
+            Enter the email address to send an invitation. An auto-generated password will be sent to the user.
+          </p>
+
+          <form [formGroup]="inviteForm" (ngSubmit)="sendInvite()">
+            <div class="mb-3">
+              <label class="form-label fw-medium">Email Address</label>
+              <input 
+                type="email" 
+                class="form-control" 
+                [class.is-invalid]="inviteForm.get('email')?.invalid && inviteForm.get('email')?.touched"
+                formControlName="email"
+                placeholder="user@example.com"
+                autofocus>
+              @if (inviteForm.get('email')?.hasError('required') && inviteForm.get('email')?.touched) {
+                <div class="invalid-feedback d-block">
+                  Email is required
+                </div>
+              }
+              @if (inviteForm.get('email')?.hasError('email') && inviteForm.get('email')?.touched) {
+                <div class="invalid-feedback d-block">
+                  Please enter a valid email address
+                </div>
+              }
+            </div>
+
+            @if (inviteError) {
+              <div class="alert alert-danger py-2">
+                {{ inviteError }}
+              </div>
+            }
+
+            @if (inviteSuccess) {
+              <div class="alert alert-success py-2">
+                {{ inviteSuccess }}
+              </div>
+            }
+
+            <div class="d-flex gap-2 mt-4">
+              <button 
+                type="button" 
+                class="btn btn-light flex-fill"
+                (click)="closeInviteModal()"
+                [disabled]="isInviting">
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                class="btn btn-primary flex-fill"
+                [disabled]="inviteForm.invalid || isInviting">
+                @if (isInviting) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  Sending...
+                } @else {
+                  <i class="bi bi-send-fill me-2"></i>
+                  Send Invite
+                }
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
