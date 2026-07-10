@@ -1,9 +1,11 @@
-import { Component, EventEmitter, inject, Output, OnInit, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, inject, Output, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ThemeService } from '../../../core/services/theme.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { UserService } from '../../../core/services/user.service';
 import { Router } from '@angular/router';
+import { API_CONFIG } from '../../../core/config/api.config';
 
 @Component({
   selector: 'app-dashboard-header',
@@ -15,12 +17,54 @@ import { Router } from '@angular/router';
 export class DashboardHeader implements OnInit, OnDestroy {
   private readonly themeService = inject(ThemeService);
   private readonly authService = inject(AuthService);
+  private readonly userService = inject(UserService);
   private readonly router = inject(Router);
   readonly auth = inject(AuthService);
+  
   showProfileMenu = false;
+  profileImage = signal<string | null>(null);
   private docClickHandler = () => { this.showProfileMenu = false; };
 
   @Output() toggleSidebar = new EventEmitter<void>();
+
+  ngOnInit(): void {
+    document.addEventListener('click', this.docClickHandler);
+    this.loadUserProfile();
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('click', this.docClickHandler);
+  }
+
+  loadUserProfile(): void {
+    this.userService.getMyProfile().subscribe({
+      next: (response) => {
+        const userData = response.data;
+        if (userData.profileImage) {
+          this.profileImage.set(`${API_CONFIG.SERVER_URL}${userData.profileImage}`);
+        }
+      },
+      error: (error) => {
+        console.error('Error loading profile image:', error);
+      }
+    });
+  }
+
+  getInitials(): string {
+    const name = this.auth.user()?.fullName || 'User';
+    return name.charAt(0).toUpperCase();
+  }
+
+  getRandomColor(): string {
+    const name = this.auth.user()?.fullName || 'User';
+    const colors = [
+      '#667eea', '#764ba2', '#f093fb', '#4facfe',
+      '#43e97b', '#fa709a', '#fee140', '#30cfd0',
+      '#a8edea', '#fed6e3', '#c471ed', '#12c2e9'
+    ];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  }
 
   toggleTheme(): void {
     this.themeService.toggleTheme();
@@ -54,14 +98,6 @@ export class DashboardHeader implements OnInit, OnDestroy {
 
   get isDark(): boolean {
     return this.themeService.getTheme() === 'dark';
-  }
-
-  ngOnInit(): void {
-    document.addEventListener('click', this.docClickHandler);
-  }
-
-  ngOnDestroy(): void {
-    document.removeEventListener('click', this.docClickHandler);
   }
 
 }

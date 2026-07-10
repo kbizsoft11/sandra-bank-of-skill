@@ -1,0 +1,514 @@
+<!-- Mobile-First Profile Page -->
+<div class="pp-container">
+
+  @if (user()) {
+
+    <!-- Page Header -->
+    <div class="pp-page-header">
+      <div class="pp-page-header__title">
+        <h1>
+          My Profile
+          <span class="pp-badge">Public View</span>
+        </h1>
+        <p>Your Professional Identity At Bank Of Skill</p>
+      </div>
+
+      <div class="pp-page-header__actions">
+        <button class="pp-btn pp-btn--outline" (click)="shareProfile()">
+          <i class="bi bi-share"></i>
+          <span>Share Profile</span>
+        </button>
+        <button class="pp-btn pp-btn--primary" (click)="addSkill()">
+          <i class="bi bi-plus-lg"></i>
+          <span>Add Skills</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="pp-card pp-profile-card">
+      <div class="pp-profile-card__main">
+
+        <!-- Avatar -->
+        <div class="pp-avatar-wrapper">
+          <div class="pp-avatar">
+            @if (user().profileImage) {
+              <img [src]="user().profileImage" [alt]="user().fullName">
+            } @else {
+              <div class="pp-avatar__placeholder">
+                {{ user().fullName?.charAt(0)?.toUpperCase() }}
+              </div>
+            }
+            <button class="pp-avatar__edit-btn" (click)="openImageUpload()" title="Change Profile Picture">
+              <i class="bi bi-camera-fill"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Name and Title -->
+        <div class="pp-profile-details">
+          <h2 class="pp-profile-name">{{ user().fullName }}</h2>
+          <p class="pp-profile-title">{{ user().title || user().role }}</p>
+          <p class="pp-profile-bio">{{ user().bio }}</p>
+
+          <!-- Social Links -->
+          <div class="pp-social-links">
+            @if (user().socialLinks?.facebook) {
+              <a [href]="user().socialLinks.facebook" target="_blank" class="pp-social-link">
+                <i class="bi bi-facebook"></i>
+              </a>
+            }
+            @if (user().socialLinks?.twitter) {
+              <a [href]="user().socialLinks.twitter" target="_blank" class="pp-social-link">
+                <i class="bi bi-twitter"></i>
+              </a>
+            }
+            @if (user().socialLinks?.linkedin) {
+              <a [href]="user().socialLinks.linkedin" target="_blank" class="pp-social-link">
+                <i class="bi bi-linkedin"></i>
+              </a>
+            }
+          </div>
+        </div>
+
+        <!-- Edit Profile Button (Desktop) -->
+        <button class="pp-btn pp-btn--edit pp-desktop-only" (click)="editProfile()">
+          <i class="bi bi-pencil"></i>
+          <span>Edit Profile</span>
+        </button>
+      </div>
+
+      <!-- Edit Profile Button (Mobile) -->
+      <button class="pp-btn pp-btn--edit pp-btn--block pp-mobile-only" (click)="editProfile()">
+        <i class="bi bi-pencil"></i>
+        <span>Edit Profile</span>
+      </button>
+    </div>
+
+    <!-- Stats Cards Section -->
+    <div class="pp-stats-grid">
+
+      <!-- Profile Completion -->
+      <div class="pp-card pp-stat-card">
+        <div class="pp-stat-card__label">Profile Completion</div>
+        <div class="pp-stat-card__chart">
+          <svg viewBox="0 0 36 36" class="pp-ring pp-ring--completion">
+            <path class="pp-ring__bg"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <path class="pp-ring__fill"
+              [attr.stroke-dasharray]="profileCompletion() + ', 100'"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <text x="18" y="20.35" class="pp-ring__text">{{ profileCompletion() }}%</text>
+          </svg>
+        </div>
+        <div class="pp-stat-card__sublabel">Complete</div>
+      </div>
+
+      <!-- Talent Score -->
+      <div class="pp-card pp-stat-card">
+        <div class="pp-stat-card__label">Talent Score</div>
+        <div class="pp-stat-card__chart">
+          <svg viewBox="0 0 36 36" class="pp-ring pp-ring--score">
+            <path class="pp-ring__bg"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <path class="pp-ring__fill"
+              [attr.stroke-dasharray]="talentScore() + ', 100'"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <text x="18" y="20.35" class="pp-ring__text">{{ talentScore() }}</text>
+          </svg>
+        </div>
+        <div class="pp-stat-card__sublabel">/100</div>
+      </div>
+
+      <!-- Skill Credits -->
+      <div class="pp-card pp-stat-card">
+        <div class="pp-stat-card__label">Skill Credits</div>
+        <div class="pp-stat-card__chart">
+          <svg viewBox="0 0 36 36" class="pp-ring pp-ring--credits">
+            <path class="pp-ring__bg"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <path class="pp-ring__fill"
+              [attr.stroke-dasharray]="skillCredits() + ', 100'"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <text x="18" y="20.35" class="pp-ring__text">{{ skillCredits() }}</text>
+          </svg>
+        </div>
+        <div class="pp-stat-card__sublabel">Available Credits</div>
+      </div>
+
+      <!-- Profile Reach -->
+      <div class="pp-card pp-stat-card">
+        <div class="pp-stat-card__label">Profile Reach</div>
+        <div class="pp-stat-card__chart">
+          <svg viewBox="0 0 36 36" class="pp-ring pp-ring--reach">
+            <path class="pp-ring__bg"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <path class="pp-ring__fill"
+              [attr.stroke-dasharray]="profileReach() + ', 100'"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <text x="18" y="20.35" class="pp-ring__text">{{ profileReach() }}%</text>
+          </svg>
+        </div>
+        <div class="pp-stat-card__sublabel">Reach</div>
+      </div>
+
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="pp-tabs">
+      <button
+        class="pp-tab"
+        [class.pp-tab--active]="activeTab() === 'overview'"
+        (click)="setActiveTab('overview')">
+        Overview
+      </button>
+      <button
+        class="pp-tab"
+        [class.pp-tab--active]="activeTab() === 'skills'"
+        (click)="setActiveTab('skills')">
+        Skills
+      </button>
+      <button
+        class="pp-tab"
+        [class.pp-tab--active]="activeTab() === 'experience'"
+        (click)="setActiveTab('experience')">
+        Experience
+      </button>
+      <button
+        class="pp-tab"
+        [class.pp-tab--active]="activeTab() === 'projects'"
+        (click)="setActiveTab('projects')">
+        Projects
+      </button>
+      <button
+        class="pp-tab"
+        [class.pp-tab--active]="activeTab() === 'education'"
+        (click)="setActiveTab('education')">
+        Education
+      </button>
+      <button
+        class="pp-tab"
+        [class.pp-tab--active]="activeTab() === 'achievements'"
+        (click)="setActiveTab('achievements')">
+        Achievements
+      </button>
+    </div>
+
+    <!-- Content Section -->
+    <div class="pp-content-grid">
+
+      <!-- Top Strengths Card -->
+      <div class="pp-card pp-content-card">
+        <div class="pp-content-card__header">
+          <h3 class="pp-content-card__title">
+            <i class="bi bi-trophy-fill pp-icon-strength"></i>
+            Top Strengths
+          </h3>
+        </div>
+        <div class="pp-content-card__body">
+          <div class="pp-tags">
+            @for (strength of topStrengths(); track strength) {
+              <span class="pp-tag pp-tag--strength">{{ strength }}</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Interests Card -->
+      <div class="pp-card pp-content-card">
+        <div class="pp-content-card__header">
+          <h3 class="pp-content-card__title">
+            <i class="bi bi-heart-fill pp-icon-interest"></i>
+            Interests
+          </h3>
+        </div>
+        <div class="pp-content-card__body">
+          <div class="pp-tags">
+            @for (interest of interests(); track interest) {
+              <span class="pp-tag pp-tag--interest">{{ interest }}</span>
+            }
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tab Content Placeholder -->
+    <div class="pp-tab-content">
+      @switch (activeTab()) {
+        @case ('overview') {
+          <div class="pp-card pp-content-card">
+            <div class="pp-content-card__body">
+              <h4>Overview</h4>
+              <p class="pp-text-muted">Detailed overview content will be displayed here.</p>
+            </div>
+          </div>
+        }
+        @case ('skills') {
+          <div class="pp-card pp-content-card">
+            <div class="pp-content-card__body">
+              <h4>Skills</h4>
+              <p class="pp-text-muted">Skills content will be displayed here.</p>
+            </div>
+          </div>
+        }
+        @case ('experience') {
+          <div class="pp-card pp-content-card">
+            <div class="pp-content-card__body">
+              <h4>Experience</h4>
+              <p class="pp-text-muted">Experience content will be displayed here.</p>
+            </div>
+          </div>
+        }
+        @case ('projects') {
+          <div class="pp-card pp-content-card">
+            <div class="pp-content-card__body">
+              <h4>Projects</h4>
+              <p class="pp-text-muted">Projects content will be displayed here.</p>
+            </div>
+          </div>
+        }
+        @case ('education') {
+          <div class="pp-card pp-content-card">
+            <div class="pp-content-card__body">
+              <h4>Education</h4>
+              <p class="pp-text-muted">Education content will be displayed here.</p>
+            </div>
+          </div>
+        }
+        @case ('achievements') {
+          <div class="pp-card pp-content-card">
+            <div class="pp-content-card__body">
+              <h4>Achievements</h4>
+              <p class="pp-text-muted">Achievements content will be displayed here.</p>
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+  } @else {
+    <!-- Loading State -->
+    <div class="pp-loading">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  }
+
+  <!-- Edit Profile Modal -->
+  @if (showEditModal()) {
+    <div class="modal-overlay" (click)="closeEditModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Edit Profile</h3>
+          <button class="modal-close" (click)="closeEditModal()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <form [formGroup]="editForm" (ngSubmit)="submitEditProfile()">
+          <div class="modal-body">
+
+            <!-- Success Message -->
+            @if (submitSuccess()) {
+              <div class="alert alert-success">
+                <i class="bi bi-check-circle-fill me-2"></i>{{ submitSuccess() }}
+              </div>
+            }
+
+            <!-- Error Message -->
+            @if (submitError()) {
+              <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ submitError() }}
+              </div>
+            }
+
+            <!-- Full Name -->
+            <div class="form-group">
+              <label class="form-label">Full Name *</label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="fullName"
+                placeholder="Enter your full name">
+              @if (editForm.get('fullName')?.invalid && editForm.get('fullName')?.touched) {
+                <div class="form-error">
+                  @if (editForm.get('fullName')?.errors?.['required']) {
+                    <span>Full name is required</span>
+                  }
+                  @if (editForm.get('fullName')?.errors?.['minlength']) {
+                    <span>Full name must be at least 2 characters</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Title -->
+            <div class="form-group">
+              <label class="form-label">Title</label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="title"
+                placeholder="e.g., Product Designer">
+              @if (editForm.get('title')?.invalid && editForm.get('title')?.touched) {
+                <div class="form-error">
+                  @if (editForm.get('title')?.errors?.['maxlength']) {
+                    <span>Title must be less than 100 characters</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Bio -->
+            <div class="form-group">
+              <label class="form-label">Bio</label>
+              <textarea
+                class="form-control"
+                formControlName="bio"
+                rows="4"
+                placeholder="Tell us about yourself..."></textarea>
+              @if (editForm.get('bio')?.invalid && editForm.get('bio')?.touched) {
+                <div class="form-error">
+                  @if (editForm.get('bio')?.errors?.['maxlength']) {
+                    <span>Bio must be less than 500 characters</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Social Links -->
+            <div formGroupName="socialLinks">
+              <h5 class="form-section-title">Social Links</h5>
+
+              <!-- Facebook -->
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="bi bi-facebook text-primary"></i> Facebook
+                </label>
+                <input
+                  type="url"
+                  class="form-control"
+                  formControlName="facebook"
+                  placeholder="https://facebook.com/yourprofile">
+              </div>
+
+              <!-- Twitter -->
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="bi bi-twitter text-info"></i> Twitter
+                </label>
+                <input
+                  type="url"
+                  class="form-control"
+                  formControlName="twitter"
+                  placeholder="https://twitter.com/yourprofile">
+              </div>
+
+              <!-- LinkedIn -->
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="bi bi-linkedin text-primary"></i> LinkedIn
+                </label>
+                <input
+                  type="url"
+                  class="form-control"
+                  formControlName="linkedin"
+                  placeholder="https://linkedin.com/in/yourprofile">
+              </div>
+            </div>
+
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeEditModal()">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="isSubmitting() || editForm.invalid">
+              @if (isSubmitting()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Saving...
+              } @else {
+                Save Changes
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Profile Picture Upload Modal -->
+  @if (showImageUpload()) {
+    <div class="modal-overlay" (click)="closeImageUpload()">
+      <div class="modal-container modal-container--sm" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Update Profile Picture</h3>
+          <button class="modal-close" (click)="closeImageUpload()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          
+          <!-- Image Preview -->
+          <div class="image-upload-area">
+            @if (imagePreview()) {
+              <div class="image-preview">
+                <img [src]="imagePreview()" alt="Profile preview">
+              </div>
+            } @else {
+              <div class="image-placeholder">
+                <i class="bi bi-cloud-upload"></i>
+                <p>Select an image to upload</p>
+                <small>PNG, JPG, GIF or WebP (Max 5MB)</small>
+              </div>
+            }
+          </div>
+
+          <!-- File Input -->
+          <div class="form-group">
+            <label class="btn btn-outline-primary w-100">
+              <i class="bi bi-folder2-open me-2"></i>
+              Choose Image
+              <input
+                type="file"
+                class="d-none"
+                accept="image/*"
+                (change)="onFileSelected($event)">
+            </label>
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeImageUpload()">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="!selectedFile() || isUploadingImage()"
+            (click)="uploadProfileImage()">
+            @if (isUploadingImage()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Uploading...
+            } @else {
+              Upload Photo
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

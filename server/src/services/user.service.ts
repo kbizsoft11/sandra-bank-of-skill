@@ -3,11 +3,14 @@
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { InviteUserDto } from '../dto/invite-user.dto';
+import { UpdateProfileDto } from '../dto/update-profile.dto';
 
 import { userRepository } from '../repositories/user.repository';
 
 import { hashPassword, generateRandomPassword } from '../utils/password';
 import { sendInvitationEmail, sendPasswordResetNotificationEmail } from './email.service';
+import { deleteOldProfileImage } from '../utils/file-upload';
+import path from 'path';
 
 export const userService = {
 
@@ -211,6 +214,80 @@ export const userService = {
       message: 'Password reset successfully and email sent',
     };
 
+  },
+
+  /**
+   * Get current user profile
+   */
+  getMyProfile: async (userId: string) => {
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return user;
+  },
+
+  /**
+   * Update current user profile
+   */
+  updateMyProfile: async (
+    userId: string,
+    payload: UpdateProfileDto
+  ) => {
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const updatedUser = await userRepository.update(userId, payload);
+
+    return updatedUser;
+  },
+
+  /**
+   * Update user profile picture
+   */
+  updateProfilePicture: async (
+    userId: string,
+    filename: string
+  ) => {
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+      // Delete the uploaded file since user doesn't exist
+      const uploadedFilePath = path.join(__dirname, '../../uploads/profiles', filename);
+      deleteOldProfileImage(uploadedFilePath);
+      throw new Error('User not found');
+    }
+
+    // Store old image path for cleanup
+    const oldImagePath = user.profileImage 
+      ? path.join(__dirname, '../../uploads/profiles', path.basename(user.profileImage))
+      : null;
+
+    // Update profile image in database
+    const profileImageUrl = `/uploads/profiles/${filename}`;
+    
+    try {
+      const updatedUser = await userRepository.update(userId, {
+        profileImage: profileImageUrl,
+      });
+
+      // Delete old profile image only after successful database update
+      if (oldImagePath) {
+        deleteOldProfileImage(oldImagePath);
+      }
+
+      return updatedUser;
+    } catch (error) {
+      // If database update fails, delete the newly uploaded file
+      const uploadedFilePath = path.join(__dirname, '../../uploads/profiles', filename);
+      deleteOldProfileImage(uploadedFilePath);
+      throw error;
+    }
   }
 
 };

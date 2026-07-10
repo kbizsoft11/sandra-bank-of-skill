@@ -6,4 +6,7 @@ export const API_CONFIG = {
   BASE_URL: isLocalhost
     ? 'http://localhost:5000/api'
     : '/api',
+  SERVER_URL: isLocalhost
+    ? 'http://localhost:5000'
+    : '',
 } as const;

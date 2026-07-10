@@ -85,6 +85,38 @@ const UserSchema = new Schema<IUser>(
         isActive: {
             type: Boolean,
             default: true
+        },
+
+        profileImage: {
+            type: String,
+            required: false,
+        },
+
+        title: {
+            type: String,
+            required: false,
+            trim: true,
+        },
+
+        bio: {
+            type: String,
+            required: false,
+            trim: true,
+        },
+
+        socialLinks: {
+            facebook: {
+                type: String,
+                required: false,
+            },
+            twitter: {
+                type: String,
+                required: false,
+            },
+            linkedin: {
+                type: String,
+                required: false,
+            },
         }
 
     },

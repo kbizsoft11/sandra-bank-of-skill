@@ -126,3 +126,32 @@ export const inviteUserSchema = z.object({
         .optional(),
 
 });
+
+export const updateProfileSchema = z.object({
+
+    fullName: z
+        .string()
+        .trim()
+        .min(2)
+        .max(100)
+        .optional(),
+
+    title: z
+        .string()
+        .trim()
+        .max(100)
+        .optional(),
+
+    bio: z
+        .string()
+        .trim()
+        .max(500)
+        .optional(),
+
+    socialLinks: z.object({
+        facebook: z.string().url().optional().or(z.literal('')),
+        twitter: z.string().url().optional().or(z.literal('')),
+        linkedin: z.string().url().optional().or(z.literal('')),
+    }).optional(),
+
+});

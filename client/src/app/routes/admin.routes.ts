@@ -7,6 +7,11 @@ export const adminRoutes: Routes = [
     },
 
     {
+        path: 'profile',
+        loadComponent: () => import('../features/profile/profile').then(c => c.Profile)
+    },
+
+    {
         path: 'users',
         loadComponent: () => import('../features/users/user-list/user-list').then(c => c.UserList)
     },

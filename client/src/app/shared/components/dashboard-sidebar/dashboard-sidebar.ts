@@ -1,7 +1,9 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { UserService } from '../../../core/services/user.service';
+import { API_CONFIG } from '../../../core/config/api.config';
 
 @Component({
   selector: 'app-dashboard-sidebar',
@@ -10,14 +12,50 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './dashboard-sidebar.html',
   styleUrl: './dashboard-sidebar.scss',
 })
-export class DashboardSidebar {
+export class DashboardSidebar implements OnInit {
   @Input() sidebarOpen = false;
   @Output() sidebarItemClicked = new EventEmitter<void>();
 
   readonly auth = inject(AuthService);
+  private readonly userService = inject(UserService);
   private readonly router = inject(Router);
 
   showUserMenu = false;
+  profileImage = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.loadUserProfile();
+  }
+
+  loadUserProfile(): void {
+    this.userService.getMyProfile().subscribe({
+      next: (response) => {
+        const userData = response.data;
+        if (userData.profileImage) {
+          this.profileImage.set(`${API_CONFIG.SERVER_URL}${userData.profileImage}`);
+        }
+      },
+      error: (error) => {
+        console.error('Error loading profile image:', error);
+      }
+    });
+  }
+
+  getInitials(): string {
+    const name = this.auth.user()?.fullName || 'User';
+    return name.charAt(0).toUpperCase();
+  }
+
+  getRandomColor(): string {
+    const name = this.auth.user()?.fullName || 'User';
+    const colors = [
+      '#667eea', '#764ba2', '#f093fb', '#4facfe',
+      '#43e97b', '#fa709a', '#fee140', '#30cfd0',
+      '#a8edea', '#fed6e3', '#c471ed', '#12c2e9'
+    ];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  }
 
   closeSidebar(): void {
     this.sidebarItemClicked.emit();

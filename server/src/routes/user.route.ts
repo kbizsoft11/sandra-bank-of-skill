@@ -14,10 +14,35 @@ import {
     userIdParamSchema,
     getUsersQuerySchema,
     inviteUserSchema,
+    updateProfileSchema,
 } from '../validators/user.validator';
+
+import { upload } from '../utils/file-upload';
 
 const router = Router();
 
+// Profile routes for current user (must be before /:id routes)
+router.get(
+    '/me',
+    authenticate,
+    userController.getMyProfile
+);
+
+router.put(
+    '/me',
+    authenticate,
+    validate(updateProfileSchema),
+    userController.updateMyProfile
+);
+
+router.post(
+    '/me/profile-picture',
+    authenticate,
+    upload.single('profileImage'),
+    userController.updateProfilePicture
+);
+
+// General user routes
 router.get(
     '/',
     authenticate,

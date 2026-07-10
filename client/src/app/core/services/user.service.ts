@@ -88,4 +88,37 @@ export class UserService {
 
   }
 
+  getMyProfile(): Observable<any> {
+
+    return this.http.get(
+      `${this.api}/me`
+    );
+
+  }
+
+  updateMyProfile(
+    payload: any
+  ): Observable<any> {
+
+    return this.http.put(
+      `${this.api}/me`,
+      payload
+    );
+
+  }
+
+  uploadProfilePicture(
+    file: File
+  ): Observable<any> {
+
+    const formData = new FormData();
+    formData.append('profileImage', file);
+
+    return this.http.post(
+      `${this.api}/me/profile-picture`,
+      formData
+    );
+
+  }
+
 }

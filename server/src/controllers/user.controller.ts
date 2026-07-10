@@ -132,3 +132,58 @@ export const resetPassword = asyncHandler(
 
   }
 );
+
+export const getMyProfile = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const userId = (req as any).user?.userId;
+
+    const user = await userService.getMyProfile(userId);
+
+    return sendResponse(
+      res,
+      200,
+      'Profile fetched successfully',
+      user
+    );
+
+  }
+);
+
+export const updateMyProfile = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const userId = (req as any).user?.userId;
+
+    const user = await userService.updateMyProfile(userId, req.body);
+
+    return sendResponse(
+      res,
+      200,
+      'Profile updated successfully',
+      user
+    );
+
+  }
+);
+
+export const updateProfilePicture = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const userId = (req as any).user?.userId;
+
+    if (!req.file) {
+      throw new Error('No file uploaded');
+    }
+
+    const user = await userService.updateProfilePicture(userId, req.file.filename);
+
+    return sendResponse(
+      res,
+      200,
+      'Profile picture updated successfully',
+      user
+    );
+
+  }
+);

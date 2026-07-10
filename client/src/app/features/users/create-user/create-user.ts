@@ -35,6 +35,8 @@ export class CreateUser {
   private readonly userService =
     inject(UserService);
 
+  showPassword = false;
+
   readonly form =
     this.fb.nonNullable.group({
 
@@ -104,6 +106,13 @@ export class CreateUser {
 
     const generatedPassword = password.join('');
     this.form.patchValue({ password: generatedPassword });
+  }
+
+  /**
+   * Toggle password visibility
+   */
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
   }
 
   submit(): void {
