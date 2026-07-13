@@ -10,7 +10,7 @@ import { SkillService } from '../../../core/services/skill.service';
 @Component({
   selector: 'app-dashboard-home',
   standalone: true,
-  imports: [RouterLink],
+  // imports: [RouterLink],
   templateUrl: './dashboard-home.html',
   styleUrl: './dashboard-home.scss',
 })

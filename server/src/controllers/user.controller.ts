@@ -210,7 +210,7 @@ export const uploadUserProfilePicture = asyncHandler(
       throw new Error('No file uploaded');
     }
 
-    const user = await userService.updateProfilePicture(id, req.file.filename);
+    const user = await userService.updateProfilePicture(id as string, req.file.filename);
 
     return sendResponse(
       res,

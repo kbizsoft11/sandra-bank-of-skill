@@ -10,7 +10,7 @@ import { API_CONFIG } from '../../core/config/api.config';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './profile.html',
   styleUrl: './profile.scss'
 })
