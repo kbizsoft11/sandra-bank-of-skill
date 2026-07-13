@@ -113,6 +113,28 @@ export class UserList implements OnInit {
     return 'Manage users from one place';
   }
 
+  // Get status badge class
+  getStatusBadgeClass(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'invited':
+        return 'bg-warning-subtle text-warning-emphasis';
+      case 'joined':
+        return 'bg-info-subtle text-info-emphasis';
+      case 'active':
+        return 'bg-success-subtle text-success-emphasis';
+      case 'inactive':
+        return 'bg-secondary-subtle text-secondary-emphasis';
+      default:
+        return 'bg-secondary-subtle text-secondary-emphasis';
+    }
+  }
+
+  // Get status display text
+  getStatusText(status: string): string {
+    if (!status) return 'Active';
+    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+  }
+
   // Check if user can create users (admin only)
   canCreateUsers(): boolean {
     return this.auth.role() === 'admin';

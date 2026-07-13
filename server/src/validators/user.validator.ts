@@ -8,27 +8,25 @@ export const createUserSchema = z.object({
     fullName: z
         .string()
         .trim()
-        .min(2)
-        .max(100),
+        .min(2, 'Full name must be at least 2 characters')
+        .max(100, 'Full name must not exceed 100 characters'),
 
     email: z
-        .email(),
+        .email('Invalid email format'),
 
     password: z
         .string()
-        .min(6),
+        .optional()
+        .describe('Password is auto-generated for company users'),
 
     role: z
-        .enum([
-            'admin',
-            'company',
-            'employee'
-        ])
-        .optional(),
+        .literal('company')
+        .describe('Only company users can be created via admin'),
 
     tenantId: z
         .string()
-        .optional(),
+        .optional()
+        .describe('TenantId is auto-generated for company users'),
 
     profileCompleted: z
         .boolean()

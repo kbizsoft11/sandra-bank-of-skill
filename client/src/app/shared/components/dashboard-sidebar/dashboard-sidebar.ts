@@ -139,6 +139,18 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       roles: ['admin'],
     },
     {
+      label: 'Questionnaires',
+      path: 'questionnaires',
+      icon: 'bi bi-clipboard-check',
+      roles: ['company'],
+    },
+    {
+      label: 'My Questionnaires',
+      path: 'my-questionnaires',
+      icon: 'bi bi-clipboard-check',
+      roles: ['employee'],
+    },
+    {
       label: 'My Skills',
       path: 'my-skills',
       icon: 'bi bi-lightbulb-fill',

@@ -1,4 +1,4 @@
-import { UserRole, OnboardingStatus } from "./common.types";
+import { UserRole, OnboardingStatus, AccountStatus } from "./common.types";
 
 export interface IUser {
 
@@ -31,6 +31,12 @@ export interface IUser {
   onboardingStatus: OnboardingStatus;
 
   isActive: boolean;
+
+  accountStatus?: AccountStatus;
+
+  invitedAt?: Date;
+
+  lastLoginAt?: Date;
 
   profileImage?: string;
 

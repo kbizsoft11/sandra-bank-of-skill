@@ -67,7 +67,7 @@ export class UserService {
   }
 
   inviteUser(
-    payload: { email: string; role?: string; fullName?: string }
+    payload: { email: string; }
   ): Observable<any> {
 
     return this.http.post(
@@ -116,6 +116,21 @@ export class UserService {
 
     return this.http.post(
       `${this.api}/me/profile-picture`,
+      formData
+    );
+
+  }
+
+  uploadUserProfilePicture(
+    userId: string,
+    file: File
+  ): Observable<any> {
+
+    const formData = new FormData();
+    formData.append('profileImage', file);
+
+    return this.http.post(
+      `${this.api}/${userId}/profile-picture`,
       formData
     );
 

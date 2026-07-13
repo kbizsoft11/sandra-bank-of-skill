@@ -1,6 +1,7 @@
 import {
   Component,
-  inject
+  inject,
+  signal
 } from '@angular/core';
 
 import {
@@ -13,6 +14,9 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 
 import { UserService } from '../../../core/services/user.service';
+
+const MAX_PHOTO_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const ALLOWED_PHOTO_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
 @Component({
   selector: 'app-create-user',
@@ -36,6 +40,11 @@ export class CreateUser {
     inject(UserService);
 
   showPassword = false;
+  isSubmitting = false;
+
+  readonly selectedPhoto = signal<File | null>(null);
+  readonly photoPreview = signal<string | null>(null);
+  readonly photoError = signal<string>('');
 
   readonly form =
     this.fb.nonNullable.group({
@@ -59,13 +68,12 @@ export class CreateUser {
       password: [
         '',
         [
-          Validators.required,
           Validators.minLength(6)
         ]
       ],
 
       role: [
-        'employee',
+        'company',
         Validators.required
       ],
 
@@ -76,6 +84,52 @@ export class CreateUser {
     });
 
   /**
+   * Handle photo selection from file input
+   */
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    this.photoError.set('');
+
+    if (!file) {
+      return;
+    }
+
+    if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+      this.photoError.set('Please select a JPG, PNG, or WEBP image.');
+      input.value = '';
+      return;
+    }
+
+    if (file.size > MAX_PHOTO_SIZE_BYTES) {
+      this.photoError.set('Image must be smaller than 5MB.');
+      input.value = '';
+      return;
+    }
+
+    this.selectedPhoto.set(file);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.photoPreview.set(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input so selecting the same file again still fires 'change'
+    input.value = '';
+  }
+
+  /**
+   * Remove the selected photo
+   */
+  removePhoto(): void {
+    this.selectedPhoto.set(null);
+    this.photoPreview.set(null);
+    this.photoError.set('');
+  }
+
+  /**
    * Generate a random secure password
    */
   generatePassword(): void {
@@ -84,7 +138,6 @@ export class CreateUser {
     const numbers = '0123456789';
     const special = '!@#$%^&*()_+-=[]{}|;:,.<>?';
 
-    // Ensure at least one of each required type
     const password = [
       uppercase[Math.floor(Math.random() * uppercase.length)],
       lowercase[Math.floor(Math.random() * lowercase.length)],
@@ -92,13 +145,11 @@ export class CreateUser {
       special[Math.floor(Math.random() * special.length)],
     ];
 
-    // Fill the rest with random characters from all types
     const allChars = uppercase + lowercase + numbers + special;
     for (let i = password.length; i < 12; i++) {
       password.push(allChars[Math.floor(Math.random() * allChars.length)]);
     }
 
-    // Shuffle the password array to randomize character positions
     for (let i = password.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [password[i], password[j]] = [password[j], password[i]];
@@ -118,12 +169,11 @@ export class CreateUser {
   submit(): void {
 
     if (this.form.invalid) {
-
       this.form.markAllAsTouched();
-
       return;
-
     }
+
+    this.isSubmitting = true;
 
     this.userService
       .createUser(
@@ -131,12 +181,38 @@ export class CreateUser {
       )
       .subscribe({
 
-        next: () => {
+        next: (response) => {
 
-          this.router.navigate([
-            '/admin/users'
-          ]);
+          const newUserId = response?.data?._id;
+          const photo = this.selectedPhoto();
 
+          // If no photo was picked, or we couldn't determine the new user's ID,
+          // just navigate away — the user was still created successfully.
+          if (!photo || !newUserId) {
+            this.isSubmitting = false;
+            this.router.navigate(['/admin/users']);
+            return;
+          }
+
+          // Upload the photo as a second step now that we have the new user's ID
+          this.userService.uploadUserProfilePicture(newUserId, photo).subscribe({
+            next: () => {
+              this.isSubmitting = false;
+              this.router.navigate(['/admin/users']);
+            },
+            error: (err) => {
+              console.error('User created, but photo upload failed:', err);
+              this.isSubmitting = false;
+              // Still navigate — the user exists, only the photo failed
+              this.router.navigate(['/admin/users']);
+            }
+          });
+
+        },
+
+        error: (err) => {
+          console.error(err);
+          this.isSubmitting = false;
         }
 
       });

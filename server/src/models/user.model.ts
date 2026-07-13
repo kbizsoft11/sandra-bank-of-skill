@@ -87,6 +87,20 @@ const UserSchema = new Schema<IUser>(
             default: true
         },
 
+        accountStatus: {
+            type: String,
+            enum: ['invited', 'joined', 'active', 'inactive'],
+            default: 'active',
+        },
+
+        invitedAt: {
+            type: Date,
+        },
+
+        lastLoginAt: {
+            type: Date,
+        },
+
         profileImage: {
             type: String,
             required: false,

@@ -11,6 +11,8 @@ import { hashPassword, generateRandomPassword } from '../utils/password';
 import { sendInvitationEmail, sendPasswordResetNotificationEmail } from './email.service';
 import { deleteOldProfileImage } from '../utils/file-upload';
 import path from 'path';
+import { AccountStatus } from '../types/common.types';
+import { v4 as uuidv4 } from 'uuid';
 
 export const userService = {
 
@@ -60,7 +62,9 @@ export const userService = {
   },
 
   createUser: async (
-    payload: CreateUserDto
+    payload: CreateUserDto,
+    createdByUserId?: string,
+    createdByName?: string
   ) => {
     const existingUser =
       await userRepository.findByEmail(
@@ -73,20 +77,51 @@ export const userService = {
       );
     }
 
-    const hashedPassword =
-      await hashPassword(
-        payload.password
+    // Only admin can create company users
+    if (payload.role !== 'company') {
+      throw new Error(
+        'Only company users can be created. Employees must be invited by their company administrator.'
       );
+    }
 
-    return await userRepository.create({
+    // Generate random password for company user
+    const generatedPassword = generateRandomPassword();
+    const hashedPassword = await hashPassword(generatedPassword);
+
+    // Generate unique tenantId for the company
+    const tenantId = uuidv4();
+
+    // Fetch admin name if not provided
+    let adminName = createdByName;
+    if (!adminName && createdByUserId) {
+      const admin = await userRepository.findById(createdByUserId);
+      adminName = admin?.fullName || 'Administrator';
+    }
+    adminName = adminName || 'Administrator';
+
+    // Create the company user
+    const newUser = await userRepository.create({
       fullName: payload.fullName,
       email: payload.email,
       password: hashedPassword,
-      role: payload.role,
-      tenantId: payload.tenantId || 'company-1',
-      profileCompleted: payload.profileCompleted || false,
-      isActive: payload.isActive !== undefined ? payload.isActive : true,
+      role: 'company',
+      tenantId: tenantId,
+      profileCompleted: false,
+      isActive: true,
+      emailVerified: false,
+      accountStatus: AccountStatus.INVITED,
+      invitedAt: new Date(),
     });
+
+    // Send invitation email with generated password
+    await sendInvitationEmail(
+      payload.email,
+      generatedPassword,
+      payload.fullName,
+      adminName
+    );
+
+    return newUser;
 
   },
 
@@ -157,6 +192,7 @@ export const userService = {
    */
   inviteUser: async (
     payload: InviteUserDto,
+    invitedByUserId: string,
     invitedByName: string
   ) => {
 
@@ -165,6 +201,21 @@ export const userService = {
 
     if (existingUser) {
       throw new Error('User with this email already exists');
+    }
+
+    // Get the inviter's details to inherit tenantId and organisationId
+    const inviter = await userRepository.findById(invitedByUserId);
+
+    if (!inviter) {
+      throw new Error('Inviter user not found');
+    }
+
+    if (inviter.role !== 'company') {
+      throw new Error('Only company users can invite employees');
+    }
+
+    if (!inviter.tenantId || !inviter.organisationId) {
+      throw new Error('Company user must have tenantId and organisationId to invite employees');
     }
 
     // Generate random secure password
@@ -176,15 +227,20 @@ export const userService = {
     // Extract full name or use email prefix as fallback
     const fullName = payload.fullName || payload.email.split('@')[0];
 
-    // Create the user
+    // Create the user with company's tenantId and organisationId
     const newUser = await userRepository.create({
       fullName: fullName,
       email: payload.email,
       password: hashedPassword,
       role: payload.role || 'employee',
-      tenantId: 'company-1',
+      tenantId: inviter.tenantId,
+      organisationId: inviter.organisationId,
       profileCompleted: false,
       isActive: true,
+      emailVerified: true, // Auto-verify invited users
+      onboardingStatus: 'completed', // Skip onboarding for invited users
+      accountStatus: AccountStatus.INVITED,
+      invitedAt: new Date(), 
     });
 
     // Send invitation email with generated password

@@ -4,6 +4,7 @@ import { userService } from '../services/user.service';
 
 import { sendResponse } from '../utils/api-response';
 import { asyncHandler } from '../utils/async-handler';
+import { userRepository } from '../repositories/user.repository';
 
 export const getAllUsers = asyncHandler(
   async (req: Request, res: Response) => {
@@ -45,15 +46,20 @@ export const getUserById = asyncHandler(
 export const createUser = asyncHandler(
   async (req: Request, res: Response) => {
 
+    const adminId = (req as any).user?.userId;
+    const adminName = (req as any).user?.fullName;
+
     const user =
       await userService.createUser(
-        req.body
+        req.body,
+        adminId,
+        adminName
       );
 
     return sendResponse(
       res,
       201,
-      'User created successfully',
+      'Company user created successfully and invitation email sent',
       user
     );
 
@@ -98,11 +104,15 @@ export const deleteUser = asyncHandler(
 export const inviteUser = asyncHandler(
   async (req: Request, res: Response) => {
 
-    // Get the inviter's name from the authenticated user
-    const invitedByName = (req as any).user?.fullName || 'Administrator';
+    // Get the inviter's details from the authenticated user
+    const invitedByUserId = (req as any).user?.userId;
+
+    const inviter = await userRepository.findById(invitedByUserId);
+    const invitedByName = inviter?.fullName || 'Administrator';
 
     const result = await userService.inviteUser(
       req.body,
+      invitedByUserId,
       invitedByName
     );
 
@@ -185,6 +195,27 @@ export const updateProfilePicture = asyncHandler(
       res,
       200,
       'Profile picture updated successfully',
+      user
+    );
+
+  }
+);
+
+export const uploadUserProfilePicture = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const { id } = req.params;
+
+    if (!req.file) {
+      throw new Error('No file uploaded');
+    }
+
+    const user = await userService.updateProfilePicture(id, req.file.filename);
+
+    return sendResponse(
+      res,
+      200,
+      'Profile picture uploaded successfully',
       user
     );
 

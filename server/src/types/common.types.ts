@@ -21,3 +21,13 @@ export type CompanySize =
     | '51-200'
     | '201-500'
     | '500+';
+
+
+    // common.types.ts
+export enum AccountStatus {
+  INVITED = 'invited',
+  JOINED = 'joined',
+  ACTIVE = 'active',
+  SUSPENDED = 'suspended',
+  // add other statuses as needed
+}

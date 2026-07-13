@@ -1,0 +1,26 @@
+.question-item {
+    background-color: #f8f9fa;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: #e9ecef;
+    }
+}
+
+.options-section {
+    margin-top: 1rem;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-group-sm > .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.card {
+    border-radius: 0.5rem;
+}

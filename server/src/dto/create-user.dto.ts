@@ -1,4 +1,4 @@
-import { OnboardingStatus, UserRole } from "../types/common.types";
+import { AccountStatus, OnboardingStatus, UserRole } from "../types/common.types";
 
 export interface CreateUserDto {
 
@@ -14,6 +14,8 @@ export interface CreateUserDto {
 
   tenantId?: string;
 
+  organisationId?: string;
+
   profileCompleted?: boolean;
 
   isActive?: boolean;
@@ -25,5 +27,8 @@ export interface CreateUserDto {
   verificationCodeExpiresAt?: Date;
 
   onboardingStatus?: OnboardingStatus;
+
+  accountStatus?: AccountStatus;  
+  invitedAt?: Date;   
 
 }

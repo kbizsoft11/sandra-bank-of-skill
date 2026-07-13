@@ -4,6 +4,7 @@ import userRouter from './user.route';
 import authRouter from './auth.route';
 import skillCategoryRoutes from "./skill-category.route";
 import skillRoutes from "./skill.route";
+import questionnaireRoutes from "./questionnaire.route";
 import { authenticate } from '../middlewares/auth.middleware';
 import { allowRoles } from '../middlewares/role.middleware';
 import waitlistRouter from './waitlist.route';
@@ -22,6 +23,7 @@ router.use('/auth', authRouter);
 router.use('/waitlist', waitlistRouter);
 router.use('/skill-categories', authenticate, skillCategoryRoutes);
 router.use("/skills", authenticate, skillRoutes);
+router.use("/questionnaires", authenticate, questionnaireRoutes);
 // router.use("/skills", authenticate, allowRoles('admin'), skillRoutes);
 
 export default router;

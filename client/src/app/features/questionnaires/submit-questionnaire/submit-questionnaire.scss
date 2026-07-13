@@ -1,0 +1,83 @@
+.question-card {
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+    }
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.35rem 0.65rem;
+}
+
+.answer-section {
+    margin-top: 1rem;
+}
+
+.options-list {
+    .form-check {
+        margin-bottom: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: #f8f9fa;
+        }
+    }
+
+    .form-check-input {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-top: 0.125rem;
+        cursor: pointer;
+    }
+
+    .form-check-label {
+        cursor: pointer;
+        margin-left: 0.5rem;
+    }
+}
+
+.rating-container {
+    .btn-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-outline-primary {
+        min-width: 50px;
+        border-radius: 0.375rem !important;
+    }
+
+    .btn-check:checked + .btn-outline-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+}
+
+.sticky-footer {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    margin: 0 -15px;
+    border-radius: 0.5rem 0.5rem 0 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+    border-radius: 0.5rem;
+}
+
+.form-control:read-only {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.form-check-input:disabled {
+    cursor: not-allowed;
+}

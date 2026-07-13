@@ -85,6 +85,16 @@ router.put(
     userController.updateUser
 );
 
+// Upload profile picture for specific user - Admin only
+router.post(
+    '/:id/profile-picture',
+    authenticate,
+    allowRoles('admin'),
+    validateParams(userIdParamSchema),
+    upload.single('profileImage'),
+    userController.uploadUserProfilePicture
+);
+
 router.delete(
     '/:id',
     authenticate,

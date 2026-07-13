@@ -1,0 +1,210 @@
+<div class="container-fluid py-4">
+  
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3 text-secondary">Loading...</p>
+    </div>
+  } @else {
+
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10 col-xl-9">
+
+        <!-- Header -->
+        <div class="mb-4">
+          <h2 class="h4 fw-semibold mb-1">Assign Questionnaire</h2>
+          <p class="text-secondary mb-0">
+            Select employees to assign 
+            <span class="fw-medium text-dark">"{{ questionnaire()?.title }}"</span>
+          </p>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()">
+
+          <!-- Questionnaire Info Card -->
+          <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+              
+              <h5 class="fw-semibold mb-3">Questionnaire Details</h5>
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label text-secondary small mb-1">Title</label>
+                  <p class="fw-medium mb-0">{{ questionnaire()?.title }}</p>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="form-label text-secondary small mb-1">Questions</label>
+                  <p class="fw-medium mb-0">
+                    {{ questionnaire()?.questions?.length || 0 }} 
+                    {{ questionnaire()?.questions?.length === 1 ? 'Question' : 'Questions' }}
+                  </p>
+                </div>
+
+                <div class="col-12 mb-3">
+                  <label class="form-label text-secondary small mb-1">Description</label>
+                  <p class="mb-0">{{ questionnaire()?.description }}</p>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-medium">
+                    Deadline (Optional)
+                  </label>
+                  <input 
+                    type="date" 
+                    class="form-control"
+                    formControlName="deadline"
+                    [min]="getTodayDate()">
+                  <small class="text-secondary">
+                    Leave empty for no deadline
+                  </small>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Employee Selection Card -->
+          <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+              
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-semibold mb-0">
+                  Select Employees 
+                  <span class="badge bg-primary ms-2">
+                    {{ selectedEmployees().size }} selected
+                  </span>
+                </h5>
+                <div class="btn-group btn-group-sm">
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    (click)="selectAll()">
+                    Select All
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    (click)="deselectAll()">
+                    Deselect All
+                  </button>
+                </div>
+              </div>
+
+              <!-- Search -->
+              <div class="mb-3">
+                <div class="input-group">
+                  <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-secondary"></i>
+                  </span>
+                  <input 
+                    type="text" 
+                    class="form-control border-start-0 ps-0" 
+                    placeholder="Search employees by name, email, or department..."
+                    [value]="searchTerm()"
+                    (input)="onSearchChange($event)">
+                </div>
+              </div>
+
+              <!-- Employee List -->
+              <div class="employee-list">
+                
+                @if (filteredEmployees().length === 0) {
+                  <div class="text-center py-5 text-secondary">
+                    @if (searchTerm()) {
+                      <i class="bi bi-search fs-1 d-block mb-2"></i>
+                      <p class="mb-0">No employees match your search.</p>
+                    } @else {
+                      <i class="bi bi-people fs-1 d-block mb-2"></i>
+                      <p class="mb-0">No employees available.</p>
+                    }
+                  </div>
+                } @else {
+                  
+                  @for (employee of filteredEmployees(); track employee._id) {
+                    <div 
+                      class="employee-item border rounded-3 p-3 mb-2"
+                      [class.selected]="isSelected(employee._id)"
+                      (click)="toggleEmployee(employee._id)">
+                      
+                      <div class="d-flex align-items-center gap-3">
+                        
+                        <!-- Checkbox -->
+                        <div class="form-check">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox"
+                            [checked]="isSelected(employee._id)"
+                            (click)="$event.stopPropagation()">
+                        </div>
+
+                        <!-- Avatar -->
+                        <div class="avatar bg-primary-subtle text-primary fw-semibold">
+                          {{ employee.fullName?.charAt(0) || 'E' }}
+                        </div>
+
+                        <!-- Employee Info -->
+                        <div class="flex-grow-1">
+                          <p class="fw-medium mb-0 text-dark">
+                            {{ employee.fullName }}
+                          </p>
+                          <p class="mb-0 small text-secondary">
+                            {{ employee.email }}
+                            @if (employee.department) {
+                              <span class="mx-1">•</span>
+                              <span>{{ employee.department }}</span>
+                            }
+                          </p>
+                        </div>
+
+                        <!-- Selection Indicator -->
+                        @if (isSelected(employee._id)) {
+                          <i class="bi bi-check-circle-fill text-primary fs-5"></i>
+                        }
+
+                      </div>
+
+                    </div>
+                  }
+
+                }
+
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-flex gap-3 justify-content-end">
+            <button 
+              type="button" 
+              class="btn btn-light px-4"
+              (click)="cancel()"
+              [disabled]="isSubmitting()">
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              class="btn btn-primary px-4"
+              [disabled]="isSubmitting() || selectedEmployees().size === 0">
+              @if (isSubmitting()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                Assigning...
+              } @else {
+                <i class="bi bi-person-plus me-2"></i>
+                Assign to {{ selectedEmployees().size }} Employee{{ selectedEmployees().size !== 1 ? 's' : '' }}
+              }
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+
+  }
+
+</div>

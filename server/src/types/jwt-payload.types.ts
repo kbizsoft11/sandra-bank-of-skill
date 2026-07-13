@@ -5,4 +5,5 @@ export interface JwtUserPayload extends JwtPayload {
   email: string;
   role: "admin" | "company" | "employee";
   tenantId?: string;
+  organisationId?: string;
 }

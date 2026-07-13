@@ -74,6 +74,8 @@ export const authService = {
       userId: user._id,
       email: user.email,
       role: user.role,
+      tenantId: user.tenantId,
+      organisationId: user.organisationId,
     });
 
     const userResponse = {
@@ -227,6 +229,8 @@ export const authService = {
       userId: user._id,
       email: user.email,
       role: user.role,
+      tenantId: user.tenantId,
+      organisationId: user.organisationId,
     });
 
     return {
@@ -341,6 +345,7 @@ export const authService = {
       email: updatedUser?.email,
       role: updatedUser?.role,
       tenantId: updatedUser?.tenantId,
+      organisationId: updatedUser?.organisationId,
     });
 
     return {
@@ -421,11 +426,23 @@ export const authService = {
       throw new Error('Invalid credentials');
     }
 
+    // Update last login and change status from 'invited' to 'joined' on first login
+    const updatePayload: any = {
+      lastLoginAt: new Date(),
+    };
+
+    if (user.accountStatus === 'invited') {
+      updatePayload.accountStatus = 'joined';
+    }
+
+    await userRepository.update(user._id.toString(), updatePayload);
+
     const token = generateToken({
       userId: user._id,
       email: user.email,
       role: user.role,
       tenantId: user.tenantId,
+      organisationId: user.organisationId,
     });
 
     return {

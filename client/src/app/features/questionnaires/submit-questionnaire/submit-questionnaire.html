@@ -1,0 +1,263 @@
+<div class="container-fluid py-4">
+  
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3 text-secondary">Loading questionnaire...</p>
+    </div>
+  } @else {
+
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10 col-xl-8">
+
+        <!-- Header -->
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <button (click)="cancel()" class="btn btn-light btn-sm d-inline-flex align-items-center gap-1">
+              <i class="bi bi-arrow-left"></i>
+              <span>Back</span>
+            </button>
+          </div>
+          <h2 class="h4 fw-semibold mb-2">
+            {{ questionnaire()?.title }}
+          </h2>
+          <p class="text-secondary mb-2">
+            {{ questionnaire()?.description }}
+          </p>
+          @if (response()?.deadline) {
+            <p class="small text-secondary mb-0">
+              <i class="bi bi-calendar-event me-1"></i>
+              Deadline: {{ formatDate(response()?.deadline) }}
+            </p>
+          }
+        </div>
+
+        <!-- Completed Badge -->
+        @if (isCompleted()) {
+          <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+            <div>
+              <h6 class="alert-heading mb-1">Questionnaire Completed</h6>
+              <p class="mb-0 small">You have already submitted this questionnaire. Viewing your answers in read-only mode.</p>
+            </div>
+          </div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="submit()">
+
+          <!-- Questions -->
+          <div class="questions-container">
+            
+            @for (question of questionnaire()?.questions; track question.questionId) {
+              <div class="card shadow-sm border-0 mb-4 question-card">
+                <div class="card-body p-4">
+                  
+                  <!-- Question Header -->
+                  <div class="d-flex gap-2 mb-3">
+                    <span class="badge bg-primary">Q{{ getQuestionNumber(question) }}</span>
+                    <h6 class="fw-semibold mb-0 flex-grow-1">
+                      {{ question.questionText }}
+                      @if (question.required) {
+                        <span class="text-danger ms-1">*</span>
+                      }
+                    </h6>
+                  </div>
+
+                  <!-- Answer Input based on Question Type -->
+                  <div class="answer-section">
+
+                    <!-- Text Input -->
+                    @if (question.questionType === 'text') {
+                      <input 
+                        type="text" 
+                        class="form-control"
+                        [class.is-invalid]="form.get(question.questionId)?.invalid && form.get(question.questionId)?.touched"
+                        [formControlName]="question.questionId"
+                        placeholder="Your answer..."
+                        [readonly]="isCompleted()">
+                      @if (form.get(question.questionId)?.hasError('required') && form.get(question.questionId)?.touched) {
+                        <div class="invalid-feedback d-block">
+                          This question is required
+                        </div>
+                      }
+                    }
+
+                    <!-- Textarea Input -->
+                    @if (question.questionType === 'textarea') {
+                      <textarea 
+                        class="form-control"
+                        [class.is-invalid]="form.get(question.questionId)?.invalid && form.get(question.questionId)?.touched"
+                        [formControlName]="question.questionId"
+                        rows="4"
+                        placeholder="Your answer..."
+                        [readonly]="isCompleted()"></textarea>
+                      @if (form.get(question.questionId)?.hasError('required') && form.get(question.questionId)?.touched) {
+                        <div class="invalid-feedback d-block">
+                          This question is required
+                        </div>
+                      }
+                    }
+
+                    <!-- Radio Buttons -->
+                    @if (question.questionType === 'radio') {
+                      <div class="options-list">
+                        @for (option of question.options; track option) {
+                          <div class="form-check">
+                            <input 
+                              class="form-check-input" 
+                              type="radio"
+                              [id]="question.questionId + '_' + $index"
+                              [formControlName]="question.questionId"
+                              [value]="option"
+                              [disabled]="isCompleted()">
+                            <label class="form-check-label" [for]="question.questionId + '_' + $index">
+                              {{ option }}
+                            </label>
+                          </div>
+                        }
+                      </div>
+                      @if (form.get(question.questionId)?.hasError('required') && form.get(question.questionId)?.touched) {
+                        <div class="text-danger small mt-2">
+                          This question is required
+                        </div>
+                      }
+                    }
+
+                    <!-- Checkboxes -->
+                    @if (question.questionType === 'checkbox') {
+                      <div class="options-list">
+                        @for (option of question.options; track option) {
+                          <div class="form-check">
+                            <input 
+                              class="form-check-input" 
+                              type="checkbox"
+                              [id]="question.questionId + '_' + $index"
+                              [checked]="isCheckboxChecked(question.questionId, option)"
+                              (change)="onCheckboxChange(question.questionId, option, $event)"
+                              [disabled]="isCompleted()">
+                            <label class="form-check-label" [for]="question.questionId + '_' + $index">
+                              {{ option }}
+                            </label>
+                          </div>
+                        }
+                      </div>
+                      @if (form.get(question.questionId)?.hasError('required') && form.get(question.questionId)?.touched) {
+                        <div class="text-danger small mt-2">
+                          This question is required
+                        </div>
+                      }
+                    }
+
+                    <!-- Rating -->
+                    @if (question.questionType === 'rating') {
+                      <div class="rating-container">
+                        <div class="btn-group" role="group">
+                          @for (rating of getRatingArray(); track rating) {
+                            <input 
+                              type="radio"
+                              class="btn-check"
+                              [id]="question.questionId + '_rating_' + rating"
+                              [formControlName]="question.questionId"
+                              [value]="rating"
+                              [disabled]="isCompleted()">
+                            <label 
+                              class="btn btn-outline-primary"
+                              [for]="question.questionId + '_rating_' + rating">
+                              {{ rating }}
+                            </label>
+                          }
+                        </div>
+                        <div class="d-flex justify-content-between mt-2 small text-secondary">
+                          <span>Not at all</span>
+                          <span>Very much</span>
+                        </div>
+                      </div>
+                      @if (form.get(question.questionId)?.hasError('required') && form.get(question.questionId)?.touched) {
+                        <div class="text-danger small mt-2">
+                          This question is required
+                        </div>
+                      }
+                    }
+
+                    <!-- Date -->
+                    @if (question.questionType === 'date') {
+                      <input 
+                        type="date" 
+                        class="form-control"
+                        [class.is-invalid]="form.get(question.questionId)?.invalid && form.get(question.questionId)?.touched"
+                        [formControlName]="question.questionId"
+                        [readonly]="isCompleted()">
+                      @if (form.get(question.questionId)?.hasError('required') && form.get(question.questionId)?.touched) {
+                        <div class="invalid-feedback d-block">
+                          This question is required
+                        </div>
+                      }
+                    }
+
+                  </div>
+
+                </div>
+              </div>
+            }
+
+          </div>
+
+          <!-- Action Buttons -->
+          @if (!isCompleted()) {
+            <div class="sticky-footer bg-white border-top p-3 d-flex gap-3 justify-content-end">
+              <button 
+                type="button" 
+                class="btn btn-light px-4"
+                (click)="cancel()"
+                [disabled]="isSaving() || isSubmitting()">
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                class="btn btn-outline-primary px-4"
+                (click)="saveProgress()"
+                [disabled]="isSaving() || isSubmitting()">
+                @if (isSaving()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  Saving...
+                } @else {
+                  <i class="bi bi-save me-2"></i>
+                  Save Progress
+                }
+              </button>
+              <button 
+                type="submit" 
+                class="btn btn-success px-4"
+                [disabled]="isSaving() || isSubmitting()">
+                @if (isSubmitting()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  Submitting...
+                } @else {
+                  <i class="bi bi-check-circle me-2"></i>
+                  Submit Questionnaire
+                }
+              </button>
+            </div>
+          } @else {
+            <div class="d-flex justify-content-end">
+              <button 
+                type="button" 
+                class="btn btn-primary px-4"
+                (click)="cancel()">
+                <i class="bi bi-arrow-left me-2"></i>
+                Back to My Questionnaires
+              </button>
+            </div>
+          }
+
+        </form>
+
+      </div>
+    </div>
+
+  }
+
+</div>

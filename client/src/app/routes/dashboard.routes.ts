@@ -59,6 +59,43 @@ export const dashboardRoutes: Routes = [
         loadComponent: () => import('../features/skills/edit-skill/edit-skill').then(c => c.EditSkill),
     },
 
+    // Questionnaire routes (Company role)
+    {
+        path: 'questionnaires',
+        loadComponent: () => import('../features/questionnaires/questionnaire-list/questionnaire-list').then(c => c.QuestionnaireList)
+    },
+
+    {
+        path: 'questionnaires/create',
+        loadComponent: () => import('../features/questionnaires/create-questionnaire/create-questionnaire').then(c => c.CreateQuestionnaire)
+    },
+
+    {
+        path: 'questionnaires/:id/edit',
+        loadComponent: () => import('../features/questionnaires/edit-questionnaire/edit-questionnaire').then(c => c.EditQuestionnaire)
+    },
+
+    {
+        path: 'questionnaires/:id/assign',
+        loadComponent: () => import('../features/questionnaires/assign-questionnaire/assign-questionnaire').then(c => c.AssignQuestionnaire)
+    },
+
+    {
+        path: 'questionnaires/:id/responses',
+        loadComponent: () => import('../features/questionnaires/questionnaire-responses/questionnaire-responses').then(c => c.QuestionnaireResponses)
+    },
+
+    // Questionnaire routes (Employee role)
+    {
+        path: 'my-questionnaires',
+        loadComponent: () => import('../features/questionnaires/my-questionnaires/my-questionnaires').then(c => c.MyQuestionnaires)
+    },
+
+    {
+        path: 'questionnaires/:id/submit',
+        loadComponent: () => import('../features/questionnaires/submit-questionnaire/submit-questionnaire').then(c => c.SubmitQuestionnaire)
+    },
+
     // Placeholder routes for company/employee features
     {
         path: 'my-skills',
