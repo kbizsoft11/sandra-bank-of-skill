@@ -44,9 +44,21 @@ async function deploy() {
 
     console.log('Deployment completed!');
   } catch (err) {
-    console.error(err);
-    process.exit(1);
-  } finally {
+  console.error("===== DEPLOYMENT FAILED =====");
+  console.error(err);
+
+  console.error("Message:", err.message);
+
+  if (err.code) {
+    console.error("Code:", err.code);
+  }
+
+  if (err.stack) {
+    console.error(err.stack);
+  }
+
+  process.exit(1);
+} finally {
     sftp.end();
   }
 }
