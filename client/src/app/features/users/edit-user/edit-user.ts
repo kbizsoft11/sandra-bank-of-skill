@@ -22,6 +22,7 @@ import {
 import { finalize } from 'rxjs';
 
 import { UserService } from '../../../core/services/user.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { AlertService } from '../../../core/services/alert.service';
 
 @Component({
@@ -51,11 +52,23 @@ export class EditUser implements OnInit {
   private readonly alertService =
     inject(AlertService);
 
+  readonly auth =
+    inject(AuthService);
+
   private userId = '';
 
   readonly isResettingPassword = signal(false);
   readonly resetPasswordSuccess = signal('');
   readonly resetPasswordError = signal('');
+
+  /**
+   * The only role the currently logged-in actor is allowed to assign.
+   * - admin manages companies only
+   * - company manages employees only
+   */
+  get allowedRole(): 'employee' | 'company' {
+    return this.auth.role() === 'admin' ? 'company' : 'employee';
+  }
 
   readonly form =
     this.fb.nonNullable.group({
@@ -77,7 +90,7 @@ export class EditUser implements OnInit {
       ],
 
       role: [
-        'employee',
+        { value: 'employee', disabled: true },
         Validators.required
       ],
 
@@ -91,6 +104,10 @@ export class EditUser implements OnInit {
 
     this.userId =
       this.route.snapshot.paramMap.get('id')!;
+
+    // Lock the role field to whatever this actor is permitted to manage
+    this.form.get('role')?.setValue(this.allowedRole);
+    this.form.get('role')?.disable();
 
     this.loadUser();
 
@@ -111,9 +128,12 @@ export class EditUser implements OnInit {
           this.form.patchValue({
             fullName,
             email: userData.email,
-            role: userData.role,
             isActive: userData.isActive
           });
+
+          // Role stays locked to allowedRole regardless of what's loaded,
+          // since this actor is only permitted to manage one role type
+          this.form.get('role')?.setValue(this.allowedRole);
 
         }
 
@@ -131,6 +151,7 @@ export class EditUser implements OnInit {
 
     }
 
+    // getRawValue() includes disabled controls, so role is sent correctly
     this.userService
       .updateUser(
         this.userId,
@@ -140,8 +161,11 @@ export class EditUser implements OnInit {
 
         next: () => {
 
+          const role = this.auth.role();
+          const basePath = role === 'admin' ? '/admin' : `/${role}`;
+
           this.router.navigate([
-            '/admin/users'
+            `${basePath}/users`
           ]);
 
         }

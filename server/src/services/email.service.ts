@@ -334,7 +334,7 @@ export const sendInvitationEmail = async (
                     </div>
                     
                     <div style="text-align: center;">
-                        <a href="${env.CLIENT_URL || 'http://localhost:4200'}/login" class="button">Login to Your Account</a>
+                        <a href="${env.CLIENT_URL || 'http://localhost:4200'}/auth/login" class="button">Login to Your Account</a>
                     </div>
                     
                     <p>If you have any questions, feel free to reach out to our support team.</p>
@@ -360,7 +360,7 @@ export const sendInvitationEmail = async (
         
         ⚠️ IMPORTANT: Please change this password after your first login.
         
-        Login URL: ${env.CLIENT_URL || 'http://localhost:4200'}/login
+        Login URL: ${env.CLIENT_URL || 'http://localhost:4200'}/auth/login
         
         If you have any questions, feel free to reach out to our support team.
     `;
@@ -426,7 +426,7 @@ export const sendPasswordResetNotificationEmail = async (
                     </div>
                     
                     <div style="text-align: center;">
-                        <a href="${env.CLIENT_URL || 'http://localhost:4200'}/login" class="button">Login to Your Account</a>
+                        <a href="${env.CLIENT_URL || 'http://localhost:4200'}/auth/login" class="button">Login to Your Account</a>
                     </div>
                     
                     <p>If you have any concerns, please contact your administrator or our support team.</p>
@@ -452,7 +452,7 @@ export const sendPasswordResetNotificationEmail = async (
         
         🔒 SECURITY NOTICE: If you didn't request this reset, contact your administrator immediately.
         
-        Login URL: ${env.CLIENT_URL || 'http://localhost:4200'}/login
+        Login URL: ${env.CLIENT_URL || 'http://localhost:4200'}/auth/login
     `;
 
     await sendEmail({ to: email, subject, html, text });

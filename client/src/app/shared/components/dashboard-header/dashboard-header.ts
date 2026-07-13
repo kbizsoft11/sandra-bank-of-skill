@@ -52,6 +52,12 @@ export class DashboardHeader implements OnInit, OnDestroy {
     });
   }
 
+  get profileLink(): string {
+  const role = this.auth.role();
+  const basePath = role === 'admin' ? '/admin' : `/${role}`;
+  return `${basePath}/profile`;
+}
+
   getInitials(): string {
     const name = this.auth.user()?.fullName || 'User';
     return name.charAt(0).toUpperCase();
