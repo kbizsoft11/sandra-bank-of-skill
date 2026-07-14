@@ -18,6 +18,8 @@ export interface CreateUserDto {
 
   profileCompleted?: boolean;
 
+  hasCompletedOnboarding?: boolean;
+
   isActive?: boolean;
 
   emailVerified?: boolean;

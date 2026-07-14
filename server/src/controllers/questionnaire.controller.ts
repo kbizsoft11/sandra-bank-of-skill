@@ -5,7 +5,7 @@ import { UserModel } from '../models/user.model';
 import { sendResponse } from '../utils/api-response';
 import { asyncHandler } from '../utils/async-handler';
 import { v4 as uuidv4 } from 'uuid';
-import { getPendingOnboardingQuestionnaire } from '../services/onboarding.service';
+import { assignQuestionnaireToCompanyEmployees, getPendingOnboardingQuestionnaire } from '../services/onboarding.service';
 
 // ==================== COMPANY ROLE CONTROLLERS ====================
 
@@ -68,6 +68,25 @@ export const getQuestionnaireById = asyncHandler(
 /**
  * Create a new questionnaire
  */
+const buildStaticOnboardingQuestions = () => [
+    {
+        questionText: 'What is your role in the company?',
+        questionType: 'text',
+        required: true,
+    },
+    {
+        questionText: 'What do you hope to learn or achieve in this role?',
+        questionType: 'textarea',
+        required: true,
+    },
+    {
+        questionText: 'Which skills are you most excited to build?',
+        questionType: 'checkbox',
+        options: ['Communication', 'Leadership', 'Technical', 'Problem Solving'],
+        required: false,
+    },
+];
+
 export const createQuestionnaire = asyncHandler(
     async (req: Request, res: Response) => {
         const user = (req as any).user;
@@ -121,18 +140,16 @@ export const createQuestionnaire = asyncHandler(
             );
         }
 
-        // Validate questions
-        if (!questions || !Array.isArray(questions) || questions.length === 0) {
-            return sendResponse(
-                res,
-                400,
-                'At least one question is required',
-                null
-            );
-        }
+        const shouldBeOnboarding = isOnboardingQuestionnaire !== undefined
+            ? Boolean(isOnboardingQuestionnaire)
+            : true;
+
+        const incomingQuestions = questions && Array.isArray(questions) && questions.length > 0
+            ? questions
+            : buildStaticOnboardingQuestions();
 
         // Assign unique IDs to questions
-        const questionsWithIds = questions.map((q: any, index: number) => ({
+        const questionsWithIds = incomingQuestions.map((q: any, index: number) => ({
             questionId: uuidv4(),
             questionText: q.questionText,
             questionType: q.questionType,
@@ -142,15 +159,24 @@ export const createQuestionnaire = asyncHandler(
         }));
 
         const questionnaire = await QuestionnaireModel.create({
-            title,
-            description,
+            title: title || 'Employee onboarding questionnaire',
+            description: description || 'This questionnaire is automatically assigned to every employee joining your company.',
             createdBy: user.userId,
             tenantId: tenantId,
             organisationId: organisationId,
             questions: questionsWithIds,
-            status: status || 'draft',
-            isOnboardingQuestionnaire: isOnboardingQuestionnaire || false,
+            status: status || 'active',
+            isOnboardingQuestionnaire: shouldBeOnboarding,
         });
+
+        if (shouldBeOnboarding) {
+            await assignQuestionnaireToCompanyEmployees(
+                questionnaire._id.toString(),
+                tenantId,
+                organisationId,
+                user.userId
+            );
+        }
 
         return sendResponse(
             res,

@@ -10,6 +10,8 @@ export interface UpdateUserDto {
 
   profileCompleted?: boolean;
 
+  hasCompletedOnboarding?: boolean;
+
   isActive?: boolean;
 
 }

@@ -11,6 +11,7 @@ export const userRepository = {
       role: UserRole;
       tenantId: string;
       profileCompleted: boolean;
+      hasCompletedOnboarding?: boolean;
       isActive: boolean;
     },
   ) => {

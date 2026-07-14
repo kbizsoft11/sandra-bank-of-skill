@@ -1,5 +1,52 @@
 import { QuestionnaireModel } from '../models/questionnaire.model';
 import { QuestionnaireResponseModel } from '../models/questionnaire-response.model';
+import { UserModel } from '../models/user.model';
+
+/**
+ * Assign a questionnaire to a list of employees (or all employees in a company if none are provided)
+ */
+export const assignQuestionnaireToCompanyEmployees = async (
+    questionnaireId: string,
+    tenantId: string,
+    organisationId: string,
+    assignedBy: string,
+    employeeIds?: string[]
+): Promise<void> => {
+    const targetEmployeeIds = employeeIds?.length
+        ? employeeIds
+        : (await UserModel.find({
+            tenantId,
+            organisationId,
+            role: 'employee',
+        }).select('_id')).map((user) => user._id.toString());
+
+    if (targetEmployeeIds.length === 0) {
+        return;
+    }
+
+    const assignmentPromises = targetEmployeeIds.map(async (employeeId: string) => {
+        const existing = await QuestionnaireResponseModel.findOne({
+            questionnaireId,
+            employeeId,
+        });
+
+        if (existing) {
+            return;
+        }
+
+        await QuestionnaireResponseModel.create({
+            questionnaireId,
+            employeeId,
+            assignedBy,
+            tenantId,
+            organisationId,
+            status: 'pending',
+            assignedAt: new Date(),
+        });
+    });
+
+    await Promise.all(assignmentPromises);
+};
 
 /**
  * Auto-assign onboarding questionnaires to a new employee
@@ -11,38 +58,33 @@ export const assignOnboardingQuestionnaires = async (
     organisationId: string,
     assignedBy: string
 ): Promise<void> => {
-    // Find all active onboarding questionnaires for this organization
     const onboardingQuestionnaires = await QuestionnaireModel.find({
-        tenantId: tenantId,
-        organisationId: organisationId,
+        tenantId,
+        organisationId,
         status: 'active',
         isOnboardingQuestionnaire: true,
     });
 
     if (onboardingQuestionnaires.length === 0) {
-        // No onboarding questionnaires found, employee can proceed without onboarding
         return;
     }
 
-    // Assign each onboarding questionnaire to the employee
     const assignmentPromises = onboardingQuestionnaires.map(async (questionnaire) => {
-        // Check if already assigned (avoid duplicates)
         const existing = await QuestionnaireResponseModel.findOne({
             questionnaireId: questionnaire._id.toString(),
-            employeeId: employeeId,
+            employeeId,
         });
 
         if (existing) {
-            return; // Already assigned, skip
+            return;
         }
 
-        // Create questionnaire response assignment
         await QuestionnaireResponseModel.create({
             questionnaireId: questionnaire._id.toString(),
-            employeeId: employeeId,
-            assignedBy: assignedBy,
-            tenantId: tenantId,
-            organisationId: organisationId,
+            employeeId,
+            assignedBy,
+            tenantId,
+            organisationId,
             status: 'pending',
             assignedAt: new Date(),
         });

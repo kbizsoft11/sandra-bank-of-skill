@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as dashboardController from '../controllers/dashboard.controller';
 import { authenticate } from '../middlewares/auth.middleware';
+import { requireCompletedOnboarding } from '../middlewares/onboarding.middleware';
 import { allowRoles } from '../middlewares/role.middleware';
 
 const router = Router();
@@ -35,6 +36,7 @@ router.get(
   '/employee/stats',
   authenticate,
   allowRoles('employee'),
+  requireCompletedOnboarding,
   dashboardController.getEmployeeStats
 );
 
