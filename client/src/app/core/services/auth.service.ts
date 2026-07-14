@@ -44,13 +44,17 @@ export class AuthService {
     readonly role =
         computed(() => this.user()?.role);
 
+    // Onboarding status signal
+    readonly needsOnboarding =
+        signal<boolean>(false);
+
     private isLoadingUser = false;
     private userLoadPromise: Promise<boolean> | null = null;
 
     constructor() {
 
-        // Initialize token from storage
-        const storedToken = this.storage.getItem('accessToken');
+        // Initialize token from storage (check both localStorage and sessionStorage)
+        const storedToken = this.storage.getToken();
         this.token.set(storedToken);
 
         const token = this.token();
@@ -71,7 +75,7 @@ export class AuthService {
 
     }
 
-    login(payload: LoginRequest) {
+    login(payload: LoginRequest, rememberMe: boolean = false) {
 
         return this.http
             .post<ApiResponse<AuthResponseData>>(
@@ -86,9 +90,10 @@ export class AuthService {
                         response.data.token
                     );
 
-                    this.storage.setItem(
-                        'accessToken',
-                        response.data.token
+                    // Store token based on Remember Me preference
+                    this.storage.setToken(
+                        response.data.token,
+                        rememberMe
                     );
 
                 }),
@@ -202,9 +207,8 @@ export class AuthService {
 
         this.user.set(null);
 
-        this.storage.removeItem(
-            'accessToken'
-        );
+        // Remove token from both storages
+        this.storage.removeToken();
 
     }
 
@@ -246,6 +250,30 @@ export class AuthService {
 
         return '/auth/login';
 
+    }
+
+    /**
+     * Set whether the user needs to complete onboarding
+     */
+    setNeedsOnboarding(needs: boolean): void {
+        console.log('🎯 [AUTH SERVICE] Setting needsOnboarding to:', needs);
+        this.needsOnboarding.set(needs);
+    }
+
+    /**
+     * Check if user needs to complete onboarding
+     */
+    checkNeedsOnboarding(): boolean {
+        const user = this.user();
+        const role = this.role();
+        
+        // Only employees need onboarding
+        if (role !== 'employee') {
+            return false;
+        }
+
+        // Check if employee has completed onboarding
+        return !(user as any)?.hasCompletedOnboarding;
     }
 
 }

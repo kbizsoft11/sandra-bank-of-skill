@@ -26,6 +26,7 @@ import { SkillCategory } from '../../../shared/interfaces/skill-category.interfa
 import { SkillService } from '../../../core/services/skill.service';
 import { UserService } from '../../../core/services/user.service';
 import { SkillCategoryService } from '../../../core/services/skill-category.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-edit-skill',
@@ -50,6 +51,8 @@ export class EditSkill implements OnInit {
   private readonly userService = inject(UserService);
 
   private readonly categoryService = inject(SkillCategoryService);
+
+  private readonly auth = inject(AuthService);
 
   users: User[] = [];
 
@@ -84,6 +87,19 @@ export class EditSkill implements OnInit {
 
     this.loadSkill();
 
+  }
+
+  isEmployee(): boolean {
+    return this.auth.role() === 'employee';
+  }
+
+  getBackRoute(): string {
+    const role = this.auth.role();
+    const rolePrefix = role || 'admin';
+    if (role === 'employee' || role === 'company') {
+      return `/${rolePrefix}/my-skills`;
+    }
+    return `/${rolePrefix}/skills`;
   }
 
   loadUsers(): void {
@@ -170,7 +186,7 @@ export class EditSkill implements OnInit {
         next: () => {
 
           this.router.navigate([
-            '/admin/skills'
+            this.getBackRoute()
           ]);
 
         }

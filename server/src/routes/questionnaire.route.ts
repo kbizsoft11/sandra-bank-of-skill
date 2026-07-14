@@ -87,6 +87,17 @@ router.get(
 // ==================== EMPLOYEE ROLE ROUTES ====================
 
 /**
+ * GET /questionnaires/onboarding/pending
+ * Get pending onboarding questionnaire for logged-in employee
+ */
+router.get(
+    '/onboarding/pending',
+    authenticate,
+    allowRoles('employee'),
+    questionnaireController.getPendingOnboarding
+);
+
+/**
  * GET /questionnaires/my/assigned
  * Get all questionnaires assigned to the employee
  */

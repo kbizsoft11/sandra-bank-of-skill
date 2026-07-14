@@ -3,6 +3,7 @@ import { Router } from "express";
 import skillController from "../controllers/skill.controller";
 import { validate, validateParams } from "../middlewares/validate.middleware";
 import { validateQuery } from "../middlewares/validate-query.middleware";
+import { allowRoles } from "../middlewares/role.middleware";
 
 import {
   createSkillSchema,
@@ -13,12 +14,14 @@ import {
 
 const router = Router();
 
+// Admin can manage all skills, employees can manage their own
 router.post(
   "/",
   validate(createSkillSchema),
   skillController.create
 );
 
+// Admin sees all skills, company sees their org's skills, employee sees their own
 router.get(
   "/",
   validateQuery(getSkillsQuerySchema),
@@ -31,6 +34,7 @@ router.get(
   skillController.getById
 );
 
+// Admin can update any skill, employees can update their own
 router.put(
   "/:id",
   validateParams(skillIdParamSchema),
@@ -38,6 +42,7 @@ router.put(
   skillController.update
 );
 
+// Admin can delete any skill, employees can delete their own
 router.delete(
   "/:id",
   validateParams(skillIdParamSchema),

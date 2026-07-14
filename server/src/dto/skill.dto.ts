@@ -23,4 +23,5 @@ export interface GetSkillQueryDto {
   cat_id?: string;
   user_id?: string;
   skill_level?: string;
+  organisation_id?: string;
 }

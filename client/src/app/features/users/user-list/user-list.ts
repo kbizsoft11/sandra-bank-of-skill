@@ -279,6 +279,17 @@ export class UserList implements OnInit {
 
   viewUser(user: any): void { }
 
+  viewUserSkills(user: any): void {
+    const role = this.auth.role();
+    const basePath = role === 'admin' ? '/admin' : `/${role}`;
+
+    this.router.navigate([
+      `${basePath}/users`,
+      user._id,
+      'skills'
+    ]);
+  }
+
   editUser(user: any): void {
     const role = this.auth.role();
     const basePath = role === 'admin' ? '/admin' : `/${role}`;

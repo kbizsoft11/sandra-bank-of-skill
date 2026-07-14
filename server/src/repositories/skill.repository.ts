@@ -41,6 +41,7 @@ export class SkillRepository {
             cat_id,
             user_id,
             skill_level,
+            organisation_id,
         } = query;
 
         const filter: any = {};
@@ -74,11 +75,46 @@ export class SkillRepository {
             filter.skill_level = skill_level;
         }
 
+        // Build query for skills
+        let skillQuery = Skill.find(filter)
+            .populate("cat_id", "cat_name")
+            .populate("user_id", "fullName email organisationId")
+            .sort({ created_at: -1 });
+
+        // If filtering by organisation_id, we need to filter after populating user_id
+        if (organisation_id) {
+            const [skills, total] = await Promise.all([
+                skillQuery
+                    .skip((Number(page) - 1) * Number(limit))
+                    .limit(Number(limit))
+                    .then((skills) => 
+                        skills.filter((skill: any) => 
+                            skill.user_id?.organisationId?.toString() === organisation_id
+                        )
+                    ),
+                
+                Skill.find(filter)
+                    .populate("user_id", "organisationId")
+                    .then((skills) => 
+                        skills.filter((skill: any) => 
+                            skill.user_id?.organisationId?.toString() === organisation_id
+                        ).length
+                    ),
+            ]);
+
+            return {
+                skills,
+                pagination: {
+                    total,
+                    page: Number(page),
+                    limit: Number(limit),
+                    totalPages: Math.ceil(total / Number(limit)),
+                },
+            };
+        }
+
         const [skills, total] = await Promise.all([
-            Skill.find(filter)
-                .populate("cat_id", "cat_name")
-                .populate("user_id", "fullName email")
-                .sort({ created_at: -1 })
+            skillQuery
                 .skip((Number(page) - 1) * Number(limit))
                 .limit(Number(limit)),
 

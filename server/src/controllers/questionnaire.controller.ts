@@ -5,6 +5,7 @@ import { UserModel } from '../models/user.model';
 import { sendResponse } from '../utils/api-response';
 import { asyncHandler } from '../utils/async-handler';
 import { v4 as uuidv4 } from 'uuid';
+import { getPendingOnboardingQuestionnaire } from '../services/onboarding.service';
 
 // ==================== COMPANY ROLE CONTROLLERS ====================
 
@@ -70,7 +71,7 @@ export const getQuestionnaireById = asyncHandler(
 export const createQuestionnaire = asyncHandler(
     async (req: Request, res: Response) => {
         const user = (req as any).user;
-        const { title, description, questions, status } = req.body;
+        const { title, description, questions, status, isOnboardingQuestionnaire } = req.body;
 
         // Validate user has required fields
         if (!user.userId) {
@@ -148,6 +149,7 @@ export const createQuestionnaire = asyncHandler(
             organisationId: organisationId,
             questions: questionsWithIds,
             status: status || 'draft',
+            isOnboardingQuestionnaire: isOnboardingQuestionnaire || false,
         });
 
         return sendResponse(
@@ -166,7 +168,7 @@ export const updateQuestionnaire = asyncHandler(
     async (req: Request, res: Response) => {
         const user = (req as any).user;
         const { id } = req.params;
-        const { title, description, questions, status } = req.body;
+        const { title, description, questions, status, isOnboardingQuestionnaire } = req.body;
 
         const questionnaire = await QuestionnaireModel.findOne({
             _id: id,
@@ -187,6 +189,9 @@ export const updateQuestionnaire = asyncHandler(
         if (title) questionnaire.title = title;
         if (description) questionnaire.description = description;
         if (status) questionnaire.status = status;
+        if (isOnboardingQuestionnaire !== undefined) {
+            questionnaire.isOnboardingQuestionnaire = isOnboardingQuestionnaire;
+        }
         
         if (questions && Array.isArray(questions)) {
             // Preserve existing questionIds where possible, assign new ones for new questions
@@ -519,6 +524,16 @@ export const submitQuestionnaireResponse = asyncHandler(
         if (isComplete) {
             response.status = 'completed';
             response.completedAt = new Date();
+
+            // Check if this is an onboarding questionnaire
+            const questionnaire = await QuestionnaireModel.findById(id);
+            
+            if (questionnaire?.isOnboardingQuestionnaire) {
+                // Mark user as having completed onboarding
+                await UserModel.findByIdAndUpdate(user.userId, {
+                    hasCompletedOnboarding: true,
+                });
+            }
         } else if (response.status === 'pending') {
             response.status = 'in_progress';
             response.startedAt = new Date();
@@ -531,6 +546,50 @@ export const submitQuestionnaireResponse = asyncHandler(
             200,
             isComplete ? 'Questionnaire submitted successfully' : 'Progress saved successfully',
             response
+        );
+    }
+);
+
+// ==================== ONBOARDING QUESTIONNAIRE CONTROLLERS ====================
+
+/**
+ * Get pending onboarding questionnaire for the logged-in employee
+ * This is called after login to check if employee needs to complete onboarding
+ */
+export const getPendingOnboarding = asyncHandler(
+    async (req: Request, res: Response) => {
+        const user = (req as any).user;
+
+        // Only employees can have onboarding questionnaires
+        if (user.role !== 'employee') {
+            return sendResponse(
+                res,
+                200,
+                'No onboarding required',
+                { hasOnboarding: false }
+            );
+        }
+
+        const result = await getPendingOnboardingQuestionnaire(user.userId);
+
+        if (!result) {
+            return sendResponse(
+                res,
+                200,
+                'No pending onboarding questionnaire',
+                { hasOnboarding: false }
+            );
+        }
+
+        return sendResponse(
+            res,
+            200,
+            'Pending onboarding questionnaire found',
+            {
+                hasOnboarding: true,
+                questionnaire: result.questionnaire,
+                response: result.response,
+            }
         );
     }
 );

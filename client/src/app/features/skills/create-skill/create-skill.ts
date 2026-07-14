@@ -17,6 +17,7 @@ import { Router, RouterLink } from '@angular/router';
 import { SkillService } from '../../../core/services/skill.service';
 import { UserService } from '../../../core/services/user.service';
 import { SkillCategoryService } from '../../../core/services/skill-category.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { forkJoin } from 'rxjs';
 import { User } from '../../../shared/interfaces/user.interface';
 import { SkillCategory } from '../../../shared/interfaces/skill-category.interface';
@@ -45,6 +46,9 @@ export class CreateSkill implements OnInit {
   private readonly categoryService =
     inject(SkillCategoryService);
 
+  private readonly auth =
+    inject(AuthService);
+
   users = signal<User[]>([]);
 
   categories = signal<SkillCategory[]>([]);
@@ -68,54 +72,43 @@ export class CreateSkill implements OnInit {
 
   ngOnInit(): void {
 
-  forkJoin({
-    users: this.userService.getUsers(),
-    categories: this.categoryService.getAll()
-  }).subscribe({
+    const role = this.auth.role();
+    const userId = this.auth.user()?._id;
 
-    next: ({ users, categories }) => {
+    // For employees, automatically set user_id to their own ID
+    if (role === 'employee' && userId) {
+      this.form.patchValue({ user_id: userId });
+    }
 
-      this.users.set(users.data);
-      this.categories.set(categories.data);
+    forkJoin({
+      users: this.userService.getUsers(),
+      categories: this.categoryService.getAll()
+    }).subscribe({
 
-    },
+      next: ({ users, categories }) => {
 
-    error: console.error
+        this.users.set(users.data);
+        this.categories.set(categories.data);
 
-  });
+      },
 
-}
+      error: console.error
 
-  loadUsers(): void {
-
-    this.userService
-      .getUsers()
-      .subscribe({
-
-        next: (response) => {
-
-          this.users.set(response.data);
-
-        }
-
-      });
+    });
 
   }
 
-  loadCategories(): void {
+  isEmployee(): boolean {
+    return this.auth.role() === 'employee';
+  }
 
-    this.categoryService
-      .getAll()
-      .subscribe({
-
-        next: (response) => {
-
-          this.categories.set(response.data);
-
-        }
-
-      });
-
+  getBackRoute(): string {
+    const role = this.auth.role();
+    const rolePrefix = role || 'admin';
+    if (role === 'employee' || role === 'company') {
+      return `/${rolePrefix}/my-skills`;
+    }
+    return `/${rolePrefix}/skills`;
   }
 
   submit(): void {
@@ -137,7 +130,7 @@ export class CreateSkill implements OnInit {
         next: () => {
 
           this.router.navigate([
-            '/admin/skills'
+            this.getBackRoute()
           ]);
 
         }

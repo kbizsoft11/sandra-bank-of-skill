@@ -42,33 +42,35 @@
 
     </div>
 
-    <!-- User -->
+    <!-- User (hidden for employees as they can only create skills for themselves) -->
 
-    <div class="mb-3">
+    @if (!isEmployee()) {
+      <div class="mb-3">
 
-      <label class="form-label">
-        User
-      </label>
+        <label class="form-label">
+          User
+        </label>
 
-      <select formControlName="user_id" class="form-select">
+        <select formControlName="user_id" class="form-select">
 
-        <option value="">
-          Select User
-        </option>
+          <option value="">
+            Select User
+          </option>
 
-        @for(user of users(); track user._id){
+          @for(user of users(); track user._id){
 
-        <option [value]="user._id">
+          <option [value]="user._id">
 
-          {{user.fullName}}
+            {{user.fullName}}
 
-        </option>
+          </option>
 
-        }
+          }
 
-      </select>
+        </select>
 
-    </div>
+      </div>
+    }
 
     <!-- Skill Name -->
 
@@ -139,7 +141,7 @@
 
     <div class="d-flex justify-content-end gap-3 mt-4">
 
-      <a routerLink="/admin/skills" class="btn btn-outline-secondary px-4">
+      <a [routerLink]="getBackRoute()" class="btn btn-outline-secondary px-4">
 
         Cancel
 

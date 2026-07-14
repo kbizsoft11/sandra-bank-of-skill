@@ -1,248 +1,407 @@
 <div class="main-content">
-  <h1 class="welcome-title">Welcome back, {{ currentUserName || 'Alex' }}! 👋</h1>
-  <p class="welcome-sub">Here's what's happening in ABC Corporation today</p>
-
-  <div class="row g-3 mb-3">
-    <div class="col-6 col-md-4 col-lg">
-      <div class="stat-card">
-        <div class="stat-icon bg-blue-soft"><i class="bi bi-people-fill"></i></div>
-        <div class="stat-label">Total Employees</div>
-        <div class="stat-value">{{ totalEmployees() }}</div>
-        <div class="stat-delta"><i class="bi bi-arrow-up-short"></i>12% <span>vs last month</span></div>
+  <h1 class="welcome-title">Welcome back, {{ currentUserName }}! 👋</h1>
+  
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
       </div>
     </div>
+  } @else {
+    <!-- ADMIN DASHBOARD -->
+    @if (isAdmin()) {
+      <p class="welcome-sub">Platform Overview & Statistics</p>
 
-    <div class="col-6 col-md-4 col-lg">
-      <div class="stat-card">
-        <div class="stat-icon bg-purple-soft"><i class="bi bi-lightbulb-fill"></i></div>
-        <div class="stat-label">Skills Captured</div>
-        <div class="stat-value">{{ totalSkills() }}</div>
-        <div class="stat-delta"><i class="bi bi-arrow-up-short"></i>18% <span>vs last month</span></div>
-      </div>
-    </div>
-
-    <div class="col-6 col-md-4 col-lg">
-      <div class="stat-card">
-        <div class="stat-icon bg-green-soft"><i class="bi bi-cpu-fill"></i></div>
-        <div class="stat-label">AI Knowledge</div>
-        <div class="stat-value">1,035</div>
-        <div class="stat-delta"><i class="bi bi-arrow-up-short"></i>15% <span>vs last month</span></div>
-      </div>
-    </div>
-
-    <div class="col-6 col-md-4 col-lg">
-      <div class="stat-card">
-        <div class="stat-icon bg-orange-soft"><i class="bi bi-mortarboard-fill"></i></div>
-        <div class="stat-label">Qualifications</div>
-        <div class="stat-value">2,187</div>
-        <div class="stat-delta"><i class="bi bi-arrow-up-short"></i>9% <span>vs last month</span></div>
-      </div>
-    </div>
-
-    <div class="col-6 col-md-4 col-lg">
-      <div class="stat-card">
-        <div class="stat-icon bg-red-soft"><i class="bi bi-person-plus-fill"></i></div>
-        <div class="stat-label">Open Opportunities</div>
-        <div class="stat-value">43</div>
-        <div class="stat-delta"><i class="bi bi-arrow-up-short"></i>5% <span>vs last month</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-3 mb-3">
-    <div class="col-12 col-lg-4">
-      <div class="dash-card">
-        <div class="dash-card-header">
-          <div class="dash-card-title">People Directory</div>
-        </div>
-
-        <div class="mini-search">
-          <div class="search-input-wrap">
-            <i class="bi bi-search"></i>
-            <input type="text" placeholder="Search employees..." />
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-md-4 col-lg">
+          <div class="stat-card">
+            <div class="stat-icon bg-blue-soft"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">{{ adminStats()?.totalUsers || 0 }}</div>
           </div>
-          <button class="filter-btn" type="button"><i class="bi bi-sliders"></i></button>
         </div>
 
-        <div>
-          <div class="person-row">
-            <div class="person-left">
-              <img src="https://i.pravatar.cc/80?img=47" alt="Sarah Johnson" />
-              <div class="min-w-0">
-                <div class="person-name">Sarah Johnson</div>
-                <div class="person-role">Product Designer</div>
+        <div class="col-6 col-md-4 col-lg">
+          <div class="stat-card">
+            <div class="stat-icon bg-purple-soft"><i class="bi bi-building"></i></div>
+            <div class="stat-label">Companies</div>
+            <div class="stat-value">{{ adminStats()?.totalCompanies || 0 }}</div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg">
+          <div class="stat-card">
+            <div class="stat-icon bg-green-soft"><i class="bi bi-person-badge"></i></div>
+            <div class="stat-label">Employees</div>
+            <div class="stat-value">{{ adminStats()?.totalEmployees || 0 }}</div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg">
+          <div class="stat-card">
+            <div class="stat-icon bg-orange-soft"><i class="bi bi-lightbulb-fill"></i></div>
+            <div class="stat-label">Total Skills</div>
+            <div class="stat-value">{{ adminStats()?.totalSkills || 0 }}</div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg">
+          <div class="stat-card">
+            <div class="stat-icon bg-red-soft"><i class="bi bi-diagram-3-fill"></i></div>
+            <div class="stat-label">Categories</div>
+            <div class="stat-value">{{ adminStats()?.totalCategories || 0 }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title">Recent Users</div>
+            </div>
+
+            @if (adminStats()?.recentUsers && adminStats()?.recentUsers.length > 0) {
+              @for (user of adminStats()?.recentUsers; track user._id) {
+                <div class="person-row">
+                  <div class="person-left">
+                    <div class="person-avatar">
+                      {{ user.fullName?.charAt(0) || 'U' }}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="person-name">{{ user.fullName }}</div>
+                      <div class="person-role">{{ user.email }}</div>
+                    </div>
+                  </div>
+                  <div class="person-right">
+                    <span class="badge bg-primary">{{ user.role }}</span>
+                  </div>
+                </div>
+              }
+            } @else {
+              <p class="text-muted text-center py-3">No recent users</p>
+            }
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <div class="dash-card">
+            <div class="dash-card-title">Skills by Category</div>
+
+            @if (adminStats()?.skillsByCategory && adminStats()?.skillsByCategory.length > 0) {
+              <div class="mt-3">
+                @for (category of adminStats()?.skillsByCategory; track category._id) {
+                  <div class="gap-row mb-3">
+                    <span class="gap-dot"></span>
+                    <span class="gap-name">{{ category._id || 'Uncategorized' }}</span>
+                    <span class="gap-pct">{{ category.count }}</span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="text-muted text-center py-3">No skills data available</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-lg-4">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title">Quick Actions</div>
+            </div>
+            <div class="d-grid gap-2 mt-3">
+              <a [routerLink]="['/' + getRolePrefix(), 'users']" class="btn btn-outline-primary">
+                <i class="bi bi-people-fill me-2"></i>Manage Users
+              </a>
+              <a [routerLink]="['/' + getRolePrefix(), 'skill-categories']" class="btn btn-outline-success">
+                <i class="bi bi-diagram-3-fill me-2"></i>Manage Categories
+              </a>
+              <a [routerLink]="['/' + getRolePrefix(), 'skills']" class="btn btn-outline-info">
+                <i class="bi bi-lightbulb-fill me-2"></i>Manage Skills
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-8">
+          <div class="dash-card">
+            <div class="dash-card-title">Platform Activity</div>
+            <div class="row g-3 mt-2">
+              <div class="col-md-6">
+                <div class="stat-card">
+                  <div class="stat-label">Active Users (30 days)</div>
+                  <div class="stat-value">{{ adminStats()?.activeUsers || 0 }}</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="stat-card">
+                  <div class="stat-label">Total Questionnaires</div>
+                  <div class="stat-value">{{ adminStats()?.totalQuestionnaires || 0 }}</div>
+                </div>
               </div>
             </div>
-            <div class="person-right">
-              <div class="text-center">
-                <div class="person-skills-label">Skills</div>
-                <span class="skills-badge">24</span>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- COMPANY DASHBOARD -->
+    @if (isCompany()) {
+      <p class="welcome-sub">Your Organization Overview</p>
+
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-md-4 col-lg">
+          <div class="stat-card">
+            <div class="stat-icon bg-blue-soft"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-label">Total Employees</div>
+            <div class="stat-value">{{ companyStats()?.totalEmployees || 0 }}</div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg">
+          <div class="stat-card">
+            <div class="stat-icon bg-green-soft"><i class="bi bi-person-check-fill"></i></div>
+            <div class="stat-label">Active Employees</div>
+            <div class="stat-value">{{ companyStats()?.activeEmployees || 0 }}</div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg">
+          <div class="stat-card">
+            <div class="stat-icon bg-purple-soft"><i class="bi bi-lightbulb-fill"></i></div>
+            <div class="stat-label">Total Skills</div>
+            <div class="stat-value">{{ companyStats()?.totalSkills || 0 }}</div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg">
+          <div class="stat-card">
+            <div class="stat-icon bg-orange-soft"><i class="bi bi-clipboard-check"></i></div>
+            <div class="stat-label">Questionnaires</div>
+            <div class="stat-value">{{ companyStats()?.totalQuestionnaires || 0 }}</div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg">
+          <div class="stat-card">
+            <div class="stat-icon bg-warning-soft"><i class="bi bi-envelope-fill"></i></div>
+            <div class="stat-label">Invited</div>
+            <div class="stat-value">{{ companyStats()?.invitedEmployees || 0 }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title">Recent Employees</div>
+            </div>
+
+            @if (companyStats()?.recentEmployees && companyStats()?.recentEmployees.length > 0) {
+              @for (employee of companyStats()?.recentEmployees; track employee._id) {
+                <div class="person-row">
+                  <div class="person-left">
+                    <div class="person-avatar">
+                      {{ employee.fullName?.charAt(0) || 'E' }}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="person-name">{{ employee.fullName }}</div>
+                      <div class="person-role">{{ employee.email }}</div>
+                    </div>
+                  </div>
+                  <div class="person-right">
+                    <span class="badge" [ngClass]="{
+                      'bg-warning': employee.accountStatus === 'invited',
+                      'bg-info': employee.accountStatus === 'joined',
+                      'bg-success': employee.accountStatus === 'active'
+                    }">{{ employee.accountStatus }}</span>
+                  </div>
+                </div>
+              }
+            } @else {
+              <p class="text-muted text-center py-3">No employees yet</p>
+            }
+
+            <div class="card-footer-link">
+              <a [routerLink]="['/' + getRolePrefix(), 'users']" class="view-link">
+                View all employees <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title">Quick Actions</div>
+            </div>
+            <div class="d-grid gap-2 mt-3">
+              <a [routerLink]="['/' + getRolePrefix(), 'users']" class="btn btn-outline-primary">
+                <i class="bi bi-people-fill me-2"></i>Manage Employees
+              </a>
+              <a [routerLink]="['/' + getRolePrefix(), 'questionnaires']" class="btn btn-outline-success">
+                <i class="bi bi-clipboard-check me-2"></i>Manage Questionnaires
+              </a>
+              <a [routerLink]="['/' + getRolePrefix(), 'my-skills']" class="btn btn-outline-info">
+                <i class="bi bi-lightbulb-fill me-2"></i>View Skills
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- EMPLOYEE DASHBOARD -->
+    @if (isEmployee()) {
+      <p class="welcome-sub">Your Personal Dashboard</p>
+
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-md-4">
+          <div class="stat-card">
+            <div class="stat-icon bg-purple-soft"><i class="bi bi-lightbulb-fill"></i></div>
+            <div class="stat-label">My Skills</div>
+            <div class="stat-value">{{ employeeStats()?.totalSkills || 0 }}</div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <div class="stat-card">
+            <div class="stat-icon bg-orange-soft"><i class="bi bi-clipboard-fill"></i></div>
+            <div class="stat-label">Assigned Questionnaires</div>
+            <div class="stat-value">{{ employeeStats()?.assignedQuestionnaires || 0 }}</div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <div class="stat-card">
+            <div class="stat-icon bg-green-soft"><i class="bi bi-check-circle-fill"></i></div>
+            <div class="stat-label">Completed</div>
+            <div class="stat-value">{{ employeeStats()?.completedQuestionnaires || 0 }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+          <div class="dash-card">
+            <div class="dash-card-title">My Skills by Category</div>
+
+            @if (employeeStats()?.skillsByCategory && employeeStats()?.skillsByCategory.length > 0) {
+              <div class="mt-3">
+                @for (category of employeeStats()?.skillsByCategory; track category._id) {
+                  <div class="gap-row mb-3">
+                    <span class="gap-dot"></span>
+                    <span class="gap-name">{{ category._id || 'Uncategorized' }}</span>
+                    <span class="gap-pct">{{ category.count }}</span>
+                  </div>
+                }
               </div>
-              <i class="bi bi-three-dots-vertical dots-btn"></i>
+            } @else {
+              <p class="text-muted text-center py-3">No skills added yet</p>
+            }
+
+            <div class="card-footer-link">
+              <a [routerLink]="['/' + getRolePrefix(), 'my-skills']" class="view-link">
+                Manage my skills <i class="bi bi-arrow-right"></i>
+              </a>
             </div>
           </div>
+        </div>
 
-          <div class="person-row">
-            <div class="person-left">
-              <img src="https://i.pravatar.cc/80?img=68" alt="Michael Chen" />
-              <div class="min-w-0">
-                <div class="person-name">Michael Chen</div>
-                <div class="person-role">Data Scientist</div>
+        <div class="col-12 col-lg-6">
+          <div class="dash-card">
+            <div class="dash-card-title">Recent Skills</div>
+
+            @if (employeeStats()?.recentSkills && employeeStats()?.recentSkills.length > 0) {
+              @for (skill of employeeStats()?.recentSkills; track skill._id) {
+                <div class="gap-row mb-3">
+                  <span class="gap-dot"></span>
+                  <span class="gap-name">{{ skill.skill_name }}</span>
+                  <span class="badge bg-info">{{ skill.skill_level }}</span>
+                </div>
+              }
+            } @else {
+              <p class="text-muted text-center py-3">No skills added yet</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title">Quick Actions</div>
+            </div>
+            <div class="row g-3 mt-2">
+              <div class="col-md-4">
+                <a [routerLink]="['/' + getRolePrefix(), 'my-skills']" class="btn btn-outline-primary w-100">
+                  <i class="bi bi-lightbulb-fill me-2"></i>Manage Skills
+                </a>
+              </div>
+              <div class="col-md-4">
+                <a [routerLink]="['/' + getRolePrefix(), 'my-questionnaires']" class="btn btn-outline-success w-100">
+                  <i class="bi bi-clipboard-check me-2"></i>My Questionnaires
+                </a>
+              </div>
+              <div class="col-md-4">
+                <a [routerLink]="['/' + getRolePrefix(), 'profile']" class="btn btn-outline-info w-100">
+                  <i class="bi bi-person-fill me-2"></i>My Profile
+                </a>
               </div>
             </div>
-            <div class="person-right">
-              <div class="text-center">
-                <div class="person-skills-label">Skills</div>
-                <span class="skills-badge">31</span>
-              </div>
-              <i class="bi bi-three-dots-vertical dots-btn"></i>
-            </div>
-          </div>
-
-          <div class="person-row">
-            <div class="person-left">
-              <img src="https://i.pravatar.cc/80?img=12" alt="David Lee" />
-              <div class="min-w-0">
-                <div class="person-name">David Lee</div>
-                <div class="person-role">DevOps Engineer</div>
-              </div>
-            </div>
-            <div class="person-right">
-              <div class="text-center">
-                <div class="person-skills-label">Skills</div>
-                <span class="skills-badge">26</span>
-              </div>
-              <i class="bi bi-three-dots-vertical dots-btn"></i>
-            </div>
           </div>
         </div>
-
-        <div class="card-footer-link">
-          <a href="#" class="view-link">View all people <i class="bi bi-arrow-right"></i></a>
-        </div>
       </div>
-    </div>
-
-    <div class="col-12 col-lg-4">
-      <div class="dash-card">
-        <div class="dash-card-title">Skills Distribution</div>
-
-        <div class="donut-wrap">
-          <div class="donut">
-            <div class="donut-center">
-              <div class="num">8,569</div>
-              <div class="lbl">Total Skills</div>
-            </div>
-          </div>
-
-          <ul class="legend">
-            <li><span class="dot" style="background: #2f6fed"></span><span class="lname">Technical</span><span class="lpct">45%</span></li>
-            <li><span class="dot" style="background: #8b5cf6"></span><span class="lname">Business</span><span class="lpct">25%</span></li>
-            <li><span class="dot" style="background: #16a34a"></span><span class="lname">People</span><span class="lpct">15%</span></li>
-            <li><span class="dot" style="background: #22c3c3"></span><span class="lname">Tools</span><span class="lpct">10%</span></li>
-            <li><span class="dot" style="background: #f2994a"></span><span class="lname">Other</span><span class="lpct">5%</span></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-lg-4">
-      <div class="dash-card">
-        <div class="dash-card-title">Talent Search</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-3">
-    <div class="col-12 col-lg-4">
-      <div class="dash-card">
-        <div class="dash-card-title">
-          Skills Gap Insights
-          <div class="icon-square"><i class="bi bi-bar-chart-fill"></i></div>
-        </div>
-
-        <div class="gap-row">
-          <span class="gap-dot"></span>
-          <span class="gap-name">Cloud Computing</span>
-          <span class="gap-tag high">High Gap</span>
-          <div class="gap-bar-track"><div class="gap-bar-fill" style="width: 78%; background: #f6b3b3"></div></div>
-          <span class="gap-pct">78%</span>
-        </div>
-
-        <div class="gap-row">
-          <span class="gap-dot"></span>
-          <span class="gap-name">Data Engineering</span>
-          <span class="gap-tag mid">Mid Gap</span>
-          <div class="gap-bar-track"><div class="gap-bar-fill" style="width: 58%; background: #f6d9a8"></div></div>
-          <span class="gap-pct">58%</span>
-        </div>
-
-        <div class="gap-row">
-          <span class="gap-dot"></span>
-          <span class="gap-name">Cloud Computing</span>
-          <span class="gap-tag low">Low Gap</span>
-          <div class="gap-bar-track"><div class="gap-bar-fill" style="width: 28%; background: #c7cdf7"></div></div>
-          <span class="gap-pct">28%</span>
-        </div>
-
-        <div class="card-footer-link">
-          <a href="#" class="view-link">View Insights <i class="bi bi-arrow-right"></i></a>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-lg-4">
-      <div class="dash-card">
-        <div class="dash-card-title">Recent Activity</div>
-
-        <div class="activity-row">
-          <span class="activity-dot"></span>
-          <span class="activity-text">John Doe completed a skill assessment</span>
-          <span class="activity-time">2h ago</span>
-        </div>
-
-        <div class="activity-row">
-          <span class="activity-dot"></span>
-          <span class="activity-text">New skill "Kubernetes" added to Skills Bank</span>
-          <span class="activity-time">5h ago</span>
-        </div>
-
-        <div class="activity-row">
-          <span class="activity-dot"></span>
-          <span class="activity-text">New opportunity "Data Analyst" published</span>
-          <span class="activity-time">8h ago</span>
-        </div>
-
-        <div class="card-footer-link">
-          <a href="#" class="view-link">View all <i class="bi bi-arrow-right"></i></a>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-lg-4">
-      <div class="dash-card">
-        <div class="bank-header">
-          <div class="dash-card-title mb-0">Skill Banking Overview</div>
-        </div>
-
-        <div class="credit-boxes">
-          <div class="credit-box">
-            <div class="clabel">Credits Earned</div>
-            <div class="cvalue">2,450</div>
-            <div class="cdelta">+320 this month</div>
-          </div>
-
-          <div class="credit-box">
-            <div class="clabel">Rewards Redeemed</div>
-            <div class="cvalue">1,250 <span class="coin-icon">TC</span></div>
-            <div class="cdelta link">View Rewards →</div>
-          </div>
-        </div>
-
-        <div class="top-earner-note">
-          🏆 Great going! You're in the top 10% of earners this month. 🎉
-        </div>
-      </div>
-    </div>
-  </div>
+    }
+  }
 </div>
+
+<style>
+.person-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.bg-blue-soft {
+  background-color: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+.bg-purple-soft {
+  background-color: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+
+.bg-green-soft {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.bg-orange-soft {
+  background-color: rgba(251, 146, 60, 0.1);
+  color: #fb923c;
+}
+
+.bg-red-soft {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.bg-warning-soft {
+  background-color: rgba(234, 179, 8, 0.1);
+  color: #eab308;
+}
+</style>

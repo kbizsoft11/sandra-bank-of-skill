@@ -138,9 +138,15 @@
                 <span>View Employees</span>
               </button>
             } @else {
-              <app-table-actions [actions]="['edit','delete']" (edit)="editUser(user)"
-                (delete)="deleteUser(user)">
-              </app-table-actions>
+              <div class="d-flex gap-2">
+                <button (click)="viewUserSkills(user)" class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1">
+                  <i class="bi bi-lightbulb-fill"></i>
+                  <span>Skills</span>
+                </button>
+                <app-table-actions [actions]="['edit','delete']" (edit)="editUser(user)"
+                  (delete)="deleteUser(user)">
+                </app-table-actions>
+              </div>
             }
           </td>
 

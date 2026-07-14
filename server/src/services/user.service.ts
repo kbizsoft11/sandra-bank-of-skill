@@ -13,6 +13,7 @@ import { deleteOldProfileImage } from '../utils/file-upload';
 import path from 'path';
 import { AccountStatus } from '../types/common.types';
 import { v4 as uuidv4 } from 'uuid';
+import { assignOnboardingQuestionnaires } from './onboarding.service';
 
 export const userService = {
 
@@ -240,8 +241,22 @@ export const userService = {
       emailVerified: true, // Auto-verify invited users
       onboardingStatus: 'completed', // Skip onboarding for invited users
       accountStatus: AccountStatus.INVITED,
-      invitedAt: new Date(), 
+      invitedAt: new Date(),
+      hasCompletedOnboarding: false, // Will be set to true after completing onboarding questionnaire
     });
+
+    // Auto-assign onboarding questionnaires to the new employee
+    try {
+      await assignOnboardingQuestionnaires(
+        newUser._id.toString(),
+        inviter.tenantId,
+        inviter.organisationId,
+        invitedByUserId
+      );
+    } catch (error) {
+      console.error('Failed to assign onboarding questionnaires:', error);
+      // Don't fail the invitation if questionnaire assignment fails
+    }
 
     // Send invitation email with generated password
     await sendInvitationEmail(

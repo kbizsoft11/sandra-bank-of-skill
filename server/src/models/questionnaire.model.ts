@@ -75,6 +75,11 @@ const QuestionnaireSchema = new Schema<IQuestionnaire>(
             enum: ['draft', 'active', 'archived'],
             default: 'draft',
         },
+        isOnboardingQuestionnaire: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
     },
     {
         timestamps: true,

@@ -23,8 +23,9 @@ export const authInterceptor: HttpInterceptorFn = (
     const storage =
         inject(StorageService);
 
+    // Use getToken() to check both localStorage and sessionStorage
     const token =
-        storage.getItem('accessToken');
+        storage.getToken();
 
     if (!token) {
 

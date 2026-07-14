@@ -22,6 +22,8 @@ export interface IUser {
 
   profileCompleted: boolean;
 
+  hasCompletedOnboarding: boolean;
+
   emailVerified: boolean;
 
   verificationCode?: string;

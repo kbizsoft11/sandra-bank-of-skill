@@ -5,17 +5,19 @@ import {
 import controller from '../controllers/skill-category.controller';
 import { validate } from '../middlewares/validate.middleware';
 import { createSkillCategorySchema, updateSkillCategorySchema } from '../validators/skill-category';
+import { allowRoles } from '../middlewares/role.middleware';
 
 const router = Router();
 
-router.post('/', validate(createSkillCategorySchema), controller.create);
+// All skill category routes are admin-only
+router.post('/', allowRoles('admin'), validate(createSkillCategorySchema), controller.create);
 
 router.get('/', controller.getAll);
 
 router.get('/:id', controller.getById);
 
-router.put('/:id', validate(updateSkillCategorySchema), controller.update);
+router.put('/:id', allowRoles('admin'), validate(updateSkillCategorySchema), controller.update);
 
-router.delete('/:id', controller.delete);
+router.delete('/:id', allowRoles('admin'), controller.delete);
 
 export default router;

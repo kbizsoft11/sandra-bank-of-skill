@@ -2,22 +2,30 @@
 
   <div class="d-flex align-items-center justify-content-between border-bottom px-4 py-3">
 
-    <div>
-      <h2 class="h5 fw-semibold mb-0 text-dark">
-        Skills
-      </h2>
+    <div class="d-flex align-items-center gap-2">
+      @if (isViewingEmployeeSkills()) {
+        <a [routerLink]="getBackRoute()" class="btn btn-light btn-sm d-inline-flex align-items-center gap-1">
+          <i class="bi bi-arrow-left"></i>
+          <span>Back</span>
+        </a>
+      }
 
-      <p class="mt-1 mb-0 small text-secondary">
-        Manage all skills
-      </p>
+      <div>
+        <h2 class="h5 fw-semibold mb-0 text-dark">
+          {{ getPageTitle() }}
+        </h2>
 
+        <p class="mt-1 mb-0 small text-secondary">
+          {{ getPageSubtitle() }}
+        </p>
+      </div>
     </div>
 
-    <a routerLink="/admin/skills/create" class="btn btn-primary btn-sm px-3">
-
-      Add Skill
-
-    </a>
+    @if (canModifySkills()) {
+      <a [routerLink]="getCreateRoute()" class="btn btn-primary btn-sm px-3">
+        Add Skill
+      </a>
+    }
 
   </div>
 
@@ -59,42 +67,54 @@
 
       <tbody>
 
-        @for(skill of skills(); track skill._id){
+        @if (skills().length === 0) {
+          <tr>
+            <td colspan="6" class="px-4 py-4 text-center text-secondary">
+              No skills found. Click "Add Skill" to create your first skill.
+            </td>
+          </tr>
+        } @else {
+          @for(skill of skills(); track skill._id){
 
-        <tr>
+          <tr>
 
-          <td class="px-4 py-3">
-            {{ skill.skill_name }}
-          </td>
+            <td class="px-4 py-3">
+              {{ skill.skill_name }}
+            </td>
 
-          <td class="px-4 py-3">
-            {{ skill.cat_id.cat_name }}
-          </td>
+            <td class="px-4 py-3">
+              {{ skill.cat_id.cat_name }}
+            </td>
 
-          <td class="px-4 py-3 text-secondary">
-            {{ skill?.user_id?.fullName }}
-          </td>
+            <td class="px-4 py-3 text-secondary">
+              {{ skill?.user_id?.fullName }}
+            </td>
 
-          <td class="px-4 py-3">
-            {{ skill.skill_level }}
-          </td>
+            <td class="px-4 py-3">
+              {{ skill.skill_level }}
+            </td>
 
-          <td class="px-4 py-3">
-            {{ skill.skill_score }}
-          </td>
+            <td class="px-4 py-3">
+              {{ skill.skill_score }}
+            </td>
 
-          <td class="px-4 py-3">
+            <td class="px-4 py-3">
 
-            <app-table-actions
-              [actions]="['edit','delete']"
-              (edit)="editSkill(skill)"
-              (delete)="deleteSkill(skill)">
-            </app-table-actions>
+              @if (canModifySkills()) {
+                <app-table-actions
+                  [actions]="['edit','delete']"
+                  (edit)="editSkill(skill)"
+                  (delete)="deleteSkill(skill)">
+                </app-table-actions>
+              } @else {
+                <span class="text-muted small">Read-only</span>
+              }
 
-          </td>
+            </td>
 
-        </tr>
+          </tr>
 
+          }
         }
 
       </tbody>

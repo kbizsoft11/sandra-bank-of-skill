@@ -59,6 +59,12 @@ const UserSchema = new Schema<IUser>(
             default: false,
         },
 
+        hasCompletedOnboarding: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+
         emailVerified: {
             type: Boolean,
             default: false,

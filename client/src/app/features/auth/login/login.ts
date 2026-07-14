@@ -13,6 +13,7 @@ import {
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { AlertService } from '../../../core/services/alert.service';
 
 @Component({
   selector: 'app-login',
@@ -24,6 +25,9 @@ export class Login {
   private readonly fb = inject(FormBuilder);
   private readonly authService =
     inject(AuthService);
+
+  private readonly alertService =
+    inject(AlertService);
 
   private readonly router =
     inject(Router);
@@ -40,7 +44,8 @@ export class Login {
       password: [
         '',
         [Validators.required]
-      ]
+      ],
+      rememberMe: [false]
     });
 
   togglePassword(): void{
@@ -59,8 +64,11 @@ export class Login {
 
     this.loading.set(true);
 
+    const formValue = this.loginForm.getRawValue();
+    const { email, password, rememberMe } = formValue;
+
     this.authService
-      .login(this.loginForm.getRawValue())
+      .login({ email, password }, rememberMe)
       .subscribe({
         next: () => {
           this.loading.set(false);
@@ -70,8 +78,12 @@ export class Login {
             this.router.navigate([dashboardPath]);
           }, 100);
         },
-        error: () => {
+        error: (error) => {
           this.loading.set(false);
+          
+          // Show SweetAlert2 error popup instead of browser alert
+          const errorMessage = error?.error?.message || 'Invalid email or password.';
+          this.alertService.error(errorMessage, 'Login Failed');
         }
       });
   }

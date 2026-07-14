@@ -35,6 +35,7 @@ export interface IQuestionnaire extends Document {
     organisationId: string;    // Organisation ID
     questions: IQuestion[];
     status: QuestionnaireStatus;
+    isOnboardingQuestionnaire: boolean; // Auto-assign to new employees
     createdAt: Date;
     updatedAt: Date;
 }
