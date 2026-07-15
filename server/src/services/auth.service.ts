@@ -70,7 +70,23 @@ export const authService = {
       tenantId: 'company-1',
       profileCompleted: false,
       isActive: true,
+      hasCompletedOnboarding: false,
     });
+
+    // Auto-assign onboarding questionnaires to employees
+    if (user.role === 'employee' && user.tenantId) {
+      const { assignOnboardingQuestionnaires } = require('./onboarding.service');
+      // For legacy register, we might not have organisationId, so use tenantId
+      const orgId = user.organisationId || user.tenantId;
+      if (orgId) {
+        await assignOnboardingQuestionnaires(
+          user._id.toString(),
+          user.tenantId,
+          orgId,
+          user.tenantId // assignedBy - use tenant admin
+        );
+      }
+    }
 
     const token = generateToken({
       userId: user._id,
@@ -440,16 +456,39 @@ export const authService = {
 
     const hashedPassword = await hashPassword(password);
 
-    const updatedUser = await userRepository.update(user._id.toString(), {
+    // For employees, DO NOT set hasCompletedOnboarding to true
+    // They must complete the onboarding questionnaire first
+    const updateData: any = {
       fullName: fullName.trim(),
       password: hashedPassword,
       emailVerified: true,
       accountStatus: AccountStatus.JOINED,
-      onboardingStatus: 'completed',
-      profileCompleted: true,
-      hasCompletedOnboarding: true,
       isActive: true,
-    });
+    };
+
+    // Only non-employees get automatic onboarding completion
+    if (user.role !== 'employee') {
+      updateData.onboardingStatus = 'completed';
+      updateData.profileCompleted = true;
+      updateData.hasCompletedOnboarding = true;
+    } else {
+      // Employees need to complete questionnaire
+      updateData.hasCompletedOnboarding = false;
+      updateData.profileCompleted = false;
+    }
+
+    const updatedUser = await userRepository.update(user._id.toString(), updateData);
+
+    // Auto-assign onboarding questionnaires to employees
+    if (user.role === 'employee' && user.tenantId && user.organisationId) {
+      const { assignOnboardingQuestionnaires } = require('./onboarding.service');
+      await assignOnboardingQuestionnaires(
+        user._id.toString(),
+        user.tenantId,
+        user.organisationId,
+        user.organisationId // assignedBy - use org admin or the org itself
+      );
+    }
 
     const authToken = generateToken({
       userId: updatedUser?._id,
@@ -469,6 +508,7 @@ export const authService = {
         role: updatedUser?.role,
         tenantId: updatedUser?.tenantId,
         organisationId: updatedUser?.organisationId,
+        hasCompletedOnboarding: updatedUser?.hasCompletedOnboarding,
       },
     };
   },

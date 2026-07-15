@@ -5,6 +5,7 @@ import { dashboardRoutes } from './dashboard.routes';
 import { authGuard } from '../core/guards/auth.guard';
 import { guestGuard } from '../core/guards/guest.guard';
 import { roleGuard } from '../core/guards/role.guard';
+import { onboardingGuard } from '../core/guards/onboarding.guard';
 
 export const routes: Routes = [
     {
@@ -37,10 +38,10 @@ export const routes: Routes = [
         children: dashboardRoutes
     },
 
-    // Employee routes - same components, different URL prefix
+    // Employee routes - same components, different URL prefix, with onboarding check
     {
         path: 'employee',
-        canActivate: [authGuard, roleGuard],
+        canActivate: [authGuard, roleGuard, onboardingGuard],
         data: { roles: ['employee'] },
         loadComponent: () => import('../layouts/dashboard-layout/dashboard-layout').then(c => c.DashboardLayout),
         children: dashboardRoutes

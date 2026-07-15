@@ -100,7 +100,15 @@ export class AuthService {
 
                 switchMap(() =>
                     this.getCurrentUser()
-                )
+                ),
+
+                tap((response) => {
+                    // After user is loaded, check if they need onboarding
+                    if (this.checkNeedsOnboarding()) {
+                        console.log('👤 [AUTH SERVICE] User needs onboarding, setting flag');
+                        this.setNeedsOnboarding(true);
+                    }
+                })
 
             );
 
@@ -121,6 +129,15 @@ export class AuthService {
         if (!this.isLoadingUser && !this.user()) {
             this.loadCurrentUser();
         }
+
+        // After setting session, check if user needs onboarding
+        // Use a slight delay to ensure user is loaded
+        setTimeout(() => {
+            if (this.checkNeedsOnboarding()) {
+                console.log('👤 [AUTH SERVICE] User needs onboarding after setSession, setting flag');
+                this.setNeedsOnboarding(true);
+            }
+        }, 500);
 
     }
 

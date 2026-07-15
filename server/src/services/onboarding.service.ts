@@ -1,6 +1,130 @@
 import { QuestionnaireModel } from '../models/questionnaire.model';
 import { QuestionnaireResponseModel } from '../models/questionnaire-response.model';
 import { UserModel } from '../models/user.model';
+import { v4 as uuidv4 } from 'uuid';
+
+/**
+ * Static default onboarding questions for all employees
+ */
+const getDefaultOnboardingQuestions = () => [
+    {
+        questionId: uuidv4(),
+        questionText: 'What is your current role or position?',
+        questionType: 'text' as const,
+        options: [],
+        required: true,
+        order: 0,
+    },
+    {
+        questionId: uuidv4(),
+        questionText: 'What department or team will you be working with?',
+        questionType: 'text' as const,
+        options: [],
+        required: true,
+        order: 1,
+    },
+    {
+        questionId: uuidv4(),
+        questionText: 'What are your main responsibilities in this role?',
+        questionType: 'textarea' as const,
+        options: [],
+        required: true,
+        order: 2,
+    },
+    {
+        questionId: uuidv4(),
+        questionText: 'Which skills are you most excited to develop?',
+        questionType: 'checkbox' as const,
+        options: [
+            'Communication',
+            'Leadership',
+            'Technical Skills',
+            'Problem Solving',
+            'Teamwork',
+            'Time Management',
+            'Creativity',
+            'Critical Thinking'
+        ],
+        required: true,
+        order: 3,
+    },
+    {
+        questionId: uuidv4(),
+        questionText: 'What do you hope to achieve in your first 90 days?',
+        questionType: 'textarea' as const,
+        options: [],
+        required: true,
+        order: 4,
+    },
+    {
+        questionId: uuidv4(),
+        questionText: 'How would you rate your current proficiency level in your role?',
+        questionType: 'rating' as const,
+        options: [],
+        required: true,
+        order: 5,
+    },
+    {
+        questionId: uuidv4(),
+        questionText: 'What type of learning style works best for you?',
+        questionType: 'radio' as const,
+        options: [
+            'Visual (diagrams, charts, videos)',
+            'Auditory (discussions, podcasts)',
+            'Reading/Writing (documentation, articles)',
+            'Hands-on (practical exercises, projects)',
+            'Combination of all'
+        ],
+        required: true,
+        order: 6,
+    },
+    {
+        questionId: uuidv4(),
+        questionText: 'What are your career goals for the next year?',
+        questionType: 'textarea' as const,
+        options: [],
+        required: true,
+        order: 7,
+    }
+];
+
+/**
+ * Create or get the default onboarding questionnaire for a company
+ * This ensures every company has a standard onboarding questionnaire
+ */
+export const ensureDefaultOnboardingQuestionnaire = async (
+    tenantId: string,
+    organisationId: string,
+    createdBy: string
+): Promise<string> => {
+    // Check if default onboarding questionnaire already exists
+    const existing = await QuestionnaireModel.findOne({
+        tenantId,
+        organisationId,
+        isOnboardingQuestionnaire: true,
+        status: 'active',
+    });
+
+    if (existing) {
+        console.log('📋 Default onboarding questionnaire already exists:', existing._id);
+        return existing._id.toString();
+    }
+
+    // Create new default onboarding questionnaire
+    const questionnaire = await QuestionnaireModel.create({
+        title: 'Employee Onboarding Questionnaire',
+        description: 'Welcome to our team! This questionnaire helps us understand your background, goals, and learning preferences so we can support your success from day one.',
+        createdBy,
+        tenantId,
+        organisationId,
+        questions: getDefaultOnboardingQuestions(),
+        status: 'active',
+        isOnboardingQuestionnaire: true,
+    });
+
+    console.log('📋 Created new default onboarding questionnaire:', questionnaire._id);
+    return questionnaire._id.toString();
+};
 
 /**
  * Assign a questionnaire to a list of employees (or all employees in a company if none are provided)
@@ -51,6 +175,7 @@ export const assignQuestionnaireToCompanyEmployees = async (
 /**
  * Auto-assign onboarding questionnaires to a new employee
  * Called when an employee is invited or joins the company
+ * Ensures default onboarding questionnaire exists before assigning
  */
 export const assignOnboardingQuestionnaires = async (
     employeeId: string,
@@ -58,6 +183,10 @@ export const assignOnboardingQuestionnaires = async (
     organisationId: string,
     assignedBy: string
 ): Promise<void> => {
+    // First, ensure the default onboarding questionnaire exists
+    await ensureDefaultOnboardingQuestionnaire(tenantId, organisationId, assignedBy);
+
+    // Now find all active onboarding questionnaires for this organization
     const onboardingQuestionnaires = await QuestionnaireModel.find({
         tenantId,
         organisationId,
@@ -66,8 +195,11 @@ export const assignOnboardingQuestionnaires = async (
     });
 
     if (onboardingQuestionnaires.length === 0) {
+        console.warn('⚠️ No onboarding questionnaires found after ensuring default');
         return;
     }
+
+    console.log(`📋 Found ${onboardingQuestionnaires.length} onboarding questionnaire(s) to assign`);
 
     const assignmentPromises = onboardingQuestionnaires.map(async (questionnaire) => {
         const existing = await QuestionnaireResponseModel.findOne({
@@ -76,6 +208,7 @@ export const assignOnboardingQuestionnaires = async (
         });
 
         if (existing) {
+            console.log(`📋 Questionnaire ${questionnaire._id} already assigned to employee ${employeeId}`);
             return;
         }
 
@@ -88,6 +221,8 @@ export const assignOnboardingQuestionnaires = async (
             status: 'pending',
             assignedAt: new Date(),
         });
+
+        console.log(`📋 Assigned questionnaire ${questionnaire._id} to employee ${employeeId}`);
     });
 
     await Promise.all(assignmentPromises);

@@ -5,13 +5,13 @@ import { AuthService } from '../services/auth.service';
 /**
  * Onboarding Guard
  * Checks if employee has completed mandatory onboarding questionnaire
- * Redirects to onboarding modal if not completed
+ * Sets a flag that triggers the onboarding modal to show
  */
 export const onboardingGuard: CanActivateFn = async (route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  console.log('🎯 [ONBOARDING GUARD] Checking onboarding status');
+  console.log('🎯 [ONBOARDING GUARD] Checking onboarding status for:', state.url);
 
   // Wait for user to be loaded if not already
   if (!auth.user()) {
@@ -22,7 +22,7 @@ export const onboardingGuard: CanActivateFn = async (route, state) => {
   const user = auth.user();
   const role = auth.role();
 
-  console.log('🎯 [ONBOARDING GUARD] User:', user);
+  console.log('🎯 [ONBOARDING GUARD] User:', user?.email);
   console.log('🎯 [ONBOARDING GUARD] Role:', role);
 
   // Only check onboarding for employees
@@ -37,17 +37,15 @@ export const onboardingGuard: CanActivateFn = async (route, state) => {
   console.log('🎯 [ONBOARDING GUARD] hasCompletedOnboarding:', hasCompletedOnboarding);
 
   if (hasCompletedOnboarding) {
-    console.log('🎯 [ONBOARDING GUARD] ✅ Onboarding completed');
+    console.log('🎯 [ONBOARDING GUARD] ✅ Onboarding completed, allowing access');
     return true;
   }
 
-  // Employee hasn't completed onboarding, check if they have a pending questionnaire
-  console.log('🎯 [ONBOARDING GUARD] ❌ Onboarding not completed, need to check for pending questionnaire');
-  
-  // Set flag that onboarding is needed (will be checked by the app component)
+  // Employee hasn't completed onboarding - set flag to show modal
+  console.log('🎯 [ONBOARDING GUARD] ❌ Onboarding not completed, setting needsOnboarding flag');
   auth.setNeedsOnboarding(true);
   
-  // Block navigation to dashboard until onboarding is complete
-  console.log('🎯 [ONBOARDING GUARD] Blocking navigation, onboarding required');
-  return false;
+  // Always allow navigation to dashboard - modal will show there
+  console.log('🎯 [ONBOARDING GUARD] Allowing navigation, modal will show');
+  return true;
 };

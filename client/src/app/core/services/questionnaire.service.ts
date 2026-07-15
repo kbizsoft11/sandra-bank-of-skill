@@ -109,4 +109,21 @@ export class QuestionnaireService {
         return this.http.post(`${this.api}/my/${id}/submit`, payload);
     }
 
+    // ==================== ONBOARDING METHODS ====================
+
+    /**
+     * Get pending onboarding questionnaire for the logged-in employee
+     */
+    getPendingOnboarding(): Observable<{
+        success: boolean;
+        message: string;
+        data: {
+            hasOnboarding: boolean;
+            questionnaire?: Questionnaire;
+            response?: QuestionnaireResponse;
+        };
+    }> {
+        return this.http.get<any>(`${this.api}/onboarding/pending`);
+    }
+
 }
