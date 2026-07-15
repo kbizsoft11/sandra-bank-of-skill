@@ -74,7 +74,8 @@ export class UserList implements OnInit {
 
   private initializeInviteForm(): void {
     this.inviteForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]]
+      email: ['', [Validators.required, Validators.email]],
+      role: ['employee', [Validators.required]]
     });
   }
 
@@ -258,8 +259,12 @@ export class UserList implements OnInit {
     this.inviteSuccess = '';
 
     const email = this.inviteForm.get('email')?.value;
+    const payload = {
+      email,
+      role: this.inviteForm.get('role')?.value
+    };
 
-    this.userService.inviteUser({ email }).subscribe({
+    this.userService.inviteUser(payload).subscribe({
       next: (response) => {
         this.isInviting = false;
         this.inviteSuccess = `Invitation sent successfully to ${email}`;

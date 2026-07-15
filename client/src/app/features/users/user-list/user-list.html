@@ -174,7 +174,7 @@
         </div>
         <div class="modal-body pt-2">
           <p class="text-secondary small mb-4">
-            Enter the email address to send an invitation. An auto-generated password will be sent to the user.
+            Enter the details below to send a secure invitation link. The invited user will choose their own password during signup.
           </p>
 
           <form [formGroup]="inviteForm" (ngSubmit)="sendInvite()">
@@ -185,8 +185,7 @@
                 class="form-control" 
                 [class.is-invalid]="inviteForm.get('email')?.invalid && inviteForm.get('email')?.touched"
                 formControlName="email"
-                placeholder="user@example.com"
-                autofocus>
+                placeholder="user@example.com">
               @if (inviteForm.get('email')?.hasError('required') && inviteForm.get('email')?.touched) {
                 <div class="invalid-feedback d-block">
                   Email is required
@@ -197,6 +196,15 @@
                   Please enter a valid email address
                 </div>
               }
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-medium">Role</label>
+              <select class="form-select" formControlName="role">
+                <option value="employee">Employee</option>
+                <option value="company">Company</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
 
             @if (inviteError) {

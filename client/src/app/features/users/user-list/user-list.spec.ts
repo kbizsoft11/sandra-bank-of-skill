@@ -32,6 +32,7 @@ describe('UserList', () => {
   it('should initialize the invite form', () => {
     expect(component.inviteForm).toBeDefined();
     expect(component.inviteForm.get('email')).toBeDefined();
+    expect(component.inviteForm.get('role')).toBeDefined();
   });
 
   it('should open the invite modal', () => {

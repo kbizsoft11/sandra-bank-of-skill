@@ -2,7 +2,8 @@ import {
   RegisterDto,
   RegisterStep1Dto, 
   VerifyOTPDto, 
-  RegisterStep3Dto 
+  RegisterStep3Dto,
+  AcceptInvitationDto
 } from '../dto/registration.dto';
 import { LoginDto } from '../dto/login.dto';
 
@@ -11,7 +12,8 @@ import { organisationRepository } from '../repositories/organisation.repository'
 
 import { ApiError } from '../utils/api-error';
 import { hashPassword, comparePassword } from '../utils/password';
-import { generateToken } from '../utils/jwt';
+import { generateToken, verifyToken } from '../utils/jwt';
+import { AccountStatus } from '../types/common.types';
 import { 
   generateOTP, 
   hashOTP, 
@@ -404,6 +406,70 @@ export const authService = {
       message: 'Verification code sent successfully',
       email: maskEmail(email),
       expiresIn: 600,
+    };
+  },
+
+  acceptInvitation: async (payload: AcceptInvitationDto) => {
+    const { token, fullName, password } = payload;
+
+    if (!token) {
+      throw new ApiError(400, 'Invitation token is required');
+    }
+
+    let decoded: any;
+
+    try {
+      decoded = verifyToken(token);
+    } catch (error) {
+      throw new ApiError(401, 'Invitation token is invalid or expired');
+    }
+
+    if (decoded?.purpose !== 'invitation') {
+      throw new ApiError(400, 'Invalid invitation token');
+    }
+
+    const user = await userRepository.findById(decoded.userId as string);
+
+    if (!user) {
+      throw new ApiError(404, 'Invitation no longer valid');
+    }
+
+    if (user.accountStatus !== 'invited') {
+      throw new ApiError(400, 'This invitation has already been used');
+    }
+
+    const hashedPassword = await hashPassword(password);
+
+    const updatedUser = await userRepository.update(user._id.toString(), {
+      fullName: fullName.trim(),
+      password: hashedPassword,
+      emailVerified: true,
+      accountStatus: AccountStatus.JOINED,
+      onboardingStatus: 'completed',
+      profileCompleted: true,
+      hasCompletedOnboarding: true,
+      isActive: true,
+    });
+
+    const authToken = generateToken({
+      userId: updatedUser?._id,
+      email: updatedUser?.email,
+      role: updatedUser?.role,
+      tenantId: updatedUser?.tenantId,
+      organisationId: updatedUser?.organisationId,
+    });
+
+    return {
+      message: 'Invitation accepted successfully',
+      token: authToken,
+      user: {
+        _id: updatedUser?._id,
+        fullName: updatedUser?.fullName,
+        email: updatedUser?.email,
+        role: updatedUser?.role,
+        tenantId: updatedUser?.tenantId,
+        organisationId: updatedUser?.organisationId,
+      },
     };
   },
 

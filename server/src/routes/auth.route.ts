@@ -8,7 +8,8 @@ import {
   verifyOTP,
   registerStep3,
   completeRegistration,
-  resendOTP
+  resendOTP,
+  acceptInvitation
 } from '../controllers/auth.controller';
 
 import { validate } from '../middlewares/validate.middleware';
@@ -19,7 +20,8 @@ import {
   registerStep1Schema,
   verifyOTPSchema,
   registerStep3Schema,
-  resendOTPSchema
+  resendOTPSchema,
+  acceptInvitationSchema
 } from '../validators/auth.validator';
 
 import { authenticate } from '../middlewares/auth.middleware';
@@ -35,6 +37,7 @@ router.post('/register/verify-otp', validate(verifyOTPSchema), verifyOTP);
 router.post('/register/step3', authenticate, validate(registerStep3Schema), registerStep3);
 router.post('/register/complete', authenticate, completeRegistration);
 router.post('/register/resend-otp', validate(resendOTPSchema), resendOTP);
+router.post('/invite/accept', validate(acceptInvitationSchema), acceptInvitation);
 
 // Authentication routes
 router.get('/me', authenticate, getMe);

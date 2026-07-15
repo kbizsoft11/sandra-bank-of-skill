@@ -49,5 +49,10 @@ export const authRoutes: Routes = [
         loadComponent: () => import('../features/auth/setup-complete/setup-complete').then(c => c.SetupComplete),
         canActivate: [stepRedirectorGuard],
         data: { step: 4 }
+    },
+
+    {
+        path: 'invite-signup',
+        loadComponent: () => import('../features/auth/invite-signup/invite-signup').then(c => c.InviteSignup)
     }
 ];

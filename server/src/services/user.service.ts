@@ -8,12 +8,14 @@ import { UpdateProfileDto } from '../dto/update-profile.dto';
 import { userRepository } from '../repositories/user.repository';
 
 import { hashPassword, generateRandomPassword } from '../utils/password';
-import { sendInvitationEmail, sendPasswordResetNotificationEmail } from './email.service';
+import { sendInvitationEmail, sendInvitationLinkEmail, sendPasswordResetNotificationEmail } from './email.service';
 import { deleteOldProfileImage } from '../utils/file-upload';
 import path from 'path';
 import { AccountStatus } from '../types/common.types';
 import { v4 as uuidv4 } from 'uuid';
+import { env } from '../config/env';
 import { assignOnboardingQuestionnaires } from './onboarding.service';
+import { generateInvitationToken } from '../utils/jwt';
 
 export const userService = {
 
@@ -219,18 +221,13 @@ export const userService = {
       throw new Error('Company user must have tenantId and organisationId to invite employees');
     }
 
-    // Generate random secure password
     const generatedPassword = generateRandomPassword();
-
-    // Hash the password
     const hashedPassword = await hashPassword(generatedPassword);
 
-    // Extract full name or use email prefix as fallback
-    const fullName = payload.fullName || payload.email.split('@')[0];
+    const fullName = payload.email.split('@')[0];
 
-    // Create the user with company's tenantId and organisationId
     const newUser = await userRepository.create({
-      fullName: fullName,
+      fullName,
       email: payload.email,
       password: hashedPassword,
       role: payload.role || 'employee',
@@ -238,11 +235,11 @@ export const userService = {
       organisationId: inviter.organisationId,
       profileCompleted: false,
       isActive: true,
-      emailVerified: true, // Auto-verify invited users
-      onboardingStatus: 'completed', // Skip onboarding for invited users
+      emailVerified: false,
+      onboardingStatus: 'registered',
       accountStatus: AccountStatus.INVITED,
       invitedAt: new Date(),
-      hasCompletedOnboarding: false, // Will be set to true after completing onboarding questionnaire
+      hasCompletedOnboarding: false,
     });
 
     // Auto-assign onboarding questionnaires to the new employee
@@ -258,17 +255,28 @@ export const userService = {
       // Don't fail the invitation if questionnaire assignment fails
     }
 
-    // Send invitation email with generated password
-    await sendInvitationEmail(
+    const inviteToken = generateInvitationToken({
+      userId: newUser._id,
+      email: newUser.email,
+      role: payload.role || 'employee',
+      tenantId: inviter.tenantId,
+      organisationId: inviter.organisationId,
+      invitedByUserId,
+      purpose: 'invitation',
+    });
+
+    const inviteLink = `${env.CLIENT_URL || 'http://localhost:4200'}/auth/invite-signup?token=${encodeURIComponent(inviteToken)}`;
+
+    await sendInvitationLinkEmail(
       payload.email,
-      generatedPassword,
       fullName,
-      invitedByName
+      invitedByName,
+      inviteLink
     );
 
     return {
       user: newUser,
-      message: 'Invitation sent successfully',
+      message: 'Invitation sent successfully. The recipient can complete signup using the secure invitation link.',
     };
 
   },

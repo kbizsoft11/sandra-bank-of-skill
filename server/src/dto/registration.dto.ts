@@ -19,6 +19,13 @@ export interface ResendOTPDto {
     email: string;
 }
 
+export interface AcceptInvitationDto {
+    token: string;
+    fullName: string;
+    password: string;
+    confirmPassword: string;
+}
+
 // ==================== STEP 3: ORGANISATION DETAILS ====================
 
 export interface RegisterStep3Dto {

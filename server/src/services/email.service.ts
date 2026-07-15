@@ -369,6 +369,76 @@ export const sendInvitationEmail = async (
 };
 
 /**
+ * Send invitation email with a secure signup link instead of a temporary password
+ */
+export const sendInvitationLinkEmail = async (
+    email: string,
+    name: string,
+    invitedBy: string,
+    inviteLink: string
+): Promise<void> => {
+    const subject = 'Complete your signup on Bank of Skill';
+
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('\n========== INVITATION LINK EMAIL ==========');
+        console.log('Email:', email);
+        console.log('Invite Link:', inviteLink);
+        console.log('========================================\n');
+    }
+
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #4F46E5; color: white; padding: 20px; text-align: center; }
+                .content { padding: 30px; background: #f9f9f9; }
+                .button { display: inline-block; padding: 12px 24px; background: #4F46E5; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+                .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🎉 You’re invited to Bank of Skill</h1>
+                </div>
+                <div class="content">
+                    <h2>Hi ${name},</h2>
+                    <p>${invitedBy} has invited you to join <strong>Bank of Skill</strong>.</p>
+                    <p>Please complete your account setup by choosing a password using the button below.</p>
+                    <div style="text-align: center;">
+                        <a href="${inviteLink}" class="button">Create Your Account</a>
+                    </div>
+                    <p><strong>This link will expire in 7 days.</strong></p>
+                    <p>If you have any questions, feel free to reach out to our support team.</p>
+                </div>
+                <div class="footer">
+                    <p>&copy; ${new Date().getFullYear()} Bank of Skill. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    const text = `
+        Complete your signup on Bank of Skill
+
+        Hi ${name},
+
+        ${invitedBy} has invited you to join Bank of Skill.
+
+        Please complete your account setup by opening the following link:
+        ${inviteLink}
+
+        This link will expire in 7 days.
+    `;
+
+    await sendEmail({ to: email, subject, html, text });
+};
+
+/**
  * Send password reset notification email with new password
  */
 export const sendPasswordResetNotificationEmail = async (
