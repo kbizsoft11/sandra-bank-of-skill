@@ -127,6 +127,12 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       roles: ['admin', 'company'],
     },
     {
+      label: 'Roles',
+      path: 'roles',
+      icon: 'bi bi-briefcase',
+      roles: ['company'],
+    },
+    {
       label: 'Skill Categories',
       path: 'skill-categories',
       icon: 'bi bi-diagram-3-fill',

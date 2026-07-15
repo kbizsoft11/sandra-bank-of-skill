@@ -9,6 +9,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
+import { RoleService, Role } from '../../../core/services/role.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { TableActions } from '../../../shared/components/table-actions/table-actions';
@@ -29,12 +30,14 @@ import { Router, RouterLink } from '@angular/router';
 export class UserList implements OnInit {
 
   private userService = inject(UserService);
+  private readonly roleService = inject(RoleService);
   private readonly alertService = inject(AlertService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   readonly auth = inject(AuthService);
 
   readonly users = signal<any[]>([]);
+  readonly availableRoles = signal<Role[]>([]);
   
   // For admin hierarchy view
   readonly viewingCompanyEmployees = signal<boolean>(false);
@@ -70,12 +73,28 @@ export class UserList implements OnInit {
   ngOnInit(): void {
     this.loadUsers();
     this.initializeInviteForm();
+    // Load roles if user is a company
+    if (this.auth.role() === 'company') {
+      this.loadRoles();
+    }
   }
 
   private initializeInviteForm(): void {
     this.inviteForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      role: ['employee', [Validators.required]]
+      designationId: ['', [Validators.required]],
+      message: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(1000)]]
+    });
+  }
+
+  private loadRoles(): void {
+    this.roleService.getRoles(true).subscribe({
+      next: (response) => {
+        this.availableRoles.set(response.data || []);
+      },
+      error: (error) => {
+        console.error('Error loading roles:', error);
+      }
     });
   }
 
@@ -234,6 +253,10 @@ export class UserList implements OnInit {
     this.inviteForm.reset();
     this.inviteError = '';
     this.inviteSuccess = '';
+    // Reload roles to get the latest
+    if (this.auth.role() === 'company') {
+      this.loadRoles();
+    }
   }
 
   /**
@@ -259,9 +282,15 @@ export class UserList implements OnInit {
     this.inviteSuccess = '';
 
     const email = this.inviteForm.get('email')?.value;
+    const designationId = this.inviteForm.get('designationId')?.value;
+    const message = this.inviteForm.get('message')?.value;
+
+    // Always invite as employee with selected designation
     const payload = {
       email,
-      role: this.inviteForm.get('role')?.value
+      role: 'employee',
+      designationId,
+      message
     };
 
     this.userService.inviteUser(payload).subscribe({

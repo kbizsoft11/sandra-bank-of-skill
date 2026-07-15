@@ -1,0 +1,551 @@
+// ==========================================================================
+// Mobile-first: base rules target small screens.
+// Breakpoints scale UP via min-width media queries.
+// ==========================================================================
+
+$bp-sm: 576px;
+$bp-md: 768px;
+$bp-lg: 992px;
+
+.page-container {
+  padding: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  @media (min-width: $bp-md) {
+    padding: 1.5rem;
+  }
+
+  @media (min-width: $bp-lg) {
+    padding: 2rem;
+  }
+}
+
+.page-header {
+  margin-bottom: 1.25rem;
+
+  @media (min-width: $bp-md) {
+    margin-bottom: 2rem;
+  }
+}
+
+.page-title {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.375rem;
+
+  @media (min-width: $bp-md) {
+    font-size: 1.75rem;
+  }
+}
+
+.page-subtitle {
+  color: #6b7280;
+  margin-bottom: 0;
+  font-size: 0.875rem;
+
+  @media (min-width: $bp-md) {
+    font-size: 1rem;
+  }
+}
+
+.content-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+
+  @media (min-width: $bp-md) {
+    border-radius: 12px;
+  }
+}
+
+// Header: stacked on mobile, row on tablet+
+.card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.875rem;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+
+  @media (min-width: $bp-md) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+}
+
+.card-title-section {
+  flex: 1;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+
+  @media (min-width: $bp-md) {
+    font-size: 1.25rem;
+  }
+}
+
+.card-subtitle {
+  color: #6b7280;
+  font-size: 0.8125rem;
+  margin-bottom: 0;
+
+  @media (min-width: $bp-md) {
+    font-size: 0.875rem;
+  }
+}
+
+// Buttons
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+
+  // Larger tap target on touch devices
+  min-height: 44px;
+
+  @media (min-width: $bp-md) {
+    min-height: auto;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+.btn-create {
+  width: 100%;
+
+  @media (min-width: $bp-md) {
+    width: auto;
+  }
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+
+  &:hover {
+    background: #2563eb;
+  }
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+
+  &:hover {
+    background: #4b5563;
+  }
+}
+
+.btn-outline-primary {
+  background: transparent;
+  color: #3b82f6;
+  border: 1px solid #3b82f6;
+
+  &:hover {
+    background: #eff6ff;
+  }
+}
+
+.btn-outline-danger {
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+
+  &:hover {
+    background: #fef2f2;
+  }
+}
+
+.btn-sm {
+  padding: 0.5rem 0.625rem;
+  font-size: 0.875rem;
+  min-height: 38px;
+
+  @media (min-width: $bp-md) {
+    min-height: auto;
+    padding: 0.375rem 0.75rem;
+  }
+}
+
+// Loading / empty states
+.state-block {
+  text-align: center;
+  padding: 3rem 1rem;
+
+  @media (min-width: $bp-md) {
+    padding: 4rem 1rem;
+  }
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  color: #9ca3af;
+
+  @media (min-width: $bp-md) {
+    font-size: 3rem;
+  }
+}
+
+// ==========================================================================
+// Mobile card list — the default (small-screen) presentation of role data.
+// Hidden once the table view takes over at md+.
+// ==========================================================================
+.role-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+
+  @media (min-width: $bp-md) {
+    display: none;
+  }
+}
+
+.role-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.875rem;
+  background: #fff;
+}
+
+.role-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.role-card-desc {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.role-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.role-card-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #9ca3af;
+  font-size: 0.8125rem;
+
+  i {
+    font-size: 0.875rem;
+  }
+}
+
+.role-card-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+// ==========================================================================
+// Table — hidden on mobile, becomes the presentation at md+.
+// ==========================================================================
+.table-responsive {
+  display: none;
+  overflow-x: auto;
+
+  @media (min-width: $bp-md) {
+    display: block;
+  }
+}
+
+.table {
+  width: 100%;
+  margin-bottom: 0;
+
+  thead {
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+
+    th {
+      padding: 1rem 1.5rem;
+      font-weight: 600;
+      color: #374151;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid #e5e7eb;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background: #f9fafb;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      td {
+        padding: 1rem 1.5rem;
+        color: #1f2937;
+      }
+    }
+  }
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.bg-success {
+  background: #10b981;
+  color: white;
+}
+
+.bg-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+// ==========================================================================
+// Modals — full-screen on mobile, centered dialog from sm+.
+// ==========================================================================
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1050;
+  overflow-y: auto;
+}
+
+.modal-dialog {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  display: flex;
+  align-items: flex-end;
+
+  @media (min-width: $bp-sm) {
+    max-width: 500px;
+    min-height: 0;
+    align-items: center;
+    margin: 1.75rem auto;
+  }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+
+  @media (min-width: $bp-sm) {
+    border-radius: 12px;
+    max-height: none;
+  }
+}
+
+.modal-header {
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+
+  @media (min-width: $bp-md) {
+    padding: 1.5rem;
+  }
+
+  .modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+
+    @media (min-width: $bp-md) {
+      font-size: 1.25rem;
+    }
+  }
+
+  .btn-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      color: #1f2937;
+    }
+  }
+}
+
+.modal-body {
+  padding: 1rem;
+
+  @media (min-width: $bp-md) {
+    padding: 1.5rem;
+  }
+}
+
+.modal-footer {
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.625rem;
+  position: sticky;
+  bottom: 0;
+  background: white;
+
+  @media (min-width: $bp-sm) {
+    flex-direction: row;
+    justify-content: flex-end;
+    padding: 1.5rem;
+    gap: 0.75rem;
+  }
+}
+
+.modal-footer .btn {
+  width: 100%;
+
+  @media (min-width: $bp-sm) {
+    width: auto;
+  }
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  transition: all 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  &.is-invalid {
+    border-color: #ef4444;
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+  }
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.form-check-input {
+  width: 3rem;
+  height: 1.5rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.form-check-label {
+  cursor: pointer;
+  font-weight: 500;
+  color: #374151;
+}
+
+.invalid-feedback {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.text-danger {
+  color: #ef4444;
+}
+
+.text-secondary {
+  color: #6b7280;
+}
+
+.spinner-border {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}
+
+.spinner-border-sm {
+  width: 0.875rem;
+  height: 0.875rem;
+}

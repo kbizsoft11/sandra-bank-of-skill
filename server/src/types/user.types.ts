@@ -16,6 +16,8 @@ export interface IUser {
 
   organisationId?: string;
 
+  designationId?: string;
+
   department?: string;
 
   location?: string;

@@ -42,6 +42,14 @@ export const dashboardRoutes: Routes = [
         loadComponent: () => import('../features/users/edit-user/edit-user').then(c => c.EditUser),
     },
 
+    // Roles/Designations routes (Company only)
+    {
+        path: 'roles',
+        canActivate: [roleGuard],
+        data: { roles: ['company'] },
+        loadComponent: () => import('../features/roles/role-list/role-list').then(c => c.RoleListComponent)
+    },
+
     // Skill categories routes (Admin only)
     {
         path: 'skill-categories',

@@ -233,6 +233,7 @@ export const userService = {
       role: payload.role || 'employee',
       tenantId: inviter.tenantId,
       organisationId: inviter.organisationId,
+      designationId: payload.designationId,
       profileCompleted: false,
       isActive: true,
       emailVerified: false,
@@ -271,7 +272,8 @@ export const userService = {
       payload.email,
       fullName,
       invitedByName,
-      inviteLink
+      inviteLink,
+      payload.message
     );
 
     return {

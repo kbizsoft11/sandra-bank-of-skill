@@ -1,11 +1,13 @@
 <div class="rounded-4 border bg-white shadow-sm overflow-hidden">
-
-  <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 border-bottom px-3 px-sm-4 py-3">
-
+  <div
+    class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 border-bottom px-3 px-sm-4 py-3"
+  >
     <div class="d-flex align-items-center gap-2">
-      
       @if (isViewingCompanyEmployees()) {
-        <button (click)="backToCompanies()" class="btn btn-light btn-sm d-inline-flex align-items-center gap-1">
+        <button
+          (click)="backToCompanies()"
+          class="btn btn-light btn-sm d-inline-flex align-items-center gap-1"
+        >
           <i class="bi bi-arrow-left"></i>
           <span>Back</span>
         </button>
@@ -24,165 +26,162 @@
 
     <div class="d-flex gap-2 w-100 w-sm-auto justify-content-sm-end">
       @if (canInviteUsers() && !isViewingCompanyEmployees()) {
-        <button (click)="openInviteModal()" class="btn btn-outline-primary btn-sm px-3 flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center gap-2">
+        <button
+          (click)="openInviteModal()"
+          class="btn btn-outline-primary btn-sm px-3 flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center gap-2"
+        >
           <i class="bi bi-envelope-fill"></i>
           <span>Invite User</span>
         </button>
       }
 
       @if (canCreateUsers() && !isViewingCompanyEmployees()) {
-        <a routerLink="/admin/users/create" class="btn btn-primary btn-sm px-3 flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center gap-2">
+        <a
+          routerLink="/admin/users/create"
+          class="btn btn-primary btn-sm px-3 flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center gap-2"
+        >
           <i class="bi bi-person-plus-fill"></i>
           <span>Add Company</span>
         </a>
       }
     </div>
-
   </div>
 
   <div class="table-responsive">
-
     <table class="table align-middle mb-0">
-
       <thead>
         <tr class="table-light">
+          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">Name</th>
 
-          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
-            Name
-          </th>
-
-          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
-            Email
-          </th>
+          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">Email</th>
 
           @if (!isViewingCompanies()) {
-            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
-              Role
-            </th>
+            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">Role</th>
 
-            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
-              Status
-            </th>
+            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">Status</th>
           }
 
-          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
-            Actions
-          </th>
-
+          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">Actions</th>
         </tr>
       </thead>
 
       <tbody>
-
         @if (displayedUsers().length === 0) {
-        <tr>
-          <td [attr.colspan]="isViewingCompanies() ? 3 : 5" class="px-4 py-4 text-center text-secondary">
-            @if (isViewingCompanyEmployees()) {
-              No employees found for this company.
-            } @else {
-              No {{ isViewingCompanies() ? 'companies' : 'users' }} found.
-            }
-          </td>
-        </tr>
+          <tr>
+            <td
+              [attr.colspan]="isViewingCompanies() ? 3 : 5"
+              class="px-4 py-4 text-center text-secondary"
+            >
+              @if (isViewingCompanyEmployees()) {
+                No employees found for this company.
+              } @else {
+                No {{ isViewingCompanies() ? 'companies' : 'users' }} found.
+              }
+            </td>
+          </tr>
         } @else {
-        @for (user of displayedUsers(); track user._id) {
+          @for (user of displayedUsers(); track user._id) {
+            <tr
+              [class.cursor-pointer]="isViewingCompanies()"
+              (click)="isViewingCompanies() ? viewCompanyEmployees(user) : null"
+            >
+              <td class="px-4 py-3">
+                <div class="d-flex align-items-center gap-3">
+                  <div
+                    class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-semibold"
+                    style="width: 40px; height: 40px"
+                  >
+                    {{ user.fullName?.charAt(0) || user.fullName?.charAt(0) }}
+                  </div>
 
-        <tr [class.cursor-pointer]="isViewingCompanies()" (click)="isViewingCompanies() ? viewCompanyEmployees(user) : null">
+                  <div>
+                    <p class="fw-medium mb-0 text-dark">
+                      {{ user.fullName }}
+                    </p>
+                  </div>
+                </div>
+              </td>
 
-          <td class="px-4 py-3">
+              <td class="px-4 py-3 text-secondary">
+                {{ user.email }}
+              </td>
 
-            <div class="d-flex align-items-center gap-3">
+              @if (!isViewingCompanies()) {
+                <td class="px-4 py-3">
+                  <span
+                    class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-2 fw-medium"
+                  >
+                    {{ user.role }}
+                  </span>
+                </td>
 
-              <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-semibold" style="width: 40px; height: 40px;">
-                {{ user.fullName?.charAt(0) || user.fullName?.charAt(0) }}
-              </div>
+                <td class="px-4 py-3">
+                  <span
+                    class="badge rounded-pill px-3 py-2 fw-medium"
+                    [ngClass]="getStatusBadgeClass(user.accountStatus)"
+                  >
+                    {{ getStatusText(user.accountStatus) }}
+                  </span>
+                </td>
+              }
 
-              <div>
-                <p class="fw-medium mb-0 text-dark">
-                  {{ user.fullName }}
-                </p>
-              </div>
-
-            </div>
-
-          </td>
-
-          <td class="px-4 py-3 text-secondary">
-            {{ user.email }}
-          </td>
-
-          @if (!isViewingCompanies()) {
-            <td class="px-4 py-3">
-
-              <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-2 fw-medium">
-                {{ user.role }}
-              </span>
-
-            </td>
-
-            <td class="px-4 py-3">
-
-              <span 
-                class="badge rounded-pill px-3 py-2 fw-medium"
-                [ngClass]="getStatusBadgeClass(user.accountStatus)">
-                {{ getStatusText(user.accountStatus) }}
-              </span>
-
-            </td>
+              <td class="px-4 py-3">
+                @if (isViewingCompanies()) {
+                  <button
+                    (click)="viewCompanyEmployees(user); $event.stopPropagation()"
+                    class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                  >
+                    <i class="bi bi-people-fill"></i>
+                    <span>View Employees</span>
+                  </button>
+                } @else {
+                  <div class="d-flex gap-2">
+                    <button
+                      (click)="viewUserSkills(user)"
+                      class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1"
+                    >
+                      <i class="bi bi-lightbulb-fill"></i>
+                      <span>Skills</span>
+                    </button>
+                    <app-table-actions
+                      [actions]="['edit', 'delete']"
+                      (edit)="editUser(user)"
+                      (delete)="deleteUser(user)"
+                    >
+                    </app-table-actions>
+                  </div>
+                }
+              </td>
+            </tr>
           }
-
-          <td class="px-4 py-3">
-            @if (isViewingCompanies()) {
-              <button (click)="viewCompanyEmployees(user); $event.stopPropagation()" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                <i class="bi bi-people-fill"></i>
-                <span>View Employees</span>
-              </button>
-            } @else {
-              <div class="d-flex gap-2">
-                <button (click)="viewUserSkills(user)" class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1">
-                  <i class="bi bi-lightbulb-fill"></i>
-                  <span>Skills</span>
-                </button>
-                <app-table-actions [actions]="['edit','delete']" (edit)="editUser(user)"
-                  (delete)="deleteUser(user)">
-                </app-table-actions>
-              </div>
-            }
-          </td>
-
-        </tr>
-
         }
-        }
-
       </tbody>
-
     </table>
-
   </div>
-
 </div>
 
 <!-- Invite User Modal -->
 @if (showInviteModal) {
-  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-backdrop fade show" (click)="closeInviteModal()"></div>
+  <div class="modal fade show d-block" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
+      <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header border-0 pb-0">
           <h5 class="modal-title fw-semibold">Invite User</h5>
           <button type="button" class="btn-close" (click)="closeInviteModal()"></button>
         </div>
+
         <div class="modal-body pt-2">
           <p class="text-secondary small mb-4">
-            Enter the details below to send a secure invitation link. The invited user will choose their own password during signup.
+            Enter the details below to send a secure invitation link. Customize the invitation message that will be sent to the employee.
           </p>
 
           <form [formGroup]="inviteForm" (ngSubmit)="sendInvite()">
             <div class="mb-3">
               <label class="form-label fw-medium">Email Address</label>
-              <input 
-                type="email" 
-                class="form-control" 
+              <input
+                type="email"
+                class="form-control"
                 [class.is-invalid]="inviteForm.get('email')?.invalid && inviteForm.get('email')?.touched"
                 formControlName="email"
                 placeholder="user@example.com">
@@ -199,12 +198,59 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label fw-medium">Role</label>
-              <select class="form-select" formControlName="role">
-                <option value="employee">Employee</option>
-                <option value="company">Company</option>
-                <option value="admin">Admin</option>
+              <label class="form-label fw-medium">Designation <span class="text-danger">*</span></label>
+              <select
+                class="form-select"
+                formControlName="designationId"
+                [class.is-invalid]="inviteForm.get('designationId')?.invalid && inviteForm.get('designationId')?.touched">
+                <option value="">-- Select a Designation --</option>
+                @for (role of availableRoles(); track role._id) {
+                  <option [value]="role._id">{{ role.designationName }}</option>
+                }
               </select>
+              <small class="text-secondary">
+                @if (availableRoles().length === 0) {
+                  No designations available. <a routerLink="/company/roles" class="text-decoration-none">Create designations</a> to invite employees.
+                } @else {
+                  Select the designation for the invited employee
+                }
+              </small>
+              @if (inviteForm.get('designationId')?.hasError('required') && inviteForm.get('designationId')?.touched) {
+                <div class="invalid-feedback d-block">
+                  Designation is required
+                </div>
+              }
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-medium">Invitation Message <span class="text-danger">*</span></label>
+              <textarea
+                class="form-control"
+                formControlName="message"
+                rows="6"
+                placeholder="Dear [Name],&#10;&#10;We're excited to invite you to join our Bank of Skill platform as a [Designation]!&#10;&#10;Click the link below to create your account:&#10;{{'{{'}}INVITE_LINK{{'}}'}}&#10;&#10;Best regards,&#10;[Company Name] Team"
+                [class.is-invalid]="inviteForm.get('message')?.invalid && inviteForm.get('message')?.touched"></textarea>
+              <small class="text-secondary d-block mt-1">
+                <strong>{{'{{'}}INVITE_LINK{{'}}'}}</strong> in your message will be replaced with the actual invite link.
+              </small>
+              @if (inviteForm.get('message')?.hasError('required') && inviteForm.get('message')?.touched) {
+                <div class="invalid-feedback d-block">
+                  Message is required
+                </div>
+              }
+              @if (inviteForm.get('message')?.hasError('minlength') && inviteForm.get('message')?.touched) {
+                <div class="invalid-feedback d-block">
+                  Message must be at least 10 characters
+                </div>
+              }
+              @if (inviteForm.get('message')?.hasError('maxlength') && inviteForm.get('message')?.touched) {
+                <div class="invalid-feedback d-block">
+                  Message must not exceed 1000 characters
+                </div>
+              }
+              <div class="text-secondary small mt-1">
+                {{ inviteForm.get('message')?.value?.length || 0 }} / 1000 characters
+              </div>
             </div>
 
             @if (inviteError) {
@@ -218,30 +264,33 @@
                 {{ inviteSuccess }}
               </div>
             }
-
-            <div class="d-flex gap-2 mt-4">
-              <button 
-                type="button" 
-                class="btn btn-light flex-fill"
-                (click)="closeInviteModal()"
-                [disabled]="isInviting">
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                class="btn btn-primary flex-fill"
-                [disabled]="inviteForm.invalid || isInviting">
-                @if (isInviting) {
-                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                  Sending...
-                } @else {
-                  <i class="bi bi-send-fill me-2"></i>
-                  Send Invite
-                }
-              </button>
-            </div>
           </form>
         </div>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn btn-light"
+            (click)="closeInviteModal()"
+            [disabled]="isInviting">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="inviteForm"
+            class="btn btn-primary"
+            [disabled]="inviteForm.invalid || isInviting"
+            (click)="sendInvite()">
+            @if (isInviting) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              <span>Sending...</span>
+            } @else {
+              <i class="bi bi-send-fill me-2"></i>
+              <span>Send Invite</span>
+            }
+          </button>
+        </div>
+
       </div>
     </div>
   </div>

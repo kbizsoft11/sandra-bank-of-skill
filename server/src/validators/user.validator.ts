@@ -114,13 +114,25 @@ export const inviteUserSchema = z.object({
             'company',
             'employee'
         ])
-        .optional(),
+        .optional()
+        .default('employee')
+        .describe('Role defaults to employee for invited users'),
 
     fullName: z
         .string()
         .trim()
         .min(2)
         .max(100)
+        .optional(),
+
+    designationId: z
+        .string()
+        .optional(),
+
+    message: z
+        .string()
+        .min(10, 'Message must be at least 10 characters')
+        .max(1000, 'Message must not exceed 1000 characters')
         .optional(),
 
 });
