@@ -1,7 +1,21 @@
+import fs from 'fs';
+import path from 'path';
 import dotenv from 'dotenv';
 import { StringValue } from 'ms';
 
-dotenv.config();
+const envCandidates = [
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(__dirname, '..', '..', '..', '.env'),
+  path.resolve(__dirname, '..', '..', '.env'),
+];
+
+const resolvedEnvPath = envCandidates.find((candidate) => fs.existsSync(candidate));
+
+if (resolvedEnvPath) {
+  dotenv.config({ path: resolvedEnvPath });
+} else {
+  dotenv.config();
+}
 
 export const env = {
   // Server Configuration
