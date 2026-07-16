@@ -12,15 +12,28 @@ const smtpAuth = env.SMTP_USER && env.SMTP_PASSWORD
     ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD }
     : undefined;
 
-const transporter = nodemailer.createTransport({
-    host: env.SMTP_HOST,
-    port: env.SMTP_PORT,
-    secure: env.SMTP_SECURE,
-    auth: smtpAuth,
-    tls: {
-        rejectUnauthorized: false,
-    },
-});
+const isGmail = env.SMTP_SERVICE === 'gmail' || (env.SMTP_HOST || '').toLowerCase().includes('gmail');
+
+const transporter = nodemailer.createTransport(
+    isGmail
+        ? {
+            service: 'gmail',
+            auth: smtpAuth,
+            requireTLS: true,
+            tls: {
+                rejectUnauthorized: false,
+            },
+        }
+        : {
+            host: env.SMTP_HOST || 'smtp.gmail.com',
+            port: env.SMTP_PORT || 587,
+            secure: env.SMTP_SECURE,
+            auth: smtpAuth,
+            tls: {
+                rejectUnauthorized: false,
+            },
+        }
+);
 
 transporter.verify((error) => {
     if (error) {

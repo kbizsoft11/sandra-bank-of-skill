@@ -16,6 +16,7 @@ export const env = {
   JWT_EXPIRES_IN: (process.env.JWT_EXPIRES_IN || '7d') as StringValue,
   
   // Email Configuration (SMTP)
+  SMTP_SERVICE: process.env.SMTP_SERVICE || 'gmail',
   SMTP_HOST: process.env.SMTP_HOST || 'smtp.gmail.com',
   SMTP_PORT: parseInt(process.env.SMTP_PORT || '587', 10),
   SMTP_SECURE: process.env.SMTP_SECURE === 'true',
