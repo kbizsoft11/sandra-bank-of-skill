@@ -5,7 +5,6 @@ import { CommonModule } from '@angular/common';
 import { DashboardSidebar } from '../../shared/components/dashboard-sidebar/dashboard-sidebar';
 import { DashboardHeader } from '../../shared/components/dashboard-header/dashboard-header';
 import { AuthService } from '../../core/services/auth.service';
-import { UserList } from '../../features/users/user-list/user-list';
 
 @Component({
   selector: 'app-dashboard-layout',
@@ -14,7 +13,7 @@ import { UserList } from '../../features/users/user-list/user-list';
     CommonModule,
     RouterOutlet,
     DashboardSidebar,
-    DashboardHeader,
+    DashboardHeader
   ],
   templateUrl: './dashboard-layout.html',
   styleUrl: './dashboard-layout.scss',
@@ -41,4 +40,3 @@ export class DashboardLayout implements OnInit {
     this.sidebarOpen = false;
   }
 }
-

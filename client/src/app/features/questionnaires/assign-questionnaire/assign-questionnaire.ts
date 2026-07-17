@@ -100,6 +100,10 @@ export class AssignQuestionnaire implements OnInit {
                 const allUsers = Array.isArray(response?.data) ? response.data : [];
                 const employeeList = allUsers.filter((user: any) => user.role === 'employee');
                 this.employees.set(employeeList);
+
+                // Default to assigning to all employees
+                const allIds = employeeList.map((emp: any) => emp._id);
+                this.selectedEmployees.set(new Set(allIds));
             },
             error: (err) => {
                 console.error(err);
@@ -128,7 +132,7 @@ export class AssignQuestionnaire implements OnInit {
     }
 
     selectAll(): void {
-        const allIds = new Set(this.filteredEmployees().map(emp => emp._id));
+        const allIds = new Set(this.filteredEmployees().map((emp: any) => emp._id));
         this.selectedEmployees.set(allIds);
     }
 
