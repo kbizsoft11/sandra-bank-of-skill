@@ -6,6 +6,7 @@ import skillCategoryRoutes from "./skill-category.route";
 import skillRoutes from "./skill.route";
 import questionnaireRoutes from "./questionnaire.route";
 import dashboardRoutes from "./dashboard.route";
+import roleRoutes from "./role.route";
 import { authenticate } from '../middlewares/auth.middleware';
 import { allowRoles } from '../middlewares/role.middleware';
 import waitlistRouter from './waitlist.route';
@@ -30,6 +31,7 @@ router.use('/company-skill-categories', authenticate, companySkillCategoryRoutes
 router.use('/organisations', authenticate, organisationRouter);
 router.use("/skills", authenticate, skillRoutes);
 router.use("/questionnaires", authenticate, questionnaireRoutes);
+router.use("/roles", roleRoutes);
 // router.use("/skills", authenticate, allowRoles('admin'), skillRoutes);
 
 export default router;

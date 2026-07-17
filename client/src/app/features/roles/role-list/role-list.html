@@ -1,0 +1,250 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Roles & Designations</h1>
+    <p class="page-subtitle">Manage employee roles and designations for your organization</p>
+  </div>
+
+  <div class="content-card">
+    <div class="card-header">
+      <div class="card-title-section">
+        <h2 class="card-title">All Roles</h2>
+        <p class="card-subtitle">{{ roles().length }} role(s) found</p>
+      </div>
+      <button (click)="openCreateModal()" class="btn btn-primary btn-create">
+        <i class="bi bi-plus-circle"></i>
+        <span>Create Role</span>
+      </button>
+    </div>
+
+    @if (isLoading()) {
+      <div class="state-block">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-secondary mt-3">Loading roles...</p>
+      </div>
+    } @else {
+
+      @if (roles().length === 0) {
+        <div class="state-block">
+          <i class="bi bi-inbox empty-icon"></i>
+          <p class="text-secondary mt-3 mb-0">No roles found. Create your first role to get started.</p>
+        </div>
+      } @else {
+
+        <!-- Mobile: stacked cards. Hidden at md+ via CSS. -->
+        <div class="role-cards">
+          @for (role of roles(); track role._id) {
+            <div class="role-card">
+              <div class="role-card-top">
+                <div class="fw-semibold">{{ role.designationName }}</div>
+                @if (role.isActive) {
+                  <span class="badge bg-success">Active</span>
+                } @else {
+                  <span class="badge bg-secondary">Inactive</span>
+                }
+              </div>
+
+              @if (role.description) {
+                <div class="role-card-desc">{{ role.description }}</div>
+              }
+
+              <div class="role-card-footer">
+                <span class="role-card-date">
+                  <i class="bi bi-calendar3"></i>
+                  {{ formatDate(role.createdAt) }}
+                </span>
+                <div class="role-card-actions">
+                  <button (click)="openEditModal(role)" class="btn btn-sm btn-outline-primary" title="Edit role">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button (click)="deleteRole(role)" class="btn btn-sm btn-outline-danger" title="Delete role">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Tablet/Desktop: table. Hidden below md via CSS. -->
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Designation Name</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (role of roles(); track role._id) {
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ role.designationName }}</div>
+                  </td>
+                  <td>
+                    <div class="text-secondary">{{ role.description || '—' }}</div>
+                  </td>
+                  <td>
+                    @if (role.isActive) {
+                      <span class="badge bg-success">Active</span>
+                    } @else {
+                      <span class="badge bg-secondary">Inactive</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="text-secondary">{{ formatDate(role.createdAt) }}</div>
+                  </td>
+                  <td class="text-end">
+                    <button (click)="openEditModal(role)" class="btn btn-sm btn-outline-primary me-2" title="Edit role">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button (click)="deleteRole(role)" class="btn btn-sm btn-outline-danger" title="Delete role">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+      }
+    }
+  </div>
+</div>
+
+<!-- Create Modal -->
+@if (showCreateModal()) {
+  <div class="modal-backdrop fade show" (click)="closeCreateModal()"></div>
+  <div class="modal fade show d-block" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h5 class="modal-title">Create New Role</h5>
+          <button type="button" class="btn-close" (click)="closeCreateModal()"></button>
+        </div>
+        <form [formGroup]="createForm" (ngSubmit)="createRole()">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Designation Name <span class="text-danger">*</span></label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="designationName"
+                placeholder="e.g., Full Stack Developer, Product Manager"
+                [class.is-invalid]="createForm.get('designationName')?.invalid && createForm.get('designationName')?.touched">
+              @if (getErrorMessage(createForm, 'designationName')) {
+                <div class="invalid-feedback d-block">
+                  {{ getErrorMessage(createForm, 'designationName') }}
+                </div>
+              }
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea
+                class="form-control"
+                formControlName="description"
+                rows="3"
+                placeholder="Brief description of this role..."
+                [class.is-invalid]="createForm.get('description')?.invalid && createForm.get('description')?.touched"></textarea>
+              @if (getErrorMessage(createForm, 'description')) {
+                <div class="invalid-feedback d-block">
+                  {{ getErrorMessage(createForm, 'description') }}
+                </div>
+              }
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeCreateModal()" [disabled]="isCreating()">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="isCreating()">
+              @if (isCreating()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+              }
+              Create Role
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Edit Modal -->
+@if (showEditModal()) {
+  <div class="modal-backdrop fade show" (click)="closeEditModal()"></div>
+  <div class="modal fade show d-block" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Role</h5>
+          <button type="button" class="btn-close" (click)="closeEditModal()"></button>
+        </div>
+        <form [formGroup]="editForm" (ngSubmit)="updateRole()">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Designation Name <span class="text-danger">*</span></label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="designationName"
+                placeholder="e.g., Full Stack Developer, Product Manager"
+                [class.is-invalid]="editForm.get('designationName')?.invalid && editForm.get('designationName')?.touched">
+              @if (getErrorMessage(editForm, 'designationName')) {
+                <div class="invalid-feedback d-block">
+                  {{ getErrorMessage(editForm, 'designationName') }}
+                </div>
+              }
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea
+                class="form-control"
+                formControlName="description"
+                rows="3"
+                placeholder="Brief description of this role..."
+                [class.is-invalid]="editForm.get('description')?.invalid && editForm.get('description')?.touched"></textarea>
+              @if (getErrorMessage(editForm, 'description')) {
+                <div class="invalid-feedback d-block">
+                  {{ getErrorMessage(editForm, 'description') }}
+                </div>
+              }
+            </div>
+
+            <div class="mb-3">
+              <div class="form-check form-switch">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  formControlName="isActive"
+                  id="isActiveSwitch">
+                <label class="form-check-label" for="isActiveSwitch">
+                  Active
+                </label>
+              </div>
+              <small class="text-secondary">Inactive roles won't be available for selection when inviting employees</small>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeEditModal()" [disabled]="isUpdating()">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="isUpdating()">
+              @if (isUpdating()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+              }
+              Update Role
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

@@ -67,7 +67,7 @@ export class UserService {
   }
 
   inviteUser(
-    payload: { email: string; }
+    payload: { email: string; fullName?: string; role?: string; }
   ): Observable<any> {
 
     return this.http.post(

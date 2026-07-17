@@ -287,14 +287,27 @@ export const assignQuestionnaire = asyncHandler(
     async (req: Request, res: Response) => {
         const user = (req as any).user;
         const { id } = req.params;
-        const { employeeIds, deadline } = req.body;
+        let { employeeIds, deadline } = req.body;
 
-        // Validate input
+        // Import the question answer service
+        const { initializeQuestionAnswers } = require('../services/question-answer.service');
+
+        // If no employee IDs are provided, assign to all employees in the organization
         if (!employeeIds || !Array.isArray(employeeIds) || employeeIds.length === 0) {
+            const allEmployees = await UserModel.find({
+                tenantId: user.tenantId,
+                organisationId: user.organisationId,
+                role: 'employee',
+            }).select('_id');
+
+            employeeIds = allEmployees.map(emp => emp._id.toString());
+        }
+
+        if (!employeeIds || employeeIds.length === 0) {
             return sendResponse(
                 res,
                 400,
-                'At least one employee ID is required',
+                'No employees found to assign this questionnaire',
                 null
             );
         }
@@ -345,7 +358,7 @@ export const assignQuestionnaire = asyncHandler(
                 return { employeeId, status: 'already_assigned' };
             }
 
-            await QuestionnaireResponseModel.create({
+            const response = await QuestionnaireResponseModel.create({
                 questionnaireId: id as string,
                 employeeId: employeeId,
                 assignedBy: user.userId,
@@ -354,6 +367,15 @@ export const assignQuestionnaire = asyncHandler(
                 deadline: deadline ? new Date(deadline) : undefined,
                 status: 'pending',
             });
+
+            // Initialize question answers
+            await initializeQuestionAnswers(
+                response._id.toString(),
+                id as string,
+                employeeId,
+                user.tenantId,
+                user.organisationId
+            );
 
             return { employeeId, status: 'assigned' };
         });
@@ -586,6 +608,11 @@ export const getPendingOnboarding = asyncHandler(
     async (req: Request, res: Response) => {
         const user = (req as any).user;
 
+        console.log('?? [GET PENDING ONBOARDING] Called for user:', user.userId);
+        console.log('?? [GET PENDING ONBOARDING] Role:', user.role);
+        console.log('?? [GET PENDING ONBOARDING] TenantId:', user.tenantId);
+        console.log('?? [GET PENDING ONBOARDING] OrganisationId:', user.organisationId);
+
         // Only employees can have onboarding questionnaires
         if (user.role !== 'employee') {
             return sendResponse(
@@ -596,9 +623,55 @@ export const getPendingOnboarding = asyncHandler(
             );
         }
 
-        const result = await getPendingOnboardingQuestionnaire(user.userId);
+        // First, try to find pending questionnaire
+        let result = await getPendingOnboardingQuestionnaire(user.userId);
+
+        // If no questionnaire found, ensure default exists and assign it
+        if (!result) {
+            console.log('?? [GET PENDING ONBOARDING] No questionnaire found, creating default...');
+            
+            if (!user.tenantId || !user.organisationId) {
+                console.error('?? [GET PENDING ONBOARDING] Missing tenantId or organisationId');
+                return sendResponse(
+                    res,
+                    200,
+                    'No pending onboarding questionnaire',
+                    { hasOnboarding: false }
+                );
+            }
+
+            try {
+                // Import the service functions
+                const { ensureDefaultOnboardingQuestionnaire, assignOnboardingQuestionnaires } = require('../services/onboarding.service');
+                
+                // Ensure default questionnaire exists
+                await ensureDefaultOnboardingQuestionnaire(
+                    user.tenantId,
+                    user.organisationId,
+                    user.organisationId
+                );
+
+                console.log('?? [GET PENDING ONBOARDING] Default questionnaire ensured');
+
+                // Assign to this employee
+                await assignOnboardingQuestionnaires(
+                    user.userId,
+                    user.tenantId,
+                    user.organisationId,
+                    user.organisationId
+                );
+
+                console.log('?? [GET PENDING ONBOARDING] Questionnaire assigned to employee');
+
+                // Try again to get the questionnaire
+                result = await getPendingOnboardingQuestionnaire(user.userId);
+            } catch (error) {
+                console.error('?? [GET PENDING ONBOARDING] Error creating/assigning questionnaire:', error);
+            }
+        }
 
         if (!result) {
+            console.log('?? [GET PENDING ONBOARDING] Still no questionnaire after auto-creation');
             return sendResponse(
                 res,
                 200,
@@ -607,6 +680,7 @@ export const getPendingOnboarding = asyncHandler(
             );
         }
 
+        console.log('?? [GET PENDING ONBOARDING] Returning questionnaire:', result.questionnaire._id);
         return sendResponse(
             res,
             200,

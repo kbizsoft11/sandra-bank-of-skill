@@ -5,6 +5,7 @@ import { dashboardRoutes } from './dashboard.routes';
 import { authGuard } from '../core/guards/auth.guard';
 import { guestGuard } from '../core/guards/guest.guard';
 import { roleGuard } from '../core/guards/role.guard';
+import { onboardingGuard } from '../core/guards/onboarding.guard';
 
 export const routes: Routes = [
     {
@@ -42,7 +43,19 @@ export const routes: Routes = [
         path: 'employee',
         canActivate: [authGuard, roleGuard],
         data: { roles: ['employee'] },
-        loadComponent: () => import('../layouts/dashboard-layout/dashboard-layout').then(c => c.DashboardLayout),
-        children: dashboardRoutes
+        children: [
+            // Onboarding welcome page (no guard, no layout)
+            {
+                path: 'onboarding-welcome',
+                loadComponent: () => import('../features/auth/onboarding-welcome/onboarding-welcome').then(c => c.OnboardingWelcome)
+            },
+            // Regular dashboard routes with onboarding guard
+            {
+                path: '',
+                canActivate: [onboardingGuard],
+                loadComponent: () => import('../layouts/dashboard-layout/dashboard-layout').then(c => c.DashboardLayout),
+                children: dashboardRoutes
+            }
+        ]
     }
 ];

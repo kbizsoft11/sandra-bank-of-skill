@@ -95,3 +95,19 @@ export const resendOTPSchema = z.object({
         .toLowerCase()
         .trim(),
 });
+
+export const acceptInvitationSchema = z.object({
+    token: z.string().min(1, 'Invitation token is required'),
+    fullName: z.string().trim().min(2, 'Full name must be at least 2 characters'),
+    password: z
+        .string()
+        .min(8, 'Password must be at least 8 characters')
+        .regex(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]/,
+            'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+        ),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+});

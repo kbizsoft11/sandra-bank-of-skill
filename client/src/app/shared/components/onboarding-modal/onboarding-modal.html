@@ -1,0 +1,213 @@
+<!-- Backdrop - prevents closing modal by clicking outside -->
+<div class="modal-backdrop fade show"></div>
+
+<!-- Modal -->
+<div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            
+            @if (isLoading()) {
+                <!-- Loading State -->
+                <div class="modal-body text-center py-5">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted">Loading your onboarding questionnaire...</p>
+                </div>
+            } @else if (questionnaire()) {
+                <!-- Modal Header -->
+                <div class="modal-header border-0 pb-0">
+                    <div class="w-100">
+                        <h5 class="modal-title fw-bold mb-3">{{ questionnaire()?.title }}</h5>
+                        <p class="text-muted small mb-3">{{ questionnaire()?.description }}</p>
+                        
+                        <!-- Progress Bar -->
+                        <div class="progress" style="height: 6px;">
+                            <div 
+                                class="progress-bar" 
+                                role="progressbar" 
+                                [style.width.%]="getProgress()"
+                                [attr.aria-valuenow]="getProgress()"
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-2">
+                            <small class="text-muted">Question {{ currentQuestionIndex() + 1 }} of {{ getTotalQuestions() }}</small>
+                            <small class="text-muted">{{ getProgress() }}% Complete</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body pt-4">
+                    @if (getCurrentQuestion(); as question) {
+                        <div class="question-container">
+                            
+                            <!-- Question Text -->
+                            <label class="form-label fw-semibold fs-5 mb-3">
+                                {{ question.questionText }}
+                                @if (question.required) {
+                                    <span class="text-danger">*</span>
+                                }
+                            </label>
+
+                            <!-- Text Input -->
+                            @if (question.questionType === 'text') {
+                                <input
+                                    type="text"
+                                    class="form-control form-control-lg"
+                                    [formControl]="currentControl!"
+                                    placeholder="Enter your answer"
+                                />
+                                @if (currentControl?.invalid && currentControl?.touched) {
+                                    <div class="text-danger small mt-1">This field is required</div>
+                                }
+                            }
+
+                            <!-- Textarea -->
+                            @if (question.questionType === 'textarea') {
+                                <textarea
+                                    class="form-control form-control-lg"
+                                    rows="4"
+                                    [formControl]="currentControl!"
+                                    placeholder="Enter your answer"
+                                ></textarea>
+                                @if (currentControl?.invalid && currentControl?.touched) {
+                                    <div class="text-danger small mt-1">This field is required</div>
+                                }
+                            }
+
+                            <!-- Radio Buttons -->
+                            @if (question.questionType === 'radio') {
+                                <div class="options-container">
+                                    @for (option of question.options; track option) {
+                                        <div class="form-check form-check-lg mb-3">
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                [id]="'radio_' + option"
+                                                [value]="option"
+                                                [formControl]="currentControl!"
+                                            />
+                                            <label class="form-check-label" [for]="'radio_' + option">
+                                                {{ option }}
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                                @if (currentControl?.invalid && currentControl?.touched) {
+                                    <div class="text-danger small mt-1">Please select an option</div>
+                                }
+                            }
+
+                            <!-- Checkboxes -->
+                            @if (question.questionType === 'checkbox') {
+                                <div class="options-container">
+                                    @for (option of question.options; track option) {
+                                        <div class="form-check form-check-lg mb-3">
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                [id]="'checkbox_' + option"
+                                                [checked]="isCheckboxChecked(option)"
+                                                (change)="onCheckboxChange(option, $event)"
+                                            />
+                                            <label class="form-check-label" [for]="'checkbox_' + option">
+                                                {{ option }}
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                                @if (currentControl?.invalid && currentControl?.touched) {
+                                    <div class="text-danger small mt-1">Please select at least one option</div>
+                                }
+                            }
+
+                            <!-- Rating -->
+                            @if (question.questionType === 'rating') {
+                                <div class="d-flex gap-3 align-items-center">
+                                    @for (rating of getRatingArray(); track rating) {
+                                        <div class="form-check">
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                [id]="'rating_' + rating"
+                                                [value]="rating"
+                                                [formControl]="currentControl!"
+                                            />
+                                            <label class="form-check-label fs-4" [for]="'rating_' + rating">
+                                                {{ rating }}
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small class="text-muted">Poor</small>
+                                    <small class="text-muted">Excellent</small>
+                                </div>
+                                @if (currentControl?.invalid && currentControl?.touched) {
+                                    <div class="text-danger small mt-1">Please select a rating</div>
+                                }
+                            }
+
+                            <!-- Date -->
+                            @if (question.questionType === 'date') {
+                                <input
+                                    type="date"
+                                    class="form-control form-control-lg"
+                                    [formControl]="currentControl!"
+                                />
+                                @if (currentControl?.invalid && currentControl?.touched) {
+                                    <div class="text-danger small mt-1">This field is required</div>
+                                }
+                            }
+
+                        </div>
+                    }
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer border-0">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        [disabled]="!canGoPrevious() || isSubmitting()"
+                        (click)="previous()"
+                    >
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Previous
+                    </button>
+
+                    @if (canGoNext()) {
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            [disabled]="isSubmitting()"
+                            (click)="next()"
+                        >
+                            Next
+                            <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    } @else {
+                        <button
+                            type="button"
+                            class="btn btn-success"
+                            [disabled]="isSubmitting()"
+                            (click)="submit()"
+                        >
+                            @if (isSubmitting()) {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                Submitting...
+                            } @else {
+                                <i class="bi bi-check-circle me-2"></i>
+                                Complete Onboarding
+                            }
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

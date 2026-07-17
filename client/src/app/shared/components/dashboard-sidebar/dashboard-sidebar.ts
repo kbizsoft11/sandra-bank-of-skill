@@ -127,6 +127,12 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       roles: ['admin', 'company'],
     },
     {
+      label: 'Roles',
+      path: 'roles',
+      icon: 'bi bi-briefcase',
+      roles: ['company'],
+    },    
+    {
       label: 'Global Search',
       path: 'employee-search',
       icon: 'bi bi-search',
@@ -143,6 +149,18 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       path: 'skills',
       icon: 'bi bi-lightbulb-fill',
       roles: ['admin'],
+    },
+    {
+      label: 'Questionnaires',
+      path: 'questionnaires',
+      icon: 'bi bi-clipboard-check',
+      roles: ['company'],
+    },
+    {
+      label: 'My Questionnaires',
+      path: 'my-questionnaires',
+      icon: 'bi bi-clipboard-check',
+      roles: ['employee'],
     },
     {
       label: 'Company Skills',
@@ -168,36 +186,36 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       icon: 'bi bi-lightbulb-fill',
       roles: ['employee'], // Only employees can manage their own skills
     },
-    {
-      label: 'Opportunities',
-      path: 'opportunities',
-      icon: 'bi bi-briefcase-fill',
-      roles: ['employee', 'company'],
-    },
-    {
-      label: 'Talent Search',
-      path: 'talent-search',
-      icon: 'bi bi-search',
-      roles: ['admin', 'company'],
-    },
-    {
-      label: 'AI Insights',
-      path: 'ai-insights',
-      icon: 'bi bi-graph-up',
-      roles: ['admin', 'company', 'employee'],
-    },
-    {
-      label: 'Reports',
-      path: 'reports',
-      icon: 'bi bi-clipboard-fill',
-      roles: ['admin', 'company'],
-    },
-    {
-      label: 'Settings',
-      path: 'settings',
-      icon: 'bi bi-gear-fill',
-      roles: ['admin'],
-    },
+    // {
+    //   label: 'Opportunities',
+    //   path: 'opportunities',
+    //   icon: 'bi bi-briefcase-fill',
+    //   roles: ['employee', 'company'],
+    // },
+    // {
+    //   label: 'Talent Search',
+    //   path: 'talent-search',
+    //   icon: 'bi bi-search',
+    //   roles: ['admin', 'company'],
+    // },
+    // {
+    //   label: 'AI Insights',
+    //   path: 'ai-insights',
+    //   icon: 'bi bi-graph-up',
+    //   roles: ['admin', 'company', 'employee'],
+    // },
+    // {
+    //   label: 'Reports',
+    //   path: 'reports',
+    //   icon: 'bi bi-clipboard-fill',
+    //   roles: ['admin', 'company'],
+    // },
+    // {
+    //   label: 'Settings',
+    //   path: 'settings',
+    //   icon: 'bi bi-gear-fill',
+    //   roles: ['admin'],
+    // },
   ];
 
   // Get the label for "Users" menu item based on role

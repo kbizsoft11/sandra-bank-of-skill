@@ -10,7 +10,8 @@ import {
   RegisterStep1Dto, 
   VerifyOTPDto, 
   RegisterStep3Dto, 
-  ResendOTPDto 
+  ResendOTPDto,
+  AcceptInvitationDto
 } from '../dto/registration.dto';
 
 import { userRepository } from '../repositories/user.repository';
@@ -143,6 +144,22 @@ export const resendOTP = asyncHandler(
       {
         email: result.email,
         expiresIn: result.expiresIn,
+      }
+    );
+  }
+);
+
+export const acceptInvitation = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await authService.acceptInvitation(req.body as AcceptInvitationDto);
+
+    return sendResponse(
+      res,
+      200,
+      result.message,
+      {
+        token: result.token,
+        user: result.user,
       }
     );
   }

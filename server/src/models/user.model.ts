@@ -46,6 +46,10 @@ const UserSchema = new Schema<IUser>(
             type: String,
         },
 
+        designationId: {
+            type: String,
+        },
+
         department: {
             type: String,
         },

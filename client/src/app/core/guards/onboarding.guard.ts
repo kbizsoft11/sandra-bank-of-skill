@@ -5,13 +5,13 @@ import { AuthService } from '../services/auth.service';
 /**
  * Onboarding Guard
  * Checks if employee has completed mandatory onboarding questionnaire
- * Redirects to onboarding modal if not completed
+ * Redirects fresh employees to questionnaire page instead of showing modal
  */
 export const onboardingGuard: CanActivateFn = async (route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  console.log('🎯 [ONBOARDING GUARD] Checking onboarding status');
+  console.log('🎯 [ONBOARDING GUARD] Checking onboarding status for:', state.url);
 
   // Wait for user to be loaded if not already
   if (!auth.user()) {
@@ -22,7 +22,7 @@ export const onboardingGuard: CanActivateFn = async (route, state) => {
   const user = auth.user();
   const role = auth.role();
 
-  console.log('🎯 [ONBOARDING GUARD] User:', user);
+  console.log('🎯 [ONBOARDING GUARD] User:', user?.email);
   console.log('🎯 [ONBOARDING GUARD] Role:', role);
 
   // Only check onboarding for employees
@@ -37,17 +37,18 @@ export const onboardingGuard: CanActivateFn = async (route, state) => {
   console.log('🎯 [ONBOARDING GUARD] hasCompletedOnboarding:', hasCompletedOnboarding);
 
   if (hasCompletedOnboarding) {
-    console.log('🎯 [ONBOARDING GUARD] ✅ Onboarding completed');
+    console.log('🎯 [ONBOARDING GUARD] ✅ Onboarding completed, allowing access');
     return true;
   }
 
-  // Employee hasn't completed onboarding, check if they have a pending questionnaire
-  console.log('🎯 [ONBOARDING GUARD] ❌ Onboarding not completed, need to check for pending questionnaire');
-  
-  // Set flag that onboarding is needed (will be checked by the app component)
-  auth.setNeedsOnboarding(true);
-  
-  // Block navigation to dashboard until onboarding is complete
-  console.log('🎯 [ONBOARDING GUARD] Blocking navigation, onboarding required');
-  return false;
+  // If already on the questionnaires page, allow access
+  if (state.url.includes('/my-questionnaires')) {
+    console.log('🎯 [ONBOARDING GUARD] Already on questionnaires page, allowing access');
+    return true;
+  }
+
+  // Employee hasn't completed onboarding - redirect to my-questionnaires
+  console.log('🎯 [ONBOARDING GUARD] ❌ Onboarding not completed, redirecting to my-questionnaires');
+  auth.setNeedsOnboarding(false); // Clear the flag since we're redirecting
+  return router.createUrlTree(['/employee/my-questionnaires']);
 };

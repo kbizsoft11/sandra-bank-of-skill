@@ -181,28 +181,29 @@
 
 <!-- Invite User Modal -->
 @if (showInviteModal) {
-  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-backdrop fade show" (click)="closeInviteModal()"></div>
+  <div class="modal fade show d-block" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
+      <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header border-0 pb-0">
           <h5 class="modal-title fw-semibold">Invite User</h5>
           <button type="button" class="btn-close" (click)="closeInviteModal()"></button>
         </div>
+
         <div class="modal-body pt-2">
           <p class="text-secondary small mb-4">
-            Enter the email address to send an invitation. An auto-generated password will be sent to the user.
+            Enter the details below to send a secure invitation link. Customize the invitation message that will be sent to the employee.
           </p>
 
           <form [formGroup]="inviteForm" (ngSubmit)="sendInvite()">
             <div class="mb-3">
               <label class="form-label fw-medium">Email Address</label>
-              <input 
-                type="email" 
-                class="form-control" 
+              <input
+                type="email"
+                class="form-control"
                 [class.is-invalid]="inviteForm.get('email')?.invalid && inviteForm.get('email')?.touched"
                 formControlName="email"
-                placeholder="user@example.com"
-                autofocus>
+                placeholder="user@example.com">
               @if (inviteForm.get('email')?.hasError('required') && inviteForm.get('email')?.touched) {
                 <div class="invalid-feedback d-block">
                   Email is required
@@ -213,6 +214,62 @@
                   Please enter a valid email address
                 </div>
               }
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-medium">Designation <span class="text-danger">*</span></label>
+              <select
+                class="form-select"
+                formControlName="designationId"
+                [class.is-invalid]="inviteForm.get('designationId')?.invalid && inviteForm.get('designationId')?.touched">
+                <option value="">-- Select a Designation --</option>
+                @for (role of availableRoles(); track role._id) {
+                  <option [value]="role._id">{{ role.designationName }}</option>
+                }
+              </select>
+              <small class="text-secondary">
+                @if (availableRoles().length === 0) {
+                  No designations available. <a routerLink="/company/roles" class="text-decoration-none">Create designations</a> to invite employees.
+                } @else {
+                  Select the designation for the invited employee
+                }
+              </small>
+              @if (inviteForm.get('designationId')?.hasError('required') && inviteForm.get('designationId')?.touched) {
+                <div class="invalid-feedback d-block">
+                  Designation is required
+                </div>
+              }
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-medium">Invitation Message <span class="text-danger">*</span></label>
+              <textarea
+                class="form-control"
+                formControlName="message"
+                rows="6"
+                placeholder="Dear [Name],&#10;&#10;We're excited to invite you to join our Bank of Skill platform as a [Designation]!&#10;&#10;Click the link below to create your account:&#10;{{'{{'}}INVITE_LINK{{'}}'}}&#10;&#10;Best regards,&#10;[Company Name] Team"
+                [class.is-invalid]="inviteForm.get('message')?.invalid && inviteForm.get('message')?.touched"></textarea>
+              <small class="text-secondary d-block mt-1">
+                <strong>{{'{{'}}INVITE_LINK{{'}}'}}</strong> in your message will be replaced with the actual invite link.
+              </small>
+              @if (inviteForm.get('message')?.hasError('required') && inviteForm.get('message')?.touched) {
+                <div class="invalid-feedback d-block">
+                  Message is required
+                </div>
+              }
+              @if (inviteForm.get('message')?.hasError('minlength') && inviteForm.get('message')?.touched) {
+                <div class="invalid-feedback d-block">
+                  Message must be at least 10 characters
+                </div>
+              }
+              @if (inviteForm.get('message')?.hasError('maxlength') && inviteForm.get('message')?.touched) {
+                <div class="invalid-feedback d-block">
+                  Message must not exceed 1000 characters
+                </div>
+              }
+              <div class="text-secondary small mt-1">
+                {{ inviteForm.get('message')?.value?.length || 0 }} / 1000 characters
+              </div>
             </div>
 
             @if (inviteError) {
@@ -226,30 +283,33 @@
                 {{ inviteSuccess }}
               </div>
             }
-
-            <div class="d-flex gap-2 mt-4">
-              <button 
-                type="button" 
-                class="btn btn-light flex-fill"
-                (click)="closeInviteModal()"
-                [disabled]="isInviting">
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                class="btn btn-primary flex-fill"
-                [disabled]="inviteForm.invalid || isInviting">
-                @if (isInviting) {
-                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                  Sending...
-                } @else {
-                  <i class="bi bi-send-fill me-2"></i>
-                  Send Invite
-                }
-              </button>
-            </div>
           </form>
         </div>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn btn-light"
+            (click)="closeInviteModal()"
+            [disabled]="isInviting">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="inviteForm"
+            class="btn btn-primary"
+            [disabled]="inviteForm.invalid || isInviting"
+            (click)="sendInvite()">
+            @if (isInviting) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              <span>Sending...</span>
+            } @else {
+              <i class="bi bi-send-fill me-2"></i>
+              <span>Send Invite</span>
+            }
+          </button>
+        </div>
+
       </div>
     </div>
   </div>

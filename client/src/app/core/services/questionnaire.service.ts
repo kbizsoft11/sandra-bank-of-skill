@@ -79,17 +79,47 @@ export class QuestionnaireService {
         return this.http.get<any>(`${this.api}/${id}/responses`);
     }
 
-    // ==================== EMPLOYEE ROLE METHODS ====================
+    // ==================== EMPLOYEE ROLE METHODS (NEW IMPROVED API) ====================
 
     /**
      * Get all questionnaires assigned to the employee
+     */
+    getAssignedQuestionnaires(): Observable<any> {
+        return this.http.get(`${this.api}/employee/assigned`);
+    }
+
+    /**
+     * Start or resume a questionnaire
+     */
+    startQuestionnaire(responseId: string): Observable<any> {
+        return this.http.get(`${this.api}/employee/${responseId}/start`);
+    }
+
+    /**
+     * Save answer for a single question
+     */
+    saveQuestionAnswer(responseId: string, questionId: string, answerData: any): Observable<any> {
+        return this.http.post(`${this.api}/employee/${responseId}/questions/${questionId}/answer`, answerData);
+    }
+
+    /**
+     * Get questionnaire progress
+     */
+    getQuestionnaireProgress(responseId: string): Observable<any> {
+        return this.http.get(`${this.api}/employee/${responseId}/progress`);
+    }
+
+    // ==================== LEGACY EMPLOYEE METHODS ====================
+
+    /**
+     * Get all questionnaires assigned to the employee (legacy)
      */
     getMyQuestionnaires(): Observable<any> {
         return this.http.get(`${this.api}/my/assigned`);
     }
 
     /**
-     * Get specific questionnaire for employee
+     * Get specific questionnaire for employee (legacy)
      */
     getQuestionnaireForEmployee(id: string): Observable<{
         success: boolean;
@@ -103,10 +133,27 @@ export class QuestionnaireService {
     }
 
     /**
-     * Submit questionnaire response (complete or partial save)
+     * Submit questionnaire response (complete or partial save) (legacy)
      */
     submitQuestionnaireResponse(id: string, payload: SubmitResponseDto): Observable<any> {
         return this.http.post(`${this.api}/my/${id}/submit`, payload);
+    }
+
+    // ==================== ONBOARDING METHODS ====================
+
+    /**
+     * Get pending onboarding questionnaire for the logged-in employee
+     */
+    getPendingOnboarding(): Observable<{
+        success: boolean;
+        message: string;
+        data: {
+            hasOnboarding: boolean;
+            questionnaire?: Questionnaire;
+            response?: QuestionnaireResponse;
+        };
+    }> {
+        return this.http.get<any>(`${this.api}/onboarding/pending`);
     }
 
 }

@@ -2,7 +2,8 @@ import {
   RegisterDto,
   RegisterStep1Dto, 
   VerifyOTPDto, 
-  RegisterStep3Dto 
+  RegisterStep3Dto,
+  AcceptInvitationDto
 } from '../dto/registration.dto';
 import { LoginDto } from '../dto/login.dto';
 
@@ -11,7 +12,8 @@ import { organisationRepository } from '../repositories/organisation.repository'
 
 import { ApiError } from '../utils/api-error';
 import { hashPassword, comparePassword } from '../utils/password';
-import { generateToken } from '../utils/jwt';
+import { generateToken, verifyToken } from '../utils/jwt';
+import { AccountStatus } from '../types/common.types';
 import { 
   generateOTP, 
   hashOTP, 
@@ -68,7 +70,23 @@ export const authService = {
       tenantId: 'company-1',
       profileCompleted: false,
       isActive: true,
+      hasCompletedOnboarding: false,
     });
+
+    // Auto-assign onboarding questionnaires to employees
+    if (user.role === 'employee' && user.tenantId) {
+      const { assignOnboardingQuestionnaires } = require('./onboarding.service');
+      // For legacy register, we might not have organisationId, so use tenantId
+      const orgId = user.organisationId || user.tenantId;
+      if (orgId) {
+        await assignOnboardingQuestionnaires(
+          user._id.toString(),
+          user.tenantId,
+          orgId,
+          user.tenantId // assignedBy - use tenant admin
+        );
+      }
+    }
 
     const token = generateToken({
       userId: user._id,
@@ -404,6 +422,94 @@ export const authService = {
       message: 'Verification code sent successfully',
       email: maskEmail(email),
       expiresIn: 600,
+    };
+  },
+
+  acceptInvitation: async (payload: AcceptInvitationDto) => {
+    const { token, fullName, password } = payload;
+
+    if (!token) {
+      throw new ApiError(400, 'Invitation token is required');
+    }
+
+    let decoded: any;
+
+    try {
+      decoded = verifyToken(token);
+    } catch (error) {
+      throw new ApiError(401, 'Invitation token is invalid or expired');
+    }
+
+    if (decoded?.purpose !== 'invitation') {
+      throw new ApiError(400, 'Invalid invitation token');
+    }
+
+    const user = await userRepository.findById(decoded.userId as string);
+
+    if (!user) {
+      throw new ApiError(404, 'Invitation no longer valid');
+    }
+
+    if (user.accountStatus !== 'invited') {
+      throw new ApiError(400, 'This invitation has already been used');
+    }
+
+    const hashedPassword = await hashPassword(password);
+
+    // For employees, DO NOT set hasCompletedOnboarding to true
+    // They must complete the onboarding questionnaire first
+    const updateData: any = {
+      fullName: fullName.trim(),
+      password: hashedPassword,
+      emailVerified: true,
+      accountStatus: AccountStatus.JOINED,
+      isActive: true,
+    };
+
+    // Only non-employees get automatic onboarding completion
+    if (user.role !== 'employee') {
+      updateData.onboardingStatus = 'completed';
+      updateData.profileCompleted = true;
+      updateData.hasCompletedOnboarding = true;
+    } else {
+      // Employees need to complete questionnaire
+      updateData.hasCompletedOnboarding = false;
+      updateData.profileCompleted = false;
+    }
+
+    const updatedUser = await userRepository.update(user._id.toString(), updateData);
+
+    // Auto-assign onboarding questionnaires to employees
+    if (user.role === 'employee' && user.tenantId && user.organisationId) {
+      const { assignOnboardingQuestionnaires } = require('./onboarding.service');
+      await assignOnboardingQuestionnaires(
+        user._id.toString(),
+        user.tenantId,
+        user.organisationId,
+        user.organisationId // assignedBy - use org admin or the org itself
+      );
+    }
+
+    const authToken = generateToken({
+      userId: updatedUser?._id,
+      email: updatedUser?.email,
+      role: updatedUser?.role,
+      tenantId: updatedUser?.tenantId,
+      organisationId: updatedUser?.organisationId,
+    });
+
+    return {
+      message: 'Invitation accepted successfully',
+      token: authToken,
+      user: {
+        _id: updatedUser?._id,
+        fullName: updatedUser?.fullName,
+        email: updatedUser?.email,
+        role: updatedUser?.role,
+        tenantId: updatedUser?.tenantId,
+        organisationId: updatedUser?.organisationId,
+        hasCompletedOnboarding: updatedUser?.hasCompletedOnboarding,
+      },
     };
   },
 

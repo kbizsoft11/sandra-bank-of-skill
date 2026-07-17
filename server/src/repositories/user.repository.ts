@@ -14,6 +14,7 @@ export const userRepository = {
       profileCompleted: boolean;
       hasCompletedOnboarding?: boolean;
       isActive: boolean;
+      designationId?: string;
     },
   ) => {
     return UserModel.create(payload);

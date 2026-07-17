@@ -8,12 +8,14 @@ import { UpdateProfileDto } from '../dto/update-profile.dto';
 import { userRepository } from '../repositories/user.repository';
 
 import { hashPassword, generateRandomPassword } from '../utils/password';
-import { sendInvitationEmail, sendPasswordResetNotificationEmail } from './email.service';
+import { sendInvitationEmail, sendInvitationLinkEmail, sendPasswordResetNotificationEmail } from './email.service';
 import { deleteOldProfileImage } from '../utils/file-upload';
 import path from 'path';
 import { AccountStatus } from '../types/common.types';
 import { v4 as uuidv4 } from 'uuid';
+import { env } from '../config/env';
 import { assignOnboardingQuestionnaires } from './onboarding.service';
+import { generateInvitationToken } from '../utils/jwt';
 
 export const userService = {
 
@@ -210,7 +212,8 @@ export const userService = {
   },
 
   deleteUser: async (
-    id: string
+    id: string,
+    actor?: { role?: string; userId?: string; tenantId?: string; organisationId?: string }
   ) => {
 
     const existingUser =
@@ -222,6 +225,22 @@ export const userService = {
         'User not found'
       );
 
+    }
+
+    if (actor?.role === 'company') {
+      if (existingUser.role !== 'employee') {
+        throw new Error('Company users can only delete employee accounts');
+      }
+
+      if (!actor.tenantId || existingUser.tenantId !== actor.tenantId) {
+        throw new Error('You can only delete employees from your own company');
+      }
+
+      if (actor.organisationId && existingUser.organisationId && actor.organisationId !== existingUser.organisationId) {
+        throw new Error('You can only delete employees from your own organisation');
+      }
+    } else if (actor?.role === 'employee') {
+      throw new Error('Employees cannot delete users');
     }
 
     await userRepository.delete(id);
@@ -278,10 +297,11 @@ export const userService = {
       role: payload.role || 'employee',
       tenantId: inviter.tenantId,
       organisationId: inviter.organisationId,
+      designationId: payload.designationId,
       profileCompleted: false,
       isActive: true,
-      emailVerified: true, // Auto-verify invited users
-      onboardingStatus: 'completed', // Skip onboarding for invited users
+      emailVerified: false, // Auto-verify invited users
+      onboardingStatus: 'registered', // Skip onboarding for invited users
       accountStatus: AccountStatus.INVITED,
       invitedAt: new Date(),
       hasCompletedOnboarding: false, // Will be set to true after completing onboarding questionnaire
@@ -300,17 +320,29 @@ export const userService = {
       // Don't fail the invitation if questionnaire assignment fails
     }
 
-    // Send invitation email with generated password
-    await sendInvitationEmail(
+    const inviteToken = generateInvitationToken({
+      userId: newUser._id,
+      email: newUser.email,
+      role: payload.role || 'employee',
+      tenantId: inviter.tenantId,
+      organisationId: inviter.organisationId,
+      invitedByUserId,
+      purpose: 'invitation',
+    });
+
+    const inviteLink = `${env.CLIENT_URL || 'http://localhost:4200'}/auth/invite-signup?token=${encodeURIComponent(inviteToken)}`;
+
+    await sendInvitationLinkEmail(
       payload.email,
-      generatedPassword,
       fullName,
-      invitedByName
+      invitedByName,
+      inviteLink,
+      payload.message
     );
 
     return {
       user: newUser,
-      message: 'Invitation sent successfully',
+      message: 'Invitation sent successfully. The recipient can complete signup using the secure invitation link.',
     };
 
   },
