@@ -6,7 +6,8 @@ export type QuestionType =
     | 'radio'          // Single choice
     | 'checkbox'       // Multiple choice
     | 'rating'         // Rating scale (1-5)
-    | 'date';          // Date picker
+    | 'date'           // Date picker
+    | 'skill';         // Dual rating scale (skill level + interest level)
 
 export type QuestionnaireStatus = 
     | 'draft'          // Being created/edited
@@ -25,6 +26,7 @@ export interface IQuestion {
     options?: string[];        // For radio/checkbox types
     required: boolean;
     order: number;             // Display order
+    skillDescription?: string; // For skill type questions - detailed description
 }
 
 export interface IQuestionnaire extends Document {
@@ -42,7 +44,7 @@ export interface IQuestionnaire extends Document {
 
 export interface IAnswer {
     questionId: string;
-    answer: string | string[]; // Single value or array for checkboxes
+    answer: string | string[] | Record<string, any>; // Support skill answers with objects
 }
 
 export interface IQuestionnaireResponse extends Document {
