@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as questionnaireController from '../controllers/questionnaire.controller';
+import * as employeeQuestionnaireController from '../controllers/employee-questionnaire.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { allowRoles } from '../middlewares/role.middleware';
 
@@ -87,6 +88,50 @@ router.get(
 // ==================== EMPLOYEE ROLE ROUTES ====================
 
 /**
+ * GET /questionnaires/employee/assigned
+ * Get all questionnaires assigned to the employee
+ */
+router.get(
+    '/employee/assigned',
+    authenticate,
+    allowRoles('employee'),
+    employeeQuestionnaireController.getAssignedQuestionnaires
+);
+
+/**
+ * GET /questionnaires/employee/:responseId/start
+ * Start or resume a questionnaire
+ */
+router.get(
+    '/employee/:responseId/start',
+    authenticate,
+    allowRoles('employee'),
+    employeeQuestionnaireController.startQuestionnaire
+);
+
+/**
+ * POST /questionnaires/employee/:responseId/questions/:questionId/answer
+ * Save answer for a single question
+ */
+router.post(
+    '/employee/:responseId/questions/:questionId/answer',
+    authenticate,
+    allowRoles('employee'),
+    employeeQuestionnaireController.saveAnswer
+);
+
+/**
+ * GET /questionnaires/employee/:responseId/progress
+ * Get questionnaire progress
+ */
+router.get(
+    '/employee/:responseId/progress',
+    authenticate,
+    allowRoles('employee'),
+    employeeQuestionnaireController.getProgress
+);
+
+/**
  * GET /questionnaires/onboarding/pending
  * Get pending onboarding questionnaire for logged-in employee
  */
@@ -99,7 +144,7 @@ router.get(
 
 /**
  * GET /questionnaires/my/assigned
- * Get all questionnaires assigned to the employee
+ * Get all questionnaires assigned to the employee (legacy)
  */
 router.get(
     '/my/assigned',
@@ -110,7 +155,7 @@ router.get(
 
 /**
  * GET /questionnaires/my/:id
- * Get specific questionnaire for employee
+ * Get specific questionnaire for employee (legacy)
  */
 router.get(
     '/my/:id',
@@ -121,7 +166,7 @@ router.get(
 
 /**
  * POST /questionnaires/my/:id/submit
- * Submit questionnaire response
+ * Submit questionnaire response (legacy)
  */
 router.post(
     '/my/:id/submit',
