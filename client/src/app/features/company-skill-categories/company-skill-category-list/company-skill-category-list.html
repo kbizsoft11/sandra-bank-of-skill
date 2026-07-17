@@ -1,0 +1,63 @@
+<div class="rounded-4 border bg-white shadow-sm overflow-hidden">
+  <div class="border-bottom px-4 py-3">
+    <h2 class="h5 fw-semibold mb-1 text-dark">Skills Category</h2>
+    <p class="mb-0 small text-secondary">Set custom labels for admin skill categories for your company without changing the original admin names.</p>
+  </div>
+
+  <div class="p-4">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr class="table-light">
+            <th class="px-3 py-3 text-uppercase small fw-semibold text-secondary">Original Name</th>
+            <th class="px-3 py-3 text-uppercase small fw-semibold text-secondary">Company Label</th>
+            <th class="px-3 py-3 text-uppercase small fw-semibold text-secondary">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (category of categories(); track category.categoryId) {
+            <tr>
+              <td class="px-3 py-3">
+                <span class="fw-semibold text-dark">{{ category.originalName }}</span>
+              </td>
+              <td class="px-3 py-3">
+                <span class="text-secondary">{{ category.displayName }}</span>
+              </td>
+              <td class="px-3 py-3">
+                <button type="button" class="btn btn-outline-primary btn-sm" (click)="openEditModal(category)">
+                  Edit
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+@if (showModal()) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Company Label</h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <form [formGroup]="editForm" (ngSubmit)="saveLabel()">
+          <div class="modal-body">
+            <label class="form-label">Company Label</label>
+            <input type="text" class="form-control" formControlName="displayName" placeholder="Enter company label">
+            @if (displayNameControl.invalid && displayNameControl.touched) {
+              <div class="text-danger small mt-2">Label is required.</div>
+            }
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

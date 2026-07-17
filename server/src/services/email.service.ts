@@ -193,10 +193,10 @@ This link will expire in 7 days.`;
     // Use custom message or default
     const messageContent = customMessage || defaultMessage;
 
-    // Replace {{INVITE_LINK}} placeholder with actual clickable link for HTML
+    // Replace {{INVITE_LINK}} placeholder with styled button for HTML (hidden long URL)
     const messageHtml = messageContent
         .replace(/\n/g, '<br>')
-        .replace(/{{INVITE_LINK}}/g, `<a href="${inviteLink}" style="color: #4F46E5; font-weight: bold; word-break: break-all;">${inviteLink}</a>`);
+        .replace(/{{INVITE_LINK}}/g, `<div style="text-align: center; margin: 30px 0;"><a href="${inviteLink}" style="display: inline-block; padding: 14px 40px; background: #4F46E5; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Accept Invitation</a></div>`);
 
     // Replace {{INVITE_LINK}} placeholder with plain link for text version
     const messageText = messageContent.replace(/{{INVITE_LINK}}/g, inviteLink);
@@ -212,6 +212,8 @@ This link will expire in 7 days.`;
                 .content { padding: 30px; background: #f9f9f9; }
                 .message-content { line-height: 1.8; margin: 20px 0; word-wrap: break-word; }
                 .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                .cta-button { display: inline-block; padding: 14px 40px; background: #4F46E5; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; margin: 20px 0; }
+                .cta-button:hover { background: #3F36D5; }
             </style>
         </head>
         <body>
@@ -224,7 +226,6 @@ This link will expire in 7 days.`;
                     <div class="message-content">
                         ${messageHtml}
                     </div>
-                    <p style="margin-top: 30px; color: #666; font-size: 14px;">If you have any questions, feel free to reach out to our support team.</p>
                 </div>
                 <div class="footer">
                     <p>&copy; ${new Date().getFullYear()} Bank of Skill. All rights reserved.</p>

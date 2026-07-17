@@ -5,48 +5,32 @@ import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Static default onboarding questions for all employees
+ * These are skill assessment questions with dual rating scales
  */
 const getDefaultOnboardingQuestions = () => [
     {
         questionId: uuidv4(),
-        questionText: 'What is your current role or position?',
-        questionType: 'text' as const,
+        questionText: 'Corrective and preventive action management',
+        questionType: 'textarea' as const,
         options: [],
         required: true,
         order: 0,
     },
     {
         questionId: uuidv4(),
-        questionText: 'What department or team will you be working with?',
-        questionType: 'text' as const,
+        questionText: 'Quality Management Systems',
+        questionType: 'textarea' as const,
         options: [],
         required: true,
         order: 1,
     },
     {
         questionId: uuidv4(),
-        questionText: 'What are your main responsibilities in this role?',
+        questionText: 'Process Improvement',
         questionType: 'textarea' as const,
         options: [],
         required: true,
         order: 2,
-    },
-    {
-        questionId: uuidv4(),
-        questionText: 'Which skills are you most excited to develop?',
-        questionType: 'checkbox' as const,
-        options: [
-            'Communication',
-            'Leadership',
-            'Technical Skills',
-            'Problem Solving',
-            'Teamwork',
-            'Time Management',
-            'Creativity',
-            'Critical Thinking'
-        ],
-        required: true,
-        order: 3,
     },
     {
         questionId: uuidv4(),
@@ -106,7 +90,7 @@ export const ensureDefaultOnboardingQuestionnaire = async (
     });
 
     if (existing) {
-        console.log('📋 Default onboarding questionnaire already exists:', existing._id);
+        console.log('?? Default onboarding questionnaire already exists:', existing._id);
         return existing._id.toString();
     }
 
@@ -122,7 +106,7 @@ export const ensureDefaultOnboardingQuestionnaire = async (
         isOnboardingQuestionnaire: true,
     });
 
-    console.log('📋 Created new default onboarding questionnaire:', questionnaire._id);
+    console.log('?? Created new default onboarding questionnaire:', questionnaire._id);
     return questionnaire._id.toString();
 };
 
@@ -136,6 +120,8 @@ export const assignQuestionnaireToCompanyEmployees = async (
     assignedBy: string,
     employeeIds?: string[]
 ): Promise<void> => {
+    const { initializeQuestionAnswers } = require('./question-answer.service');
+    
     const targetEmployeeIds = employeeIds?.length
         ? employeeIds
         : (await UserModel.find({
@@ -158,7 +144,7 @@ export const assignQuestionnaireToCompanyEmployees = async (
             return;
         }
 
-        await QuestionnaireResponseModel.create({
+        const response = await QuestionnaireResponseModel.create({
             questionnaireId,
             employeeId,
             assignedBy,
@@ -167,6 +153,15 @@ export const assignQuestionnaireToCompanyEmployees = async (
             status: 'pending',
             assignedAt: new Date(),
         });
+
+        // Initialize question answers
+        await initializeQuestionAnswers(
+            response._id.toString(),
+            questionnaireId,
+            employeeId,
+            tenantId,
+            organisationId
+        );
     });
 
     await Promise.all(assignmentPromises);
@@ -183,6 +178,8 @@ export const assignOnboardingQuestionnaires = async (
     organisationId: string,
     assignedBy: string
 ): Promise<void> => {
+    const { initializeQuestionAnswers } = require('./question-answer.service');
+    
     // First, ensure the default onboarding questionnaire exists
     await ensureDefaultOnboardingQuestionnaire(tenantId, organisationId, assignedBy);
 
@@ -195,11 +192,11 @@ export const assignOnboardingQuestionnaires = async (
     });
 
     if (onboardingQuestionnaires.length === 0) {
-        console.warn('⚠️ No onboarding questionnaires found after ensuring default');
+        console.warn('?? No onboarding questionnaires found after ensuring default');
         return;
     }
 
-    console.log(`📋 Found ${onboardingQuestionnaires.length} onboarding questionnaire(s) to assign`);
+    console.log(`?? Found ${onboardingQuestionnaires.length} onboarding questionnaire(s) to assign`);
 
     const assignmentPromises = onboardingQuestionnaires.map(async (questionnaire) => {
         const existing = await QuestionnaireResponseModel.findOne({
@@ -208,11 +205,11 @@ export const assignOnboardingQuestionnaires = async (
         });
 
         if (existing) {
-            console.log(`📋 Questionnaire ${questionnaire._id} already assigned to employee ${employeeId}`);
+            console.log(`?? Questionnaire ${questionnaire._id} already assigned to employee ${employeeId}`);
             return;
         }
 
-        await QuestionnaireResponseModel.create({
+        const response = await QuestionnaireResponseModel.create({
             questionnaireId: questionnaire._id.toString(),
             employeeId,
             assignedBy,
@@ -222,7 +219,16 @@ export const assignOnboardingQuestionnaires = async (
             assignedAt: new Date(),
         });
 
-        console.log(`📋 Assigned questionnaire ${questionnaire._id} to employee ${employeeId}`);
+        // Initialize question answers
+        await initializeQuestionAnswers(
+            response._id.toString(),
+            questionnaire._id.toString(),
+            employeeId,
+            tenantId,
+            organisationId
+        );
+
+        console.log(`?? Assigned questionnaire ${questionnaire._id} to employee ${employeeId}`);
     });
 
     await Promise.all(assignmentPromises);

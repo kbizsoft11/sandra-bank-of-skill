@@ -51,6 +51,48 @@ export const userService = {
     return await userRepository.findAll('employee', company.tenantId);
   },
 
+  searchEmployees: async (params: {
+    search?: string;
+    skill?: string;
+    category?: string;
+    department?: string;
+    page?: number;
+    limit?: number;
+    userRole?: string;
+    userTenantId?: string;
+  }) => {
+    const {
+      search,
+      skill,
+      category,
+      department,
+      page,
+      limit,
+      userRole,
+      userTenantId,
+    } = params;
+
+    // Apply tenant filtering based on role
+    let tenantId: string | undefined;
+
+    if (userRole === 'company') {
+      // Company users can only search employees in their own organization
+      tenantId = userTenantId;
+    }
+    // Admin users can search across all organizations (tenantId remains undefined)
+
+    // Call repository method with appropriate filters
+    return await userRepository.searchEmployees({
+      search,
+      skill,
+      category,
+      department,
+      tenantId,
+      page,
+      limit,
+    });
+  },
+
   getUserById: async (id: string) => {
 
     const user =
@@ -170,7 +212,8 @@ export const userService = {
   },
 
   deleteUser: async (
-    id: string
+    id: string,
+    actor?: { role?: string; userId?: string; tenantId?: string; organisationId?: string }
   ) => {
 
     const existingUser =
@@ -182,6 +225,22 @@ export const userService = {
         'User not found'
       );
 
+    }
+
+    if (actor?.role === 'company') {
+      if (existingUser.role !== 'employee') {
+        throw new Error('Company users can only delete employee accounts');
+      }
+
+      if (!actor.tenantId || existingUser.tenantId !== actor.tenantId) {
+        throw new Error('You can only delete employees from your own company');
+      }
+
+      if (actor.organisationId && existingUser.organisationId && actor.organisationId !== existingUser.organisationId) {
+        throw new Error('You can only delete employees from your own organisation');
+      }
+    } else if (actor?.role === 'employee') {
+      throw new Error('Employees cannot delete users');
     }
 
     await userRepository.delete(id);
@@ -236,8 +295,8 @@ export const userService = {
       designationId: payload.designationId,
       profileCompleted: false,
       isActive: true,
-      emailVerified: false,
-      onboardingStatus: 'registered',
+      emailVerified: false, // Auto-verify invited users
+      onboardingStatus: 'registered', // Skip onboarding for invited users
       accountStatus: AccountStatus.INVITED,
       invitedAt: new Date(),
       hasCompletedOnboarding: false,
@@ -395,6 +454,32 @@ export const userService = {
       deleteOldProfileImage(uploadedFilePath);
       throw error;
     }
-  }
+  },
+
+  /**
+   * Get all skills in company with employee counts
+   */
+  getCompanySkills: async (userTenantId?: string) => {
+    if (!userTenantId) {
+      throw new Error('Tenant ID is required');
+    }
+
+    return await userRepository.getCompanySkills(userTenantId);
+  },
+
+  /**
+   * Get employees who have a specific skill
+   */
+  getEmployeesBySkill: async (skillName: string, userTenantId?: string) => {
+    if (!userTenantId) {
+      throw new Error('Tenant ID is required');
+    }
+
+    if (!skillName) {
+      throw new Error('Skill name is required');
+    }
+
+    return await userRepository.getEmployeesBySkill(skillName, userTenantId);
+  },
 
 };

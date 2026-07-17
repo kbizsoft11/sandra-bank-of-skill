@@ -24,6 +24,17 @@ export interface CompanyStats {
   totalSkills: number;
   invitedEmployees: number;
   recentEmployees: any[];
+  topEmployees: Array<{
+    _id: string;
+    fullName: string;
+    department?: string;
+    location?: string;
+    skillCount: number;
+  }>;
+  topSkills: Array<{
+    skillName: string;
+    employeeCount: number;
+  }>;
 }
 
 export interface EmployeeStats {

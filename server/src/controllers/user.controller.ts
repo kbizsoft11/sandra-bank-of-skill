@@ -238,3 +238,70 @@ export const getEmployeesByCompany = asyncHandler(
 
   }
 );
+
+export const searchEmployees = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const userRole = (req as any).user?.role;
+    const userTenantId = (req as any).user?.tenantId;
+
+    const { search, skill, category, department, page, limit } = req.query;
+
+    const result = await userService.searchEmployees({
+      search: search as string,
+      skill: skill as string,
+      category: category as string,
+      department: department as string,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      userRole,
+      userTenantId,
+    });
+
+    return sendResponse(
+      res,
+      200,
+      'Employees search completed successfully',
+      result
+    );
+
+  }
+);
+
+export const getCompanySkills = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const userTenantId = (req as any).user?.tenantId;
+
+    const skills = await userService.getCompanySkills(userTenantId);
+
+    return sendResponse(
+      res,
+      200,
+      'Company skills fetched successfully',
+      skills
+    );
+
+  }
+);
+
+export const getEmployeesBySkill = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const userTenantId = (req as any).user?.tenantId;
+    const { skillName } = req.params;
+
+    const employees = await userService.getEmployeesBySkill(
+      skillName as string,
+      userTenantId
+    );
+
+    return sendResponse(
+      res,
+      200,
+      'Employees with skill fetched successfully',
+      employees
+    );
+
+  }
+);

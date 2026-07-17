@@ -39,6 +39,33 @@ export const getOrganisationById = asyncHandler(
     }
 );
 
+export const getMyOrganisation = asyncHandler(
+    async (req: Request, res: Response) => {
+
+        if (!req.user?.organisationId) {
+            return sendResponse(
+                res,
+                404,
+                'Organisation not found for current user',
+                null
+            );
+        }
+
+        const organisation =
+            await organisationService.getOrganisationById(
+                req.user.organisationId as string
+            );
+
+        return sendResponse(
+            res,
+            200,
+            'Organisation fetched successfully',
+            organisation
+        );
+
+    }
+);
+
 export const createOrganisation = asyncHandler(
     async (req: Request, res: Response) => {
 
@@ -64,6 +91,34 @@ export const updateOrganisation = asyncHandler(
         const organisation =
             await organisationService.updateOrganisation(
                 req.params.id as string,
+                req.body
+            );
+
+        return sendResponse(
+            res,
+            200,
+            'Organisation updated successfully',
+            organisation
+        );
+
+    }
+);
+
+export const updateMyOrganisation = asyncHandler(
+    async (req: Request, res: Response) => {
+
+        if (!req.user?.organisationId) {
+            return sendResponse(
+                res,
+                404,
+                'Organisation not found for current user',
+                null
+            );
+        }
+
+        const organisation =
+            await organisationService.updateOrganisation(
+                req.user.organisationId as string,
                 req.body
             );
 

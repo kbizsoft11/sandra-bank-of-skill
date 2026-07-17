@@ -158,6 +158,91 @@ export const getCompanyStats = async (req: Request, res: Response) => {
       accountStatus: 'invited' as any,
     });
 
+    // Get top employees by skill count
+    const topEmployees = await Skill.aggregate([
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user_id',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      {
+        $unwind: '$user',
+      },
+      {
+        $match: {
+          'user.organisationId': organisationId,
+          'user.role': 'employee',
+        },
+      },
+      {
+        $group: {
+          _id: '$user_id',
+          fullName: { $first: '$user.fullName' },
+          department: { $first: '$user.department' },
+          location: { $first: '$user.location' },
+          skillCount: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { skillCount: -1 },
+      },
+      {
+        $limit: 10,
+      },
+      {
+        $project: {
+          _id: 1,
+          fullName: 1,
+          department: 1,
+          location: 1,
+          skillCount: 1,
+        },
+      },
+    ]);
+
+    // Get top skills by employee count
+    const topSkills = await Skill.aggregate([
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user_id',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      {
+        $unwind: '$user',
+      },
+      {
+        $match: {
+          'user.organisationId': organisationId,
+          'user.role': 'employee',
+        },
+      },
+      {
+        $group: {
+          _id: '$skill_name',
+          employeeCount: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { employeeCount: -1 },
+      },
+      {
+        $limit: 10,
+      },
+      {
+        $project: {
+          skillName: '$_id',
+          employeeCount: 1,
+          _id: 0,
+        },
+      },
+    ]);
+
     return res.status(200).json({
       success: true,
       data: {
@@ -167,6 +252,8 @@ export const getCompanyStats = async (req: Request, res: Response) => {
         totalSkills,
         invitedEmployees,
         recentEmployees,
+        topEmployees,
+        topSkills,
       },
     });
   } catch (error: any) {

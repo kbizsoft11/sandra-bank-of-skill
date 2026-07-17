@@ -36,6 +36,7 @@ export const env = {
   SMTP_SECURE: process.env.SMTP_SECURE === 'true',
   SMTP_USER: process.env.SMTP_USER || '',
   SMTP_PASSWORD: process.env.SMTP_PASSWORD || '',
+  SMTP_SERVICE: process.env.SMTP_SERVICE,
   EMAIL_FROM: process.env.EMAIL_FROM || 'Bank of Skill <noreply@bankofskill.com>',
   
   // OTP Configuration

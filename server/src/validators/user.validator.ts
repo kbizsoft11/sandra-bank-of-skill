@@ -165,3 +165,43 @@ export const updateProfileSchema = z.object({
     }).optional(),
 
 });
+
+
+export const searchEmployeesQuerySchema = z.object({
+
+    search: z
+        .string()
+        .optional()
+        .describe('Search by employee name or email'),
+
+    skill: z
+        .string()
+        .optional()
+        .describe('Filter by skill name'),
+
+    category: z
+        .string()
+        .optional()
+        .describe('Filter by skill category name'),
+
+    department: z
+        .string()
+        .optional()
+        .describe('Filter by department'),
+
+    page: z
+        .coerce
+        .number()
+        .positive()
+        .optional()
+        .default(1),
+
+    limit: z
+        .coerce
+        .number()
+        .positive()
+        .max(100)
+        .optional()
+        .default(20),
+
+});

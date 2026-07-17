@@ -2,6 +2,7 @@ import { CreateSkillDto, GetSkillQueryDto, UpdateSkillDto } from "../dto/skill.d
 import skillRepository from "../repositories/skill.repository";
 import { SkillCategoryRepository } from "../repositories/skill-category.repository";
 import { userRepository } from "../repositories/user.repository";
+import { CompanySkillCategoryRepository } from "../repositories/company-skill-category.repository";
 import { ApiError } from "../utils/api-error";
 import { StatusCodes } from "http-status-codes";
 
@@ -42,11 +43,43 @@ class SkillService {
     return skillRepository.create(payload);
   }
 
-  async getAll(query: GetSkillQueryDto) {
-    return skillRepository.getAll(query);
+  async getAll(query: GetSkillQueryDto, companyId?: string) {
+    const result = await skillRepository.getAll(query);
+
+    if (!companyId) {
+      return result;
+    }
+
+    const companyMappings = await new CompanySkillCategoryRepository().findAllByCompany(companyId);
+    const mappingByCategoryId = new Map(
+      companyMappings.map((mapping: any) => [mapping.skillCategoryId.toString(), mapping.displayName])
+    );
+
+    const skills = result.skills.map((skill: any) => {
+      const category = skill.cat_id as any;
+      const categoryId = category && typeof category === 'object' && category !== null
+        ? category._id?.toString() || category.toString()
+        : category?.toString();
+
+      const displayName = categoryId ? mappingByCategoryId.get(categoryId) : null;
+
+      if (category && typeof category === 'object' && category !== null) {
+        skill.cat_id = {
+          ...(category as object),
+          cat_name: displayName || category.cat_name,
+        };
+      }
+
+      return skill;
+    });
+
+    return {
+      ...result,
+      skills,
+    };
   }
 
-  async getById(id: string) {
+  async getById(id: string, companyId?: string) {
     const skill = await skillRepository.findById(id);
 
     if (!skill) {
@@ -54,6 +87,27 @@ class SkillService {
         StatusCodes.NOT_FOUND,
         "Skill not found."
       );
+    }
+
+    if (companyId) {
+      const companyMappings = await new CompanySkillCategoryRepository().findAllByCompany(companyId);
+      const mappingByCategoryId = new Map(
+        companyMappings.map((mapping: any) => [mapping.skillCategoryId.toString(), mapping.displayName])
+      );
+
+      const category = skill.cat_id as any;
+      const categoryId = category && typeof category === 'object' && category !== null
+        ? category._id?.toString() || category.toString()
+        : category?.toString();
+
+      const displayName = categoryId ? mappingByCategoryId.get(categoryId) : null;
+
+      if (category && typeof category === 'object' && category !== null) {
+        skill.cat_id = {
+          ...(category as Record<string, unknown>),
+          cat_name: displayName || category.cat_name,
+        } as any;
+      }
     }
 
     return skill;

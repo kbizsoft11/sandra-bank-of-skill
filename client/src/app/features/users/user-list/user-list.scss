@@ -20,7 +20,7 @@ $bp-sm: 576px;
   z-index: 1040;
 }
 
-// The modal wrapper itself never scrolls — only used to center/position the dialog
+// The modal wrapper itself never scrolls � only used to center/position the dialog
 .modal {
   position: fixed;
   top: 0;
@@ -74,7 +74,7 @@ $bp-sm: 576px;
 
 .form-control,
 .form-select {
-  @media (max-width: $bp-sm - 1) {
+  @media (max-width: ($bp-sm - 1)) {
     font-size: 16px; // prevents iOS auto-zoom on focus
   }
 }

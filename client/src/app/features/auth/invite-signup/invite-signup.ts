@@ -190,10 +190,17 @@ export class InviteSignup implements OnInit {
     this.http.post(`${API_CONFIG.BASE_URL}/auth/invite/accept`, payload).subscribe({
       next: (response: any) => {
         this.isLoading.set(false);
-        this.successMessage.set('Account created successfully. Redirecting to your dashboard...');
+        this.successMessage.set('Account created successfully. Redirecting...');
         this.authService.setSession(response.data.token);
         this.alertService.toast('Account created successfully', 'success');
-        setTimeout(() => this.router.navigate(['/employee/dashboard']), 800);
+        
+        // Redirect invited employees to the onboarding welcome page first
+        const userRole = response.data.user?.role;
+        if (userRole === 'employee') {
+          setTimeout(() => this.router.navigate(['/employee/onboarding-welcome']), 800);
+        } else {
+          setTimeout(() => this.router.navigate([`/${userRole}/dashboard`]), 800);
+        }
       },
       error: (error) => {
         this.isLoading.set(false);

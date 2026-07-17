@@ -72,6 +72,28 @@ export const dashboardRoutes: Routes = [
         loadComponent: () => import('../features/skill-categories/edit-skill-category/edit-skill-category').then(c => c.EditSkillCategory),
     },
 
+    {
+        path: 'company-skill-categories',
+        canActivate: [roleGuard],
+        data: { roles: ['company'] },
+        loadComponent: () => import('../features/company-skill-categories/company-skill-category-list/company-skill-category-list').then(c => c.CompanySkillCategoryList)
+    },
+
+    {
+        path: 'organisation',
+        canActivate: [roleGuard],
+        data: { roles: ['company'] },
+        loadComponent: () => import('../features/organisation/organisation-details/organisation-details').then(c => c.OrganisationDetailsPage)
+    },
+
+    // Company Skills (Company only)
+    {
+        path: 'company-skills',
+        canActivate: [roleGuard],
+        data: { roles: ['company'] },
+        loadComponent: () => import('../features/company-skills/company-skills').then(c => c.CompanySkills)
+    },
+
     // Skills Routes (Admin only - for viewing all skills)
     {
         path: 'skills',
@@ -145,6 +167,7 @@ export const dashboardRoutes: Routes = [
         loadComponent: () => import('../features/questionnaires/submit-questionnaire/submit-questionnaire').then(c => c.SubmitQuestionnaire)
     },
 
+
     // My Skills route (Employee only - employees manage their own skills)
     {
         path: 'my-skills',
@@ -173,6 +196,14 @@ export const dashboardRoutes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['company'] },
         loadComponent: () => import('../features/placeholder/placeholder').then(c => c.PlaceholderComponent)
+    },
+
+    // Global Employee Search (Admin and Company)
+    {
+        path: 'employee-search',
+        canActivate: [roleGuard],
+        data: { roles: ['admin', 'company'] },
+        loadComponent: () => import('../features/employee-search/employee-search').then(c => c.EmployeeSearch)
     },
 
     // Opportunities (Employee and Company)

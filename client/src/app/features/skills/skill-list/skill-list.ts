@@ -62,8 +62,13 @@ export class SkillList implements OnInit {
 
   loadSkills(): void {
 
+    const employeeId = this.employeeId();
+    const query = this.isViewingEmployeeSkills() && employeeId
+      ? { user_id: employeeId }
+      : undefined;
+
     this.service
-      .getSkills()
+      .getSkills(query)
       .subscribe({
 
         next: (response) => {

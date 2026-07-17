@@ -7,6 +7,8 @@
     "dev": "nodemon --watch src --ext ts --exec tsx src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "seed": "tsx scripts/seed.ts",
+    "seed:demo": "tsx scripts/seed.ts",
     "fix-onboarding": "tsx src/scripts/fix-employee-onboarding.ts"
   },
   "keywords": [],

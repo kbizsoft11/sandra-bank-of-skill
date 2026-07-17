@@ -15,6 +15,7 @@ import {
     getUsersQuerySchema,
     inviteUserSchema,
     updateProfileSchema,
+    searchEmployeesQuerySchema,
 } from '../validators/user.validator';
 
 import { upload } from '../utils/file-upload';
@@ -50,6 +51,30 @@ router.get(
     authenticate,
     validateQuery(getUsersQuerySchema),
     userController.getAllUsers
+);
+
+// Employee search endpoint - Company and Admin only
+router.get(
+    '/search/employees',
+    authenticate,
+    allowRoles('admin', 'company'),
+    validateQuery(searchEmployeesQuerySchema),
+    userController.searchEmployees
+);
+
+// Company skills endpoints - Company only
+router.get(
+    '/company-skills',
+    authenticate,
+    allowRoles('company'),
+    userController.getCompanySkills
+);
+
+router.get(
+    '/company-skills/:skillName/employees',
+    authenticate,
+    allowRoles('company'),
+    userController.getEmployeesBySkill
 );
 
 // Get employees by company ID - Admin only

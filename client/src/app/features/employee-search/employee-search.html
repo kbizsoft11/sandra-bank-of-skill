@@ -1,0 +1,292 @@
+<div class="employee-search-container">
+  
+  <!-- Search Card -->
+  <div class="search-card">
+    <div class="search-header">
+      <h2>
+        <i class="bi bi-search me-2"></i>
+        Global Employee Search
+      </h2>
+      <p class="text-muted">
+        Search employees by name, email, skills, categories, or department
+      </p>
+    </div>
+
+    <!-- Search Filters -->
+    <div class="search-filters">
+      <div class="form-group">
+        <label for="searchText">
+          <i class="bi bi-person-fill me-1"></i>
+          Employee Name or Email
+        </label>
+        <input
+          type="text"
+          id="searchText"
+          class="form-control"
+          placeholder="e.g., John Smith or john@example.com"
+          [(ngModel)]="searchText"
+          (keyup.enter)="performSearch()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="skillFilter">
+          <i class="bi bi-lightbulb-fill me-1"></i>
+          Skill Name
+        </label>
+        <input
+          type="text"
+          id="skillFilter"
+          class="form-control"
+          placeholder="e.g., Angular, Node.js, Leadership"
+          [(ngModel)]="skillFilter"
+          (keyup.enter)="performSearch()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="categoryFilter">
+          <i class="bi bi-diagram-3-fill me-1"></i>
+          Skill Category
+        </label>
+        <input
+          type="text"
+          id="categoryFilter"
+          class="form-control"
+          placeholder="e.g., Frontend, Backend, DevOps"
+          [(ngModel)]="categoryFilter"
+          (keyup.enter)="performSearch()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="departmentFilter">
+          <i class="bi bi-building me-1"></i>
+          Department
+        </label>
+        <input
+          type="text"
+          id="departmentFilter"
+          class="form-control"
+          placeholder="e.g., Engineering, Marketing"
+          [(ngModel)]="departmentFilter"
+          (keyup.enter)="performSearch()"
+        />
+      </div>
+    </div>
+
+    <!-- Search Actions -->
+    <div class="search-actions">
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="performSearch()"
+        [disabled]="isLoading()"
+      >
+        <i class="bi bi-search me-2"></i>
+        {{ isLoading() ? 'Searching...' : 'Search Employees' }}
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        (click)="clearFilters()"
+        [disabled]="!hasFilters() || isLoading()"
+      >
+        <i class="bi bi-x-circle me-2"></i>
+        Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3 text-muted">Searching employees...</p>
+  </div>
+
+  <!-- Results Section -->
+  <div *ngIf="!isLoading() && hasSearched()">
+    
+    <!-- Results Header -->
+    <div *ngIf="hasResults()" class="results-header">
+      <h3>Search Results</h3>
+      <span class="result-count">
+        Found {{ pagination().total }} employee{{ pagination().total !== 1 ? 's' : '' }}
+      </span>
+    </div>
+
+    <!-- Results Table -->
+    <div *ngIf="hasResults()" class="employee-table">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Department</th>
+            <th>Skills (Top 5)</th>
+            <th>Skill Categories</th>
+            <th *ngIf="auth.isAdmin()">Company</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let employee of employees()">
+            
+            <!-- Employee Info -->
+            <td>
+              <div class="employee-info">
+                <div class="avatar" [style.background-color]="getAvatarColor(employee.fullName)">
+                  <img 
+                    *ngIf="employee.profileImage" 
+                    [src]="getProfileImageUrl(employee)" 
+                    [alt]="employee.fullName"
+                  />
+                  <span *ngIf="!employee.profileImage">
+                    {{ getInitials(employee.fullName) }}
+                  </span>
+                </div>
+                <div class="employee-details">
+                  <div class="name">{{ employee.fullName }}</div>
+                  <div class="email">{{ employee.email }}</div>
+                  <small class="text-muted" *ngIf="employee.title">
+                    {{ employee.title }}
+                  </small>
+                </div>
+              </div>
+            </td>
+
+            <!-- Department -->
+            <td>
+              <span *ngIf="employee.department" class="badge bg-light text-dark">
+                {{ employee.department }}
+              </span>
+              <span *ngIf="!employee.department" class="text-muted">—</span>
+            </td>
+
+            <!-- Skills -->
+            <td>
+              <div class="badge-list">
+                <span 
+                  *ngFor="let skillName of getUniqueSkillNames(employee)"
+                  class="badge bg-primary-subtle text-primary-emphasis"
+                >
+                  {{ skillName }}
+                </span>
+                <span 
+                  *ngIf="employee.skills.length > 5"
+                  class="badge bg-secondary-subtle text-secondary-emphasis"
+                >
+                  +{{ employee.skills.length - 5 }} more
+                </span>
+              </div>
+              <span *ngIf="employee.skills.length === 0" class="text-muted">
+                No skills
+              </span>
+            </td>
+
+            <!-- Skill Categories -->
+            <td>
+              <div class="badge-list">
+                <span 
+                  *ngFor="let categoryName of getUniqueCategoryNames(employee)"
+                  class="badge bg-info-subtle text-info-emphasis"
+                >
+                  {{ categoryName }}
+                </span>
+                <span 
+                  *ngIf="employee.skillCategories.length > 3"
+                  class="badge bg-secondary-subtle text-secondary-emphasis"
+                >
+                  +{{ employee.skillCategories.length - 3 }} more
+                </span>
+              </div>
+              <span *ngIf="employee.skillCategories.length === 0" class="text-muted">
+                No categories
+              </span>
+            </td>
+
+            <!-- Company (Admin only) -->
+            <td *ngIf="auth.isAdmin()">
+              <span *ngIf="employee.organisation" class="badge bg-success-subtle text-success-emphasis">
+                {{ employee.organisation.organisationName }}
+              </span>
+              <span *ngIf="!employee.organisation" class="text-muted">—</span>
+            </td>
+
+            <!-- Actions -->
+            <td>
+              <a 
+                [routerLink]="['/' + auth.role() + '/users', employee._id, 'skills']"
+                class="btn btn-sm btn-outline-primary"
+                title="View employee skills"
+              >
+                <i class="bi bi-eye me-1"></i>
+                View Skills
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <nav *ngIf="hasResults() && pagination().totalPages > 1" aria-label="Search results pagination">
+      <ul class="pagination justify-content-center">
+        <li class="page-item" [class.disabled]="pagination().page === 1">
+          <button 
+            class="page-link" 
+            (click)="previousPage()"
+            [disabled]="pagination().page === 1"
+          >
+            <i class="bi bi-chevron-left"></i>
+            Previous
+          </button>
+        </li>
+
+        <li 
+          *ngFor="let page of [].constructor(pagination().totalPages); let i = index"
+          class="page-item"
+          [class.active]="pagination().page === i + 1"
+        >
+          <button 
+            class="page-link" 
+            (click)="goToPage(i + 1)"
+          >
+            {{ i + 1 }}
+          </button>
+        </li>
+
+        <li 
+          class="page-item" 
+          [class.disabled]="pagination().page === pagination().totalPages"
+        >
+          <button 
+            class="page-link" 
+            (click)="nextPage()"
+            [disabled]="pagination().page === pagination().totalPages"
+          >
+            Next
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- No Results -->
+    <div *ngIf="!hasResults()" class="no-results">
+      <i class="bi bi-inbox"></i>
+      <h4>No employees found</h4>
+      <p>Try adjusting your search filters or clearing them to see all employees.</p>
+    </div>
+  </div>
+
+  <!-- Empty State (Before Search) -->
+  <div *ngIf="!hasSearched() && !isLoading()" class="empty-state">
+    <i class="bi bi-search"></i>
+    <h4>Start Your Search</h4>
+    <p>Use the filters above to search for employees by name, skills, categories, or department.</p>
+  </div>
+
+</div>

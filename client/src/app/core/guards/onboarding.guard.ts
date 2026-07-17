@@ -5,7 +5,7 @@ import { AuthService } from '../services/auth.service';
 /**
  * Onboarding Guard
  * Checks if employee has completed mandatory onboarding questionnaire
- * Sets a flag that triggers the onboarding modal to show
+ * Redirects fresh employees to questionnaire page instead of showing modal
  */
 export const onboardingGuard: CanActivateFn = async (route, state) => {
   const auth = inject(AuthService);
@@ -41,11 +41,14 @@ export const onboardingGuard: CanActivateFn = async (route, state) => {
     return true;
   }
 
-  // Employee hasn't completed onboarding - set flag to show modal
-  console.log('🎯 [ONBOARDING GUARD] ❌ Onboarding not completed, setting needsOnboarding flag');
-  auth.setNeedsOnboarding(true);
-  
-  // Always allow navigation to dashboard - modal will show there
-  console.log('🎯 [ONBOARDING GUARD] Allowing navigation, modal will show');
-  return true;
+  // If already on the questionnaires page, allow access
+  if (state.url.includes('/my-questionnaires')) {
+    console.log('🎯 [ONBOARDING GUARD] Already on questionnaires page, allowing access');
+    return true;
+  }
+
+  // Employee hasn't completed onboarding - redirect to my-questionnaires
+  console.log('🎯 [ONBOARDING GUARD] ❌ Onboarding not completed, redirecting to my-questionnaires');
+  auth.setNeedsOnboarding(false); // Clear the flag since we're redirecting
+  return router.createUrlTree(['/employee/my-questionnaires']);
 };

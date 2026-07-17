@@ -41,7 +41,11 @@ class SkillController {
     }
     // Admin can see all skills (no filter)
 
-    const result = await skillService.getAll(req.query);
+    const companyId = userRole === 'company'
+      ? (req as any).user?.organisationId || (req as any).user?.userId
+      : undefined;
+
+    const result = await skillService.getAll(req.query, companyId);
 
     return sendResponse(
       res,
