@@ -24,7 +24,7 @@
 
     <div class="d-flex gap-2 w-100 w-sm-auto justify-content-sm-end">
       @if (canInviteUsers() && !isViewingCompanyEmployees()) {
-        <button (click)="openInviteModal()" class="btn btn-outline-primary btn-sm px-3 flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center gap-2">
+        <button (click)="openInviteModal()" class="btn btn-primary btn-sm px-3 flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center gap-2 shadow-sm">
           <i class="bi bi-envelope-fill"></i>
           <span>Invite User</span>
         </button>
@@ -39,6 +39,23 @@
     </div>
 
   </div>
+
+  @if (auth.role() === 'company') {
+    <div class="border-bottom px-3 px-sm-4 py-3">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="d-flex align-items-center gap-2 rounded-pill bg-light p-1 shadow-sm">
+          <button type="button" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" [class.btn-primary]="activeTab() === 'joined'" [class.btn-outline-primary]="activeTab() !== 'joined'" (click)="setActiveTab('joined')">
+            <i class="bi bi-person-check-fill me-1"></i>
+            Joined Users
+          </button>
+          <button type="button" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" [class.btn-primary]="activeTab() === 'invited'" [class.btn-outline-primary]="activeTab() !== 'invited'" (click)="setActiveTab('invited')">
+            <i class="bi bi-envelope-paper-fill me-1"></i>
+            Invited Users
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
   <div class="table-responsive">
 
@@ -139,13 +156,12 @@
               </button>
             } @else {
               <div class="d-flex gap-2">
-                <button (click)="viewUserSkills(user)" class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1">
-                  <i class="bi bi-lightbulb-fill"></i>
-                  <span>Skills</span>
-                </button>
-                <app-table-actions [actions]="['edit','delete']" (edit)="editUser(user)"
-                  (delete)="deleteUser(user)">
-                </app-table-actions>
+                @if (auth.role() === 'company' && activeTab() === 'joined') {
+                  <button (click)="viewUserSkills(user)" class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-lightbulb-fill"></i>
+                    <span>Skills</span>
+                  </button>
+                }
               </div>
             }
           </td>

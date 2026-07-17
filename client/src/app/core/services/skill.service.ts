@@ -3,7 +3,7 @@ import {
   inject
 } from '@angular/core';
 
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
 
@@ -25,10 +25,26 @@ export class SkillService {
   private readonly http =
     inject(HttpClient);
 
-  getSkills(): Observable<ApiResponse<SkillListResponse>> {
+  getSkills(query?: Record<string, string | string[] | undefined>): Observable<ApiResponse<SkillListResponse>> {
+    let params = new HttpParams();
+
+    if (query) {
+      Object.entries(query).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          if (Array.isArray(value)) {
+            value.forEach((item) => {
+              params = params.append(key, item);
+            });
+          } else {
+            params = params.set(key, value);
+          }
+        }
+      });
+    }
 
     return this.http.get<ApiResponse<SkillListResponse>>(
-      `${API_CONFIG.BASE_URL}/skills`
+      `${API_CONFIG.BASE_URL}/skills`,
+      { params }
     );
 
   }

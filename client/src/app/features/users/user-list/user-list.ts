@@ -35,6 +35,7 @@ export class UserList implements OnInit {
   readonly auth = inject(AuthService);
 
   readonly users = signal<any[]>([]);
+  readonly activeTab = signal<'invited' | 'joined'>('joined');
   
   // For admin hierarchy view
   readonly viewingCompanyEmployees = signal<boolean>(false);
@@ -43,21 +44,20 @@ export class UserList implements OnInit {
   // Filtered users based on role and view state
   readonly displayedUsers = computed(() => {
     const userRole = this.auth.role();
+    let filteredUsers = this.users();
     
     if (userRole === 'admin') {
-      // If viewing employees of a company, show those employees
       if (this.viewingCompanyEmployees()) {
-        return this.users();
+        filteredUsers = this.users();
+      } else {
+        filteredUsers = this.users();
       }
-      // Otherwise show companies
-      return this.users();
     } else if (userRole === 'company') {
-      // Company sees only employees
-      return this.users().filter((user: any) => this.isEmployee(user));
+      filteredUsers = this.users().filter((user: any) => this.isEmployee(user));
+      filteredUsers = filteredUsers.filter((user: any) => this.matchesActiveTab(user));
     }
     
-    // Default: show all users
-    return this.users();
+    return filteredUsers;
   });
 
   // Invite modal state
@@ -81,6 +81,20 @@ export class UserList implements OnInit {
   private isEmployee(user: any): boolean {
     const role = `${user?.role ?? ''}`.toString().trim().toLowerCase();
     return role === 'employee';
+  }
+
+  private matchesActiveTab(user: any): boolean {
+    const status = `${user?.accountStatus ?? ''}`.toString().trim().toLowerCase();
+
+    if (this.activeTab() === 'invited') {
+      return status === 'invited';
+    }
+
+    return status === 'joined' || status === 'active' || status === 'inactive' || status === '';
+  }
+
+  setActiveTab(tab: 'invited' | 'joined'): void {
+    this.activeTab.set(tab);
   }
 
   // Get the title based on role and view state

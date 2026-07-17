@@ -49,6 +49,48 @@ export const userService = {
     return await userRepository.findAll('employee', company.tenantId);
   },
 
+  searchEmployees: async (params: {
+    search?: string;
+    skill?: string;
+    category?: string;
+    department?: string;
+    page?: number;
+    limit?: number;
+    userRole?: string;
+    userTenantId?: string;
+  }) => {
+    const {
+      search,
+      skill,
+      category,
+      department,
+      page,
+      limit,
+      userRole,
+      userTenantId,
+    } = params;
+
+    // Apply tenant filtering based on role
+    let tenantId: string | undefined;
+
+    if (userRole === 'company') {
+      // Company users can only search employees in their own organization
+      tenantId = userTenantId;
+    }
+    // Admin users can search across all organizations (tenantId remains undefined)
+
+    // Call repository method with appropriate filters
+    return await userRepository.searchEmployees({
+      search,
+      skill,
+      category,
+      department,
+      tenantId,
+      page,
+      limit,
+    });
+  },
+
   getUserById: async (id: string) => {
 
     const user =
@@ -385,6 +427,32 @@ export const userService = {
       deleteOldProfileImage(uploadedFilePath);
       throw error;
     }
-  }
+  },
+
+  /**
+   * Get all skills in company with employee counts
+   */
+  getCompanySkills: async (userTenantId?: string) => {
+    if (!userTenantId) {
+      throw new Error('Tenant ID is required');
+    }
+
+    return await userRepository.getCompanySkills(userTenantId);
+  },
+
+  /**
+   * Get employees who have a specific skill
+   */
+  getEmployeesBySkill: async (skillName: string, userTenantId?: string) => {
+    if (!userTenantId) {
+      throw new Error('Tenant ID is required');
+    }
+
+    if (!skillName) {
+      throw new Error('Skill name is required');
+    }
+
+    return await userRepository.getEmployeesBySkill(skillName, userTenantId);
+  },
 
 };

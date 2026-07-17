@@ -127,6 +127,12 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       roles: ['admin', 'company'],
     },
     {
+      label: 'Global Search',
+      path: 'employee-search',
+      icon: 'bi bi-search',
+      roles: ['admin', 'company'],
+    },
+    {
       label: 'Skill Categories',
       path: 'skill-categories',
       icon: 'bi bi-diagram-3-fill',
@@ -139,16 +145,22 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       roles: ['admin'],
     },
     {
-      label: 'Questionnaires',
-      path: 'questionnaires',
-      icon: 'bi bi-clipboard-check',
+      label: 'Company Skills',
+      path: 'company-skills',
+      icon: 'bi bi-star-fill',
       roles: ['company'],
     },
     {
-      label: 'My Questionnaires',
-      path: 'my-questionnaires',
-      icon: 'bi bi-clipboard-check',
-      roles: ['employee'],
+      label: 'Skills Category',
+      path: 'company-skill-categories',
+      icon: 'bi bi-tags-fill',
+      roles: ['company'],
+    },
+    {
+      label: 'Organisation',
+      path: 'organisation',
+      icon: 'bi bi-building-fill',
+      roles: ['company'],
     },
     {
       label: 'My Skills',

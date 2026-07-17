@@ -110,4 +110,30 @@ export class DashboardHome implements OnInit {
     const role = this.authService.role();
     return role || 'admin';
   }
+
+  getLatestUsersByStatus(status: string): any[] {
+    const employees = this.companyStats()?.recentEmployees || [];
+    return employees.filter((employee: any) => {
+      const normalizedStatus = (employee.accountStatus || '').toLowerCase();
+      return normalizedStatus === status.toLowerCase();
+    });
+  }
+
+  getRecentJoinersCount(): number {
+    const employees = this.companyStats()?.recentEmployees || [];
+    return employees.filter((employee: any) => {
+      const normalizedStatus = (employee.accountStatus || '').toLowerCase();
+      return normalizedStatus === 'joined' || normalizedStatus === 'active';
+    }).length;
+  }
+
+  getPendingInvitesCount(): number {
+    const employees = this.companyStats()?.recentEmployees || [];
+    const invitedCount = employees.filter((employee: any) => {
+      const normalizedStatus = (employee.accountStatus || '').toLowerCase();
+      return normalizedStatus === 'invited';
+    }).length;
+
+    return invitedCount || this.companyStats()?.invitedEmployees || 0;
+  }
 }

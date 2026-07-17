@@ -64,6 +64,28 @@ export const dashboardRoutes: Routes = [
         loadComponent: () => import('../features/skill-categories/edit-skill-category/edit-skill-category').then(c => c.EditSkillCategory),
     },
 
+    {
+        path: 'company-skill-categories',
+        canActivate: [roleGuard],
+        data: { roles: ['company'] },
+        loadComponent: () => import('../features/company-skill-categories/company-skill-category-list/company-skill-category-list').then(c => c.CompanySkillCategoryList)
+    },
+
+    {
+        path: 'organisation',
+        canActivate: [roleGuard],
+        data: { roles: ['company'] },
+        loadComponent: () => import('../features/organisation/organisation-details/organisation-details').then(c => c.OrganisationDetailsPage)
+    },
+
+    // Company Skills (Company only)
+    {
+        path: 'company-skills',
+        canActivate: [roleGuard],
+        data: { roles: ['company'] },
+        loadComponent: () => import('../features/company-skills/company-skills').then(c => c.CompanySkills)
+    },
+
     // Skills Routes (Admin only - for viewing all skills)
     {
         path: 'skills',
@@ -86,56 +108,7 @@ export const dashboardRoutes: Routes = [
         loadComponent: () => import('../features/skills/edit-skill/edit-skill').then(c => c.EditSkill),
     },
 
-    // Questionnaire routes (Company role only)
-    {
-        path: 'questionnaires',
-        canActivate: [roleGuard],
-        data: { roles: ['company'] },
-        loadComponent: () => import('../features/questionnaires/questionnaire-list/questionnaire-list').then(c => c.QuestionnaireList)
-    },
-
-    {
-        path: 'questionnaires/create',
-        canActivate: [roleGuard],
-        data: { roles: ['company'] },
-        loadComponent: () => import('../features/questionnaires/create-questionnaire/create-questionnaire').then(c => c.CreateQuestionnaire)
-    },
-
-    {
-        path: 'questionnaires/:id/edit',
-        canActivate: [roleGuard],
-        data: { roles: ['company'] },
-        loadComponent: () => import('../features/questionnaires/edit-questionnaire/edit-questionnaire').then(c => c.EditQuestionnaire)
-    },
-
-    {
-        path: 'questionnaires/:id/assign',
-        canActivate: [roleGuard],
-        data: { roles: ['company'] },
-        loadComponent: () => import('../features/questionnaires/assign-questionnaire/assign-questionnaire').then(c => c.AssignQuestionnaire)
-    },
-
-    {
-        path: 'questionnaires/:id/responses',
-        canActivate: [roleGuard],
-        data: { roles: ['company'] },
-        loadComponent: () => import('../features/questionnaires/questionnaire-responses/questionnaire-responses').then(c => c.QuestionnaireResponses)
-    },
-
-    // Questionnaire routes (Employee role only)
-    {
-        path: 'my-questionnaires',
-        canActivate: [roleGuard],
-        data: { roles: ['employee'] },
-        loadComponent: () => import('../features/questionnaires/my-questionnaires/my-questionnaires').then(c => c.MyQuestionnaires)
-    },
-
-    {
-        path: 'questionnaires/:id/submit',
-        canActivate: [roleGuard],
-        data: { roles: ['employee'] },
-        loadComponent: () => import('../features/questionnaires/submit-questionnaire/submit-questionnaire').then(c => c.SubmitQuestionnaire)
-    },
+    // Questionnaire routes removed from frontend navigation
 
     // My Skills route (Employee only - employees manage their own skills)
     {
@@ -165,6 +138,14 @@ export const dashboardRoutes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['company'] },
         loadComponent: () => import('../features/placeholder/placeholder').then(c => c.PlaceholderComponent)
+    },
+
+    // Global Employee Search (Admin and Company)
+    {
+        path: 'employee-search',
+        canActivate: [roleGuard],
+        data: { roles: ['admin', 'company'] },
+        loadComponent: () => import('../features/employee-search/employee-search').then(c => c.EmployeeSearch)
     },
 
     // Opportunities (Employee and Company)
