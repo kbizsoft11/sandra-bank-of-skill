@@ -15,7 +15,6 @@ import { UserList } from '../../features/users/user-list/user-list';
     RouterOutlet,
     DashboardSidebar,
     DashboardHeader,
-    OnboardingModal
   ],
   templateUrl: './dashboard-layout.html',
   styleUrl: './dashboard-layout.scss',
