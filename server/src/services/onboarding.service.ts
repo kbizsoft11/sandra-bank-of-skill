@@ -11,8 +11,7 @@ const getDefaultOnboardingQuestions = () => [
     {
         questionId: uuidv4(),
         questionText: 'Corrective and preventive action management',
-        questionType: 'skill' as const,
-        skillDescription: 'Corrective and preventive action management refers to the ability to identify, and address issues in a systematic and proactive manner. This skill involves assessing risks, prioritizing tasks, developing solutions, and implementing changes to prevent recurrence of problems. It requires attention to detail, analytical skills, and effective communication skills for individuals who are able to respond to quality issues promptly, minimize disruptions to operations and continuously improve quality standards. When rating their abilities in this area, individuals should consider their experience with root-cause analysis, problem-solving techniques, and quality management systems. They should also assess their ability to lead cross-functional teams, document corrective actions, and monitor effectiveness over time.',
+        questionType: 'textarea' as const,
         options: [],
         required: true,
         order: 0,
@@ -20,8 +19,7 @@ const getDefaultOnboardingQuestions = () => [
     {
         questionId: uuidv4(),
         questionText: 'Quality Management Systems',
-        questionType: 'skill' as const,
-        skillDescription: 'Understanding and implementation of quality management systems and processes.',
+        questionType: 'textarea' as const,
         options: [],
         required: true,
         order: 1,
@@ -29,8 +27,7 @@ const getDefaultOnboardingQuestions = () => [
     {
         questionId: uuidv4(),
         questionText: 'Process Improvement',
-        questionType: 'skill' as const,
-        skillDescription: 'Ability to identify, analyze, and improve organizational processes.',
+        questionType: 'textarea' as const,
         options: [],
         required: true,
         order: 2,

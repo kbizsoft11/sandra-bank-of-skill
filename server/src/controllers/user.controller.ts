@@ -292,7 +292,7 @@ export const getEmployeesBySkill = asyncHandler(
     const { skillName } = req.params;
 
     const employees = await userService.getEmployeesBySkill(
-      skillName,
+      skillName as string,
       userTenantId
     );
 
