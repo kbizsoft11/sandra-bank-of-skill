@@ -84,16 +84,17 @@ jobs:
           name: server-dist
           path: server/dist
 
-      - name: Deploy client and server
-        working-directory: client
-        env:
-          SFTP_HOST: ${{ secrets.SFTP_HOST }}
-          SFTP_PORT: ${{ secrets.SFTP_PORT }}
-          SFTP_USERNAME: ${{ secrets.SFTP_USERNAME }}
-          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
-          SFTP_PRIVATE_KEY: ${{ secrets.SFTP_PRIVATE_KEY }}
-          SFTP_TARGET_DIR: ${{ secrets.SFTP_TARGET_DIR }}
-        run: node deploy.js
+      #Testing Server
+      # - name: Deploy client and server
+      #   working-directory: client
+      #   env:
+      #     SFTP_HOST: ${{ secrets.SFTP_HOST }}
+      #     SFTP_PORT: ${{ secrets.SFTP_PORT }}
+      #     SFTP_USERNAME: ${{ secrets.SFTP_USERNAME }}
+      #     SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+      #     SFTP_PRIVATE_KEY: ${{ secrets.SFTP_PRIVATE_KEY }}
+      #     SFTP_TARGET_DIR: ${{ secrets.SFTP_TARGET_DIR }}
+      #   run: node deploy.js
       
       # Live Server Deployment
       - name: Deploy to Server 2
