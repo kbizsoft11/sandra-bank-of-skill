@@ -1,5 +1,8 @@
 import nodemailer from 'nodemailer';
 import { env } from '../config/env';
+import dns from "node:dns";
+
+dns.setDefaultResultOrder("ipv4first");
 
 interface EmailOptions {
     to: string;
