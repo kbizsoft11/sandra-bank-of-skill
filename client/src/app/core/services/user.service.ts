@@ -136,6 +136,25 @@ export class UserService {
 
   }
 
+  setEmployeeStatus(
+    userId: string,
+    isActive: boolean
+  ): Observable<any> {
+    return this.http.patch(
+      `${this.api}/${userId}/status`,
+      { isActive }
+    );
+  }
+
+  impersonateUser(
+    userId: string
+  ): Observable<any> {
+    return this.http.post(
+      `${this.api}/${userId}/impersonate`,
+      {}
+    );
+  }
+
   getEmployeesByCompany(
     companyId: string
   ): Observable<any> {
@@ -153,6 +172,8 @@ export class UserService {
     department?: string;
     page?: number;
     limit?: number;
+    sortKey?: string;
+    sortDirection?: 'asc' | 'desc';
   }): Observable<any> {
 
     let httpParams = new HttpParams();
@@ -174,6 +195,12 @@ export class UserService {
     }
     if (params.limit) {
       httpParams = httpParams.set('limit', params.limit.toString());
+    }
+    if (params.sortKey) {
+      httpParams = httpParams.set('sortKey', params.sortKey);
+    }
+    if (params.sortDirection) {
+      httpParams = httpParams.set('sortDirection', params.sortDirection);
     }
 
     return this.http.get(

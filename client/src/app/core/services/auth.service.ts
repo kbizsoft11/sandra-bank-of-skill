@@ -2,8 +2,11 @@ import {
     Injectable,
     computed,
     inject,
-    signal
+    signal,
+    PLATFORM_ID
 } from '@angular/core';
+
+import { isPlatformBrowser } from '@angular/common';
 
 import { HttpClient } from '@angular/common/http';
 
@@ -48,14 +51,34 @@ export class AuthService {
     readonly needsOnboarding =
         signal<boolean>(false);
 
+    readonly isImpersonationSession =
+        signal<boolean>(false);
+
+    private readonly platformId = inject(PLATFORM_ID);
+
     private isLoadingUser = false;
     private userLoadPromise: Promise<boolean> | null = null;
 
     constructor() {
 
         // Initialize token from storage (check both localStorage and sessionStorage)
-        const storedToken = this.storage.getToken();
-        this.token.set(storedToken);
+        let activeToken: string | null = this.storage.getToken();
+        let impersonationMode = this.storage.useImpersonationToken();
+
+        if (isPlatformBrowser(this.platformId)) {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('impersonation') === 'true') {
+                this.storage.setUseImpersonationToken(true);
+                impersonationMode = true;
+            }
+        }
+
+        if (impersonationMode) {
+            this.isImpersonationSession.set(true);
+            activeToken = this.storage.getImpersonationToken() ?? activeToken;
+        }
+
+        this.token.set(activeToken);
 
         const token = this.token();
         const user = this.user();
@@ -114,16 +137,20 @@ export class AuthService {
 
     }
 
-    setSession(token: string): void {
+    setSession(token: string, rememberMe: boolean = false): void {
 
         this.token.set(
             token
         );
 
-        this.storage.setItem(
-            'accessToken',
-            token
+        this.storage.setToken(
+            token,
+            rememberMe
         );
+
+        // Ensure impersonation mode is disabled for a normal session
+        this.storage.setUseImpersonationToken(false);
+        this.isImpersonationSession.set(false);
 
         // Don't call loadCurrentUser here if it's already loading
         if (!this.isLoadingUser && !this.user()) {
@@ -159,6 +186,42 @@ export class AuthService {
 
             );
 
+    }
+
+    prepareImpersonationSession(token: string, rememberMe: boolean = false): void {
+        this.storage.setImpersonationToken(token, rememberMe);
+    }
+
+    activateImpersonationSession(): void {
+        this.storage.setUseImpersonationToken(true);
+        this.isImpersonationSession.set(true);
+
+        const impersonationToken = this.storage.getImpersonationToken();
+        if (!impersonationToken) {
+            console.warn('👤 [AUTH SERVICE] No impersonation token available to activate');
+            return;
+        }
+
+        this.token.set(impersonationToken);
+        this.user.set(null);
+
+        if (!this.isLoadingUser) {
+            this.loadCurrentUser();
+        }
+    }
+
+    clearImpersonationSession(): void {
+        this.storage.setUseImpersonationToken(false);
+        this.storage.removeImpersonationToken();
+        this.isImpersonationSession.set(false);
+
+        const baseToken = this.storage.getToken();
+        this.token.set(baseToken);
+        this.user.set(null);
+
+        if (!this.isLoadingUser && baseToken) {
+            this.loadCurrentUser();
+        }
     }
 
     private loadCurrentUser(): void {
@@ -224,8 +287,13 @@ export class AuthService {
 
         this.user.set(null);
 
-        // Remove token from both storages
-        this.storage.removeToken();
+        if (this.isImpersonationSession()) {
+            this.storage.removeImpersonationToken();
+            this.storage.setUseImpersonationToken(false);
+            this.isImpersonationSession.set(false);
+        } else {
+            this.storage.removeToken();
+        }
 
     }
 

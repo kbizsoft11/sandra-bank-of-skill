@@ -60,6 +60,8 @@ export const userRepository = {
     tenantId?: string;
     page?: number;
     limit?: number;
+    sortKey?: string;
+    sortDirection?: string;
   }) => {
     const {
       search,
@@ -69,6 +71,8 @@ export const userRepository = {
       tenantId,
       page = 1,
       limit = 20,
+      sortKey,
+      sortDirection,
     } = params;
 
     // Build the aggregation pipeline
@@ -155,6 +159,9 @@ export const userRepository = {
         _id: 1,
         fullName: 1,
         email: 1,
+        role: 1,
+        isActive: 1,
+        accountStatus: 1,
         department: 1,
         location: 1,
         title: 1,
@@ -187,6 +194,13 @@ export const userRepository = {
         },
       },
     });
+
+    // Apply sorting if requested (before pagination)
+    if (sortKey) {
+      const sortStage: any = {};
+      sortStage[sortKey] = sortDirection === 'desc' ? -1 : 1;
+      pipeline.push({ $sort: sortStage });
+    }
 
     // Get total count before pagination
     const countPipeline = [...pipeline, { $count: 'total' }];

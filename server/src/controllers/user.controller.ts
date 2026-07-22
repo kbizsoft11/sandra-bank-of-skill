@@ -28,16 +28,72 @@ export const getAllUsers = asyncHandler(
 export const getUserById = asyncHandler(
   async (req: Request, res: Response) => {
 
-    const user =
-      await userService.getUserById(
-        req.params.id as string
-      );
+    const userRole = (req as any).user?.role;
+    const userTenantId = (req as any).user?.tenantId;
+
+    const user = await userService.getUserById(
+      req.params.id as string,
+      {
+        role: userRole,
+        tenantId: userTenantId,
+      }
+    );
 
     return sendResponse(
       res,
       200,
       'User fetched successfully',
       user
+    );
+
+  }
+);
+
+export const setEmployeeStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const userRole = (req as any).user?.role;
+    const userTenantId = (req as any).user?.tenantId;
+    const isActive = req.body.isActive;
+
+    const user = await userService.setEmployeeActiveStatus(
+      req.params.id as string,
+      isActive,
+      {
+        role: userRole,
+        tenantId: userTenantId,
+      }
+    );
+
+    return sendResponse(
+      res,
+      200,
+      `Employee has been ${isActive ? 'activated' : 'deactivated'} successfully`,
+      user
+    );
+
+  }
+);
+
+export const impersonateEmployee = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const userRole = (req as any).user?.role;
+    const userTenantId = (req as any).user?.tenantId;
+
+    const result = await userService.impersonateUser(
+      req.params.id as string,
+      {
+        role: userRole,
+        tenantId: userTenantId,
+      }
+    );
+
+    return sendResponse(
+      res,
+      200,
+      'Impersonation token generated successfully',
+      result
     );
 
   }
@@ -245,7 +301,7 @@ export const searchEmployees = asyncHandler(
     const userRole = (req as any).user?.role;
     const userTenantId = (req as any).user?.tenantId;
 
-    const { search, skill, category, department, page, limit } = req.query;
+    const { search, skill, category, department, page, limit, sortKey, sortDirection } = req.query;
 
     const result = await userService.searchEmployees({
       search: search as string,
@@ -254,6 +310,8 @@ export const searchEmployees = asyncHandler(
       department: department as string,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
+      sortKey: sortKey as string,
+      sortDirection: sortDirection as string,
       userRole,
       userTenantId,
     });

@@ -1,0 +1,148 @@
+<div class="app-data-table">
+  <!-- Toolbar: search + page size -->
+  @if (searchable || pageSizeOptions.length) {
+    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-2 mb-3">
+      @if (searchable) {
+        <div class="search-box position-relative flex-grow-1" style="max-width: 320px;">
+          <i class="bi bi-search search-icon"></i>
+          <input
+            type="text"
+            class="form-control ps-5"
+            [placeholder]="searchPlaceholder"
+            [ngModel]="searchTerm"
+            (ngModelChange)="onSearchInput($event)"
+            aria-label="Search table"
+          />
+        </div>
+      } @else {
+        <div></div>
+      }
+
+      <div class="d-flex align-items-center gap-2 flex-shrink-0">
+        <label class="text-secondary small mb-0 text-nowrap" for="dtPageSize">Rows per page</label>
+        <select
+          id="dtPageSize"
+          class="form-select form-select-sm page-size-select"
+          [ngModel]="pageSize"
+          (ngModelChange)="onPageSizeChange($event)"
+        >
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size">{{ size }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  }
+
+  <!-- Table -->
+  <div class="table-responsive">
+    <table class="table align-middle mb-0 app-data-table__table">
+      <thead>
+        <tr class="table-light">
+          @for (column of columns; track column.key) {
+            <th
+              class="px-4 py-3 text-uppercase small fw-semibold text-secondary"
+              [class.text-end]="column.align === 'end'"
+              [class.text-center]="column.align === 'center'"
+              [class.sortable]="column.sortable"
+              [style.width]="column.width"
+              [ngClass]="column.hideBelow ? ('d-none d-' + column.hideBelow + '-table-cell') : ''"
+              (click)="onSort(column)"
+            >
+              <span class="d-inline-flex align-items-center gap-1">
+                {{ column.header }}
+                @if (column.sortable) {
+                  <i class="bi small" [ngClass]="sortIconClass(column)"></i>
+                }
+              </span>
+            </th>
+          }
+        </tr>
+      </thead>
+
+      <tbody>
+        @if (loading) {
+          <tr>
+            <td [attr.colspan]="columns.length" class="px-4 py-5 text-center text-secondary">
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Loading...
+            </td>
+          </tr>
+        } @else if (pagedData.length === 0) {
+          <tr>
+            <td [attr.colspan]="columns.length" class="px-4 py-4 text-center text-secondary">
+              {{ emptyMessage }}
+            </td>
+          </tr>
+        } @else {
+          @for (row of pagedData; track trackByFn($index, row)) {
+            <tr [class.cursor-pointer]="rowClickable" (click)="onRowClick(row)">
+              @for (column of columns; track column.key) {
+                <td
+                  class="px-4 py-3"
+                  [class.text-end]="column.align === 'end'"
+                  [class.text-center]="column.align === 'center'"
+                  [ngClass]="column.hideBelow ? ('d-none d-' + column.hideBelow + '-table-cell') : ''"
+                >
+                  @if (getTemplate(column.key)) {
+                    <ng-container
+                      [ngTemplateOutlet]="getTemplate(column.key)"
+                      [ngTemplateOutletContext]="{ $implicit: row, row: row }"
+                    ></ng-container>
+                  } @else {
+                    {{ getValue(row, column.key) }}
+                  }
+                </td>
+              }
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer: record range + pagination -->
+  @if (!loading && totalRecords > 0) {
+    <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 px-1 pt-3">
+      <div class="text-secondary small">
+        Showing <strong>{{ rangeStart }}</strong>–<strong>{{ rangeEnd }}</strong> of <strong>{{ totalRecords }}</strong> records
+      </div>
+
+      <nav aria-label="Table pagination">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <button class="page-link" type="button" (click)="goToPage(1)" [disabled]="currentPage === 1" title="First page" aria-label="First page">
+              <i class="bi bi-chevron-bar-left"></i>
+            </button>
+          </li>
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <button class="page-link" type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1" title="Previous page" aria-label="Previous page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+          </li>
+
+          @for (p of pageNumbers; track $index) {
+            @if (p === 'ellipsis') {
+              <li class="page-item disabled"><span class="page-link border-0">&hellip;</span></li>
+            } @else {
+              <li class="page-item" [class.active]="p === currentPage">
+                <button class="page-link" type="button" (click)="goToPage(p)">{{ p }}</button>
+              </li>
+            }
+          }
+
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <button class="page-link" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages" title="Next page" aria-label="Next page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </li>
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <button class="page-link" type="button" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages" title="Last page" aria-label="Last page">
+              <i class="bi bi-chevron-bar-right"></i>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  }
+</div>

@@ -29,6 +29,13 @@ export const dashboardRoutes: Routes = [
     },
 
     {
+        path: 'users/:id/profile',
+        canActivate: [roleGuard],
+        data: { roles: ['admin', 'company'] },
+        loadComponent: () => import('../features/users/view-user/view-user').then(c => c.ViewUser)
+    },
+
+    {
         path: 'users/create',
         canActivate: [roleGuard],
         data: { roles: ['admin'] },

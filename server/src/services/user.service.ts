@@ -15,7 +15,7 @@ import { AccountStatus } from '../types/common.types';
 import { v4 as uuidv4 } from 'uuid';
 import { env } from '../config/env';
 import { assignOnboardingQuestionnaires } from './onboarding.service';
-import { generateInvitationToken } from '../utils/jwt';
+import { generateInvitationToken, generateToken } from '../utils/jwt';
 
 export const userService = {
 
@@ -58,6 +58,8 @@ export const userService = {
     department?: string;
     page?: number;
     limit?: number;
+    sortKey?: string;
+    sortDirection?: string;
     userRole?: string;
     userTenantId?: string;
   }) => {
@@ -68,6 +70,8 @@ export const userService = {
       department,
       page,
       limit,
+      sortKey,
+      sortDirection,
       userRole,
       userTenantId,
     } = params;
@@ -90,19 +94,112 @@ export const userService = {
       tenantId,
       page,
       limit,
+      sortKey,
+      sortDirection,
     });
   },
 
-  getUserById: async (id: string) => {
+  getUserById: async (id: string, actor?: { role?: string; tenantId?: string; userId?: string }) => {
 
-    const user =
-      await userRepository.findById(id);
+    const user = await userRepository.findById(id);
 
     if (!user) {
       throw new Error('User not found');
     }
 
+    if (actor?.role === 'company') {
+      if (user.role !== 'employee') {
+        throw new Error('Company users can only view employee profiles');
+      }
+      if (user.tenantId !== actor.tenantId) {
+        throw new Error('Unauthorized to access this employee');
+      }
+    }
+
     return user;
+
+  },
+
+  setEmployeeActiveStatus: async (
+    employeeId: string,
+    isActive: boolean,
+    actor: { role?: string; tenantId?: string }
+  ) => {
+    const employee = await userRepository.findById(employeeId);
+
+    if (!employee) {
+      throw new Error('Employee not found');
+    }
+
+    if (employee.role !== 'employee') {
+      throw new Error('User is not an employee');
+    }
+
+    if (actor.role === 'company') {
+      if (!actor.tenantId || employee.tenantId !== actor.tenantId) {
+        throw new Error('Unauthorized to update this employee');
+      }
+    }
+
+    const updatePayload: any = { isActive };
+
+    if (!isActive) {
+      updatePayload.accountStatus = 'inactive';
+    } else if (employee.accountStatus !== 'invited') {
+      updatePayload.accountStatus = 'active';
+    }
+
+    return await userRepository.update(employeeId, updatePayload);
+
+  },
+
+  impersonateUser: async (
+    employeeId: string,
+    actor: { role?: string; tenantId?: string }
+  ) => {
+    const employee = await userRepository.findById(employeeId);
+
+    if (!employee) {
+      throw new Error('Employee not found');
+    }
+
+    if (employee.role !== 'employee') {
+      throw new Error('User is not an employee');
+    }
+
+    if (actor.role === 'company') {
+      if (!actor.tenantId || employee.tenantId !== actor.tenantId) {
+        throw new Error('Unauthorized to impersonate this employee');
+      }
+    }
+
+    if (!employee.isActive) {
+      throw new Error('Cannot impersonate an inactive employee');
+    }
+
+    if (employee.accountStatus === 'invited') {
+      throw new Error('Employee must accept invitation before logging in');
+    }
+
+    const token = generateToken({
+      userId: employee._id.toString(),
+      email: employee.email,
+      role: employee.role,
+      tenantId: employee.tenantId,
+      organisationId: employee.organisationId,
+    });
+
+    return {
+      token,
+      user: {
+        _id: employee._id,
+        fullName: employee.fullName,
+        email: employee.email,
+        role: employee.role,
+        tenantId: employee.tenantId,
+        organisationId: employee.organisationId,
+      },
+    };
 
   },
 

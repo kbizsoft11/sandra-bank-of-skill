@@ -8,6 +8,7 @@ import { allowRoles } from '../middlewares/role.middleware';
 import { validate, validateParams } from '../middlewares/validate.middleware';
 import { validateQuery } from '../middlewares/validate-query.middleware';
 
+import { z } from 'zod';
 import {
     createUserSchema,
     updateUserSchema,
@@ -88,8 +89,26 @@ router.get(
 router.get(
     '/:id',
     authenticate,
+    allowRoles('admin', 'company'),
     validateParams(userIdParamSchema),
     userController.getUserById
+);
+
+router.patch(
+    '/:id/status',
+    authenticate,
+    allowRoles('admin', 'company'),
+    validateParams(userIdParamSchema),
+    validate(z.object({ isActive: z.boolean() })),
+    userController.setEmployeeStatus
+);
+
+router.post(
+    '/:id/impersonate',
+    authenticate,
+    allowRoles('admin', 'company'),
+    validateParams(userIdParamSchema),
+    userController.impersonateEmployee
 );
 
 // Create user - Admin only (can create employees or companies)

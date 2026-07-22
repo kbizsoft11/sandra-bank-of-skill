@@ -6,6 +6,10 @@ import {
 
 import { isPlatformBrowser } from '@angular/common';
 
+const ACCESS_TOKEN_KEY = 'accessToken';
+const IMPERSONATION_TOKEN_KEY = 'impersonationAccessToken';
+const USE_IMPERSONATION_KEY = 'useImpersonationToken';
+
 @Injectable({
     providedIn: 'root'
 })
@@ -94,14 +98,89 @@ export class StorageService {
     getToken(): string | null {
         if (isPlatformBrowser(this.platformId)) {
             // Try localStorage first (Remember Me)
-            const persistentToken = localStorage.getItem('accessToken');
+            const persistentToken = localStorage.getItem(ACCESS_TOKEN_KEY);
             if (persistentToken) {
                 return persistentToken;
             }
             // Fall back to sessionStorage
-            return sessionStorage.getItem('accessToken');
+            return sessionStorage.getItem(ACCESS_TOKEN_KEY);
         }
         return null;
+    }
+
+    /**
+     * Get impersonation token from either localStorage or sessionStorage
+     */
+    getImpersonationToken(): string | null {
+        if (isPlatformBrowser(this.platformId)) {
+            const persistentToken = localStorage.getItem(IMPERSONATION_TOKEN_KEY);
+            if (persistentToken) {
+                return persistentToken;
+            }
+            return sessionStorage.getItem(IMPERSONATION_TOKEN_KEY);
+        }
+        return null;
+    }
+
+    /**
+     * Store impersonation token based on Remember Me preference
+     *
+     * The impersonation token must be available to a new browser tab,
+     * so it is stored in localStorage and optionally mirrored into sessionStorage.
+     */
+    setImpersonationToken(token: string, rememberMe: boolean): void {
+        if (isPlatformBrowser(this.platformId)) {
+            localStorage.setItem(IMPERSONATION_TOKEN_KEY, token);
+
+            if (rememberMe) {
+                sessionStorage.removeItem(IMPERSONATION_TOKEN_KEY);
+            } else {
+                sessionStorage.setItem(IMPERSONATION_TOKEN_KEY, token);
+            }
+        }
+    }
+
+    /**
+     * Remove impersonation token from both storages
+     */
+    removeImpersonationToken(): void {
+        if (isPlatformBrowser(this.platformId)) {
+            localStorage.removeItem(IMPERSONATION_TOKEN_KEY);
+            sessionStorage.removeItem(IMPERSONATION_TOKEN_KEY);
+        }
+    }
+
+    /**
+     * Return whether the current tab should use the impersonation token
+     */
+    useImpersonationToken(): boolean {
+        if (isPlatformBrowser(this.platformId)) {
+            return sessionStorage.getItem(USE_IMPERSONATION_KEY) === 'true';
+        }
+        return false;
+    }
+
+    /**
+     * Mark the current tab to use impersonation token or normal token
+     */
+    setUseImpersonationToken(useImpersonation: boolean): void {
+        if (isPlatformBrowser(this.platformId)) {
+            if (useImpersonation) {
+                sessionStorage.setItem(USE_IMPERSONATION_KEY, 'true');
+            } else {
+                sessionStorage.removeItem(USE_IMPERSONATION_KEY);
+            }
+        }
+    }
+
+    /**
+     * Get the currently active token for this tab
+     */
+    getActiveToken(): string | null {
+        if (this.useImpersonationToken()) {
+            return this.getImpersonationToken() ?? this.getToken();
+        }
+        return this.getToken();
     }
 
     /**
@@ -111,14 +190,14 @@ export class StorageService {
         if (isPlatformBrowser(this.platformId)) {
             if (rememberMe) {
                 // Persistent storage
-                localStorage.setItem('accessToken', token);
+                localStorage.setItem(ACCESS_TOKEN_KEY, token);
                 // Clear from session storage if it exists
-                sessionStorage.removeItem('accessToken');
+                sessionStorage.removeItem(ACCESS_TOKEN_KEY);
             } else {
                 // Session-based storage
-                sessionStorage.setItem('accessToken', token);
+                sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
                 // Clear from localStorage if it exists
-                localStorage.removeItem('accessToken');
+                localStorage.removeItem(ACCESS_TOKEN_KEY);
             }
         }
     }
@@ -128,8 +207,8 @@ export class StorageService {
      */
     removeToken(): void {
         if (isPlatformBrowser(this.platformId)) {
-            localStorage.removeItem('accessToken');
-            sessionStorage.removeItem('accessToken');
+            localStorage.removeItem(ACCESS_TOKEN_KEY);
+            sessionStorage.removeItem(ACCESS_TOKEN_KEY);
         }
     }
 }

@@ -61,108 +61,107 @@
     </div>
   }
 
-  <div class="table-responsive">
-    <table class="table align-middle mb-0">
-      <thead>
-        <tr class="table-light">
-          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">Name</th>
+  <div class="px-3 px-sm-4 py-3">
+    <app-data-table
+      [columns]="columns"
+      [data]="users()"
+      [serverSide]="auth.role() === 'company'"
+      [totalItems]="totalItems"
+      [loading]="isLoading()"
+      [searchable]="true"
+      searchPlaceholder="Search by name or email..."
+      [emptyMessage]="isViewingCompanyEmployees() ? 'No employees found for this company.' : ('No ' + (isViewingCompanies() ? 'companies' : 'users') + ' found.')"
+      [rowClickable]="isViewingCompanies()"
+      (rowClick)="viewCompanyEmployees($event)"
+      (searchChange)="onSearch($event)"
+      (sortChange)="onSort($event)"
+      (pageChange)="onPage($event)"
+      (pageSizeChange)="onPageSize($event)"
+    >
+      <!-- Name: avatar + full name -->
+      <ng-template appTableCol="fullName" let-user>
+        <div class="d-flex align-items-center gap-3">
+          <div
+            class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-semibold user-avatar"
+          >
+            {{ user.fullName?.charAt(0)?.toUpperCase() || '?' }}
+          </div>
+          <p class="fw-medium mb-0 text-dark">{{ user.fullName }}</p>
+        </div>
+      </ng-template>
 
-          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">Email</th>
+      <!-- Role badge -->
+      <ng-template appTableCol="role" let-user>
+        <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-2 fw-medium">
+          {{ user.role }}
+        </span>
+      </ng-template>
 
-          @if (!isViewingCompanies()) {
-            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">Role</th>
+      <!-- Status badge -->
+      <ng-template appTableCol="accountStatus" let-user>
+        <span class="badge rounded-pill px-3 py-2 fw-medium" [ngClass]="getStatusBadgeClass(user.accountStatus)">
+          {{ getStatusText(user.accountStatus) }}
+        </span>
+      </ng-template>
 
-            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">Status</th>
-          }
-
-          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">Actions</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        @if (displayedUsers().length === 0) {
-          <tr>
-            <td
-              [attr.colspan]="isViewingCompanies() ? 3 : 5"
-              class="px-4 py-4 text-center text-secondary"
-            >
-              @if (isViewingCompanyEmployees()) {
-                No employees found for this company.
-              } @else {
-                No {{ isViewingCompanies() ? 'companies' : 'users' }} found.
-              }
-            </td>
-          </tr>
+      <!-- Actions -->
+      <ng-template appTableCol="actions" let-user>
+        @if (isViewingCompanies()) {
+          <div class="d-flex justify-content-end">
+            <button (click)="viewCompanyEmployees(user); $event.stopPropagation()" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
+              <i class="bi bi-people-fill"></i>
+              <span>View Employees</span>
+            </button>
+          </div>
         } @else {
-          @for (user of displayedUsers(); track user._id) {
-            <tr
-              [class.cursor-pointer]="isViewingCompanies()"
-              (click)="isViewingCompanies() ? viewCompanyEmployees(user) : null"
+          <div class="d-flex align-items-center justify-content-end gap-2 action-cell">
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-primary action-btn"
+              (click)="viewUserProfile(user)"
+              title="View profile"
+              aria-label="View profile"
             >
-              <td class="px-4 py-3">
-                <div class="d-flex align-items-center gap-3">
-                  <div
-                    class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-semibold"
-                    style="width: 40px; height: 40px"
-                  >
-                    {{ user.fullName?.charAt(0) || user.fullName?.charAt(0) }}
-                  </div>
+              <i class="bi bi-person-lines-fill"></i>
+              <span class="d-none d-xl-inline">Profile</span>
+            </button>
 
-                  <div>
-                    <p class="fw-medium mb-0 text-dark">
-                      {{ user.fullName }}
-                    </p>
-                  </div>
-                </div>
-              </td>
+            @if (user.role === 'employee') {
+              <div class="dropdown">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary action-menu-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  title="More actions"
+                  aria-label="More actions"
+                >
+                  <i class="bi bi-three-dots"></i>
+                </button>
 
-              <td class="px-4 py-3 text-secondary">
-                {{ user.email }}
-              </td>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                  <li>
+                    <button type="button" class="dropdown-item d-flex align-items-center gap-2" (click)="toggleEmployeeStatus(user)">
+                      <i class="bi" [ngClass]="user.isActive ? 'bi-person-x-fill text-danger' : 'bi-person-check-fill text-success'"></i>
+                      <span>{{ user.isActive ? 'Deactivate' : 'Activate' }}</span>
+                    </button>
+                  </li>
 
-              @if (!isViewingCompanies()) {
-                <td class="px-4 py-3">
-                  <span
-                    class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-2 fw-medium"
-                  >
-                    {{ user.role }}
-                  </span>
-                </td>
-
-                <td class="px-4 py-3">
-                  <span
-                    class="badge rounded-pill px-3 py-2 fw-medium"
-                    [ngClass]="getStatusBadgeClass(user.accountStatus)"
-                  >
-                    {{ getStatusText(user.accountStatus) }}
-                  </span>
-                </td>
-              }
-
-          <td class="px-4 py-3">
-            @if (isViewingCompanies()) {
-              <button (click)="viewCompanyEmployees(user); $event.stopPropagation()" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                <i class="bi bi-people-fill"></i>
-                <span>View Employees</span>
-              </button>
-            } @else {
-              <div class="d-flex gap-2">
-                @if (auth.role() === 'company' && activeTab() === 'joined') {
-                  <button (click)="viewUserSkills(user)" class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1">
-                    <i class="bi bi-lightbulb-fill"></i>
-                    <span>Skills</span>
-                  </button>
-                }
+                  @if (user.isActive && user.accountStatus !== 'invited') {
+                    <li>
+                      <button type="button" class="dropdown-item d-flex align-items-center gap-2" (click)="loginAsEmployee(user)">
+                        <i class="bi bi-box-arrow-in-right text-success"></i>
+                        <span>Login as</span>
+                      </button>
+                    </li>
+                  }
+                </ul>
               </div>
             }
-          </td>
-
-        </tr>
-
+          </div>
         }
-        }
-      </tbody>
-    </table>
+      </ng-template>
+    </app-data-table>
   </div>
 </div>
 

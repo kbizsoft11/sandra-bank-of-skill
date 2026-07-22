@@ -1,0 +1,73 @@
+<div class="container py-4">
+  <div *ngIf="isLoading()" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-3">Loading employee profile...</p>
+  </div>
+
+  <div *ngIf="!isLoading() && errorMessage()" class="alert alert-danger">
+    {{ errorMessage() }}
+  </div>
+
+  <div *ngIf="!isLoading() && user()" class="card shadow-sm border-0">
+    <div class="card-body">
+      <div class="d-flex flex-column flex-md-row align-items-center gap-4">
+        <div class="profile-avatar rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center" [style.width.px]="120" [style.height.px]="120">
+          <img *ngIf="profileImage" [src]="profileImage" class="rounded-circle" [alt]="user()?.fullName" />
+          <span *ngIf="!profileImage" class="fs-1 text-primary fw-semibold">
+            {{ user()?.fullName?.charAt(0)?.toUpperCase() || 'U' }}
+          </span>
+        </div>
+
+        <div class="flex-grow-1">
+          <h2 class="h4 mb-1">{{ user()?.fullName }}</h2>
+          <p class="text-muted mb-2">{{ user()?.title || user()?.role }}</p>
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="badge bg-primary bg-opacity-10 text-primary">{{ employeeStatus }}</span>
+            <span class="badge" [ngClass]="isActive ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'">
+              {{ isActive ? 'Active' : 'Inactive' }}
+            </span>
+            <span *ngIf="user()?.department" class="badge bg-info bg-opacity-10 text-info">{{ user()?.department }}</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="my-4" />
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <div class="mb-3">
+            <label class="form-label text-muted">Email</label>
+            <p class="mb-0">{{ user()?.email }}</p>
+          </div>
+          <div class="mb-3" *ngIf="user()?.location">
+            <label class="form-label text-muted">Location</label>
+            <p class="mb-0">{{ user()?.location }}</p>
+          </div>
+          <div class="mb-3" *ngIf="user()?.department">
+            <label class="form-label text-muted">Department</label>
+            <p class="mb-0">{{ user()?.department }}</p>
+          </div>
+          <div class="mb-3" *ngIf="user()?.designationId">
+            <label class="form-label text-muted">Designation</label>
+            <p class="mb-0">{{ user()?.designationId }}</p>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <div class="mb-3">
+            <label class="form-label text-muted">About</label>
+            <p class="mb-0">{{ user()?.bio || 'No description available.' }}</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted">Skills</label>
+            <p class="mb-0">{{ getSkillsText(user()) }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <a [routerLink]="[baseUrl, 'users']" class="btn btn-outline-secondary btn-sm">Back to employees</a>
+      </div>
+    </div>
+  </div>
+</div>

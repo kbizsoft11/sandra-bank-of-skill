@@ -204,4 +204,14 @@ export const searchEmployeesQuerySchema = z.object({
         .optional()
         .default(20),
 
+    sortKey: z
+        .string()
+        .optional()
+        .describe('Key to sort by'),
+
+    sortDirection: z
+        .enum(['asc', 'desc'])
+        .optional()
+        .describe('Sort direction'),
+
 });
