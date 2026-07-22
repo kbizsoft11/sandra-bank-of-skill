@@ -198,9 +198,10 @@ export const impersonateEmployee = asyncHandler(
 
     const userRole = (req as any).user?.role;
     const userTenantId = (req as any).user?.tenantId;
+    const employeeId = req.params.id as string;
 
     const result = await userService.impersonateUser(
-      req.params.id as string,
+      employeeId,
       {
         role: userRole,
         tenantId: userTenantId,
@@ -360,6 +361,7 @@ export const impersonateUser = asyncHandler(
     const adminId = (req as any).user?.userId;
     const userRole = (req as any).user?.role;
     const userId = req.params.id as string;
+    const userTenantId = (req as any).user?.tenantId;
 
     // Admin can impersonate any user, so we pass role info
     const result = await userService.impersonateUser(userId, {
