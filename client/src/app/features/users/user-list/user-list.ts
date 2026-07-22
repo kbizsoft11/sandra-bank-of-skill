@@ -6,11 +6,11 @@ import { UserService } from '../../../core/services/user.service';
 import { RoleService, Role } from '../../../core/services/role.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AlertService } from '../../../core/services/alert.service';
-import { TableActions } from '../../../shared/components/table-actions/table-actions';
 import { Router, RouterLink } from '@angular/router';
 import { DataTableComponent } from '../../../shared/data-table/data-table.component';
 import { TableColDirective } from '../../../shared/data-table/table-col.directive';
 import { TableColumn } from '../../../shared/data-table/table-column.model';
+import { TableActions } from '../../../shared/components/table-actions/table-actions';
 
 @Component({
   selector: 'app-user-list',

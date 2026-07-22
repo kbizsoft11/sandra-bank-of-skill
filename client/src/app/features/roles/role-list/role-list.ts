@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RoleService, Role } from '../../../core/services/role.service';
 import { AlertService } from '../../../core/services/alert.service';
@@ -9,7 +9,7 @@ import { AuthService } from '../../../core/services/auth.service';
 @Component({
   selector: 'app-role-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './role-list.html',
   styleUrl: './role-list.scss'
 })

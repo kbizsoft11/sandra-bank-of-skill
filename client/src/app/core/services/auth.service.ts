@@ -338,6 +338,20 @@ export class AuthService {
     }
 
     /**
+     * Get current authentication state (useful for debugging)
+     */
+    getCurrentAuthState() {
+        return {
+            isAuthenticated: this.isAuthenticated(),
+            token: this.token(),
+            user: this.user(),
+            role: this.role(),
+            dashboardPath: this.getRoleDashboardPath(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    /**
      * Set whether the user needs to complete onboarding
      */
     setNeedsOnboarding(needs: boolean): void {

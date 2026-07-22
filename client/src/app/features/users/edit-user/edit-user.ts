@@ -15,8 +15,7 @@ import { CommonModule } from '@angular/common';
 
 import {
   ActivatedRoute,
-  Router,
-  RouterLink
+  Router
 } from '@angular/router';
 
 import { finalize } from 'rxjs';
@@ -30,8 +29,7 @@ import { AlertService } from '../../../core/services/alert.service';
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule,
-    RouterLink
+    ReactiveFormsModule
   ],
   templateUrl: './edit-user.html'
 })

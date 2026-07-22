@@ -1,24 +1,29 @@
 import { Routes } from '@angular/router';
 import { stepRedirectorGuard } from '../core/guards/step-rememberer.guard';
+import { guestGuard } from '../core/guards/guest.guard';
 
 export const authRoutes: Routes = [
     {
         path: 'welcome',
+        canActivate: [guestGuard],
         loadComponent: () => import('../features/auth/welcome/welcome').then(c => c.Welcome)
     },
 
     {
         path: 'get-started',
+        canActivate: [guestGuard],
         loadComponent: () => import('../features/auth/get-started/get-started').then(c => c.GetStarted)
     },
 
     {
         path: 'how-to-join',
+        canActivate: [guestGuard],
         loadComponent: () => import('../features/auth/how-to-join/how-to-join').then(c => c.HowToJoin)
     },
 
     {
         path: 'login',
+        canActivate: [guestGuard],
         loadComponent: () => import('../features/auth/login/login').then(c => c.Login)
     },
 

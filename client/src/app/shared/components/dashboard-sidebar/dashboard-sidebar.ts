@@ -121,6 +121,18 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       roles: ['admin', 'company', 'employee'],
     },
     {
+      label: 'Companies',
+      path: 'companies',
+      icon: 'bi bi-building-fill',
+      roles: ['admin'],
+    },
+    {
+      label: 'All Users',
+      path: 'users-admin',
+      icon: 'bi bi-people-fill',
+      roles: ['admin'],
+    },
+    {
       label: 'Users',
       path: 'users',
       icon: 'bi bi-people-fill',
@@ -185,6 +197,12 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       path: 'my-skills',
       icon: 'bi bi-lightbulb-fill',
       roles: ['employee'], // Only employees can manage their own skills
+    },
+    {
+      label: 'System Settings',
+      path: 'system-settings',
+      icon: 'bi bi-sliders',
+      roles: ['admin'],
     },
     // {
     //   label: 'Opportunities',

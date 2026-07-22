@@ -1,0 +1,161 @@
+.nav-tabs {
+  .nav-link {
+    color: #6c757d;
+    border: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+
+    &:hover {
+      color: #0d6efd;
+      background-color: #f8f9fa;
+    }
+
+    &.active {
+      color: #0d6efd;
+      background-color: transparent;
+      border-bottom-color: #0d6efd;
+    }
+
+    i {
+      transition: transform 0.3s ease;
+    }
+
+    &:hover i {
+      transform: rotate(10deg);
+    }
+  }
+}
+
+.form-label {
+  color: #212529;
+  margin-bottom: 0.5rem;
+
+  &::after {
+    content: '*';
+    color: #dc3545;
+    margin-left: 0.25rem;
+  }
+}
+
+.form-control,
+.form-select {
+  border-color: #dee2e6;
+  transition: all 0.3s ease;
+
+  &:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+
+  &.is-invalid {
+    border-color: #dc3545;
+
+    &:focus {
+      box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+    }
+  }
+}
+
+.input-group-text {
+  border-color: #dee2e6;
+  background-color: #f8f9fa;
+  color: #6c757d;
+}
+
+.img-thumbnail {
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  padding: 0.25rem;
+  object-fit: cover;
+}
+
+.btn {
+  transition: all 0.3s ease;
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+
+  i {
+    transition: transform 0.3s ease;
+  }
+
+  &:not(:disabled):hover i {
+    transform: translateX(2px);
+  }
+}
+
+.invalid-feedback {
+  display: block;
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.alert {
+  border: none;
+  border-left: 4px solid;
+
+  &.alert-info {
+    border-left-color: #0dcaf0;
+    background-color: #cfe2ff;
+    color: #084298;
+
+    i {
+      color: #084298;
+    }
+  }
+}
+
+.card {
+  border: none;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .card-header {
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #dee2e6;
+
+    h5 {
+      color: #212529;
+    }
+  }
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+@media (max-width: 768px) {
+  .nav-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    .nav-link {
+      padding: 0.75rem 1rem !important;
+      white-space: nowrap;
+    }
+  }
+
+  .btn {
+    width: 100%;
+
+    &.btn-lg {
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+    }
+  }
+
+  .d-flex.gap-2 {
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,46 @@
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 1rem !important;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .btn {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .container-fluid {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  .card-body {
+    padding: 0.75rem;
+  }
+
+  img.rounded-circle {
+    width: 120px !important;
+    height: 120px !important;
+  }
+
+  .d-flex {
+    flex-direction: column;
+
+    &.justify-content-between {
+      gap: 1rem;
+    }
+  }
+
+  button,
+  a.btn {
+    width: 100%;
+  }
+}

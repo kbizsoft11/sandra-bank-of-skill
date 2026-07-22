@@ -12,6 +12,7 @@ import { allowRoles } from '../middlewares/role.middleware';
 import waitlistRouter from './waitlist.route';
 import companySkillCategoryRoutes from './company-skill-category.route';
 import organisationRouter from './organisation.routes';
+import systemSettingsRouter from './system-settings.routes';
 
 const router = Router();
 
@@ -29,6 +30,7 @@ router.use('/dashboard', authenticate, dashboardRoutes);
 router.use('/skill-categories', authenticate, skillCategoryRoutes);
 router.use('/company-skill-categories', authenticate, companySkillCategoryRoutes);
 router.use('/organisations', authenticate, organisationRouter);
+router.use('/admin/system-settings', authenticate, systemSettingsRouter);
 router.use("/skills", authenticate, skillRoutes);
 router.use("/questionnaires", authenticate, questionnaireRoutes);
 router.use("/roles", roleRoutes);

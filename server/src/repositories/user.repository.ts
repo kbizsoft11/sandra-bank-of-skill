@@ -377,4 +377,76 @@ export const userRepository = {
 
     return employees;
   },
+
+  /**
+   * Get all users with pagination, search, filter, and sort
+   */
+  getAllUsersWithPagination: async (params: {
+    page: number;
+    limit: number;
+    search?: string;
+    role?: string;
+    status?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) => {
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      role,
+      status,
+      sortBy = 'fullName',
+      sortOrder = 'asc'
+    } = params;
+
+    // Build filter
+    const filter: any = {};
+
+    // Search by name or email
+    if (search) {
+      filter.$or = [
+        { fullName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    // Filter by role
+    if (role) {
+      filter.role = role;
+    }
+
+    // Filter by account status
+    if (status) {
+      filter.accountStatus = status;
+    }
+
+    // Calculate skip
+    const skip = (page - 1) * limit;
+
+    // Build sort object
+    const sortObj: any = {};
+    sortObj[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    // Get total count
+    const total = await UserModel.countDocuments(filter);
+
+    // Get users with pagination and sort
+    const users = await UserModel
+      .find(filter)
+      .select('-password')
+      .sort(sortObj)
+      .skip(skip)
+      .limit(limit);
+
+    return {
+      users,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  },
 };

@@ -1,0 +1,235 @@
+<div class="container-fluid py-4">
+  <!-- Header -->
+  <div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1 class="h3 fw-semibold mb-1">Edit User</h1>
+        <p class="text-secondary mb-0">Update user information</p>
+      </div>
+      <a routerLink="/admin/users" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>
+        Back to Users
+      </a>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="card shadow-sm">
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-secondary">Loading user details...</p>
+      </div>
+    </div>
+  } @else if (error()) {
+    <!-- Error State -->
+    <div class="card border-danger shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-exclamation-circle" style="font-size: 3rem; color: #dc3545;"></i>
+        <p class="mt-3 text-danger">{{ error() }}</p>
+        <a routerLink="/admin/users" class="btn btn-outline-danger btn-sm mt-2">
+          Back to Users
+        </a>
+      </div>
+    </div>
+  } @else if (form() && user()) {
+    <!-- Edit Form -->
+    <div class="row">
+      <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <form [formGroup]="form()!" (ngSubmit)="onSubmit()">
+              <!-- Contact Information Section -->
+              <div class="mb-4">
+                <h5 class="fw-semibold mb-3">
+                  <i class="bi bi-person me-2"></i>
+                  Contact Information
+                </h5>
+
+                <!-- Full Name -->
+                <div class="mb-3">
+                  <label for="fullName" class="form-label">Full Name <span class="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="fullName"
+                    formControlName="fullName"
+                    placeholder="Enter full name"
+                    [class.is-invalid]="hasError('fullName')" />
+                  @if (hasError('fullName')) {
+                    <div class="invalid-feedback d-block">
+                      {{ getErrorMessage('fullName') }}
+                    </div>
+                  }
+                </div>
+
+                <!-- Email -->
+                <div class="mb-3">
+                  <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="email"
+                    formControlName="email"
+                    placeholder="Enter email address"
+                    [class.is-invalid]="hasError('email')" />
+                  @if (hasError('email')) {
+                    <div class="invalid-feedback d-block">
+                      {{ getErrorMessage('email') }}
+                    </div>
+                  }
+                </div>
+
+                <!-- Phone -->
+                <div class="mb-3">
+                  <label for="phone" class="form-label">Phone</label>
+                  <input
+                    type="tel"
+                    class="form-control"
+                    id="phone"
+                    formControlName="phone"
+                    placeholder="Enter phone number"
+                    [class.is-invalid]="hasError('phone')" />
+                  @if (hasError('phone')) {
+                    <div class="invalid-feedback d-block">
+                      {{ getErrorMessage('phone') }}
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <hr class="my-4" />
+
+              <!-- Organization Information Section -->
+              <div class="mb-4">
+                <h5 class="fw-semibold mb-3">
+                  <i class="bi bi-building me-2"></i>
+                  Organization Information
+                </h5>
+
+                <!-- Role -->
+                <div class="mb-3">
+                  <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
+                  <select
+                    class="form-select"
+                    id="role"
+                    formControlName="role"
+                    [class.is-invalid]="hasError('role')">
+                    <option value="">Select a role</option>
+                    @for (role of roles; track role) {
+                      <option [value]="role">{{ getRoleLabel(role) }}</option>
+                    }
+                  </select>
+                  @if (hasError('role')) {
+                    <div class="invalid-feedback d-block">
+                      {{ getErrorMessage('role') }}
+                    </div>
+                  }
+                </div>
+
+                <!-- Department -->
+                <div class="mb-3">
+                  <label for="department" class="form-label">Department</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="department"
+                    formControlName="department"
+                    placeholder="Enter department" />
+                </div>
+
+                <!-- Title -->
+                <div class="mb-3">
+                  <label for="title" class="form-label">Title</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="title"
+                    formControlName="title"
+                    placeholder="Enter job title" />
+                </div>
+
+                <!-- Location -->
+                <div class="mb-3">
+                  <label for="location" class="form-label">Location</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="location"
+                    formControlName="location"
+                    placeholder="Enter location" />
+                </div>
+              </div>
+
+              <hr class="my-4" />
+
+              <!-- Account Status Section -->
+              <div class="mb-4">
+                <h5 class="fw-semibold mb-3">
+                  <i class="bi bi-shield-check me-2"></i>
+                  Account Status
+                </h5>
+
+                <!-- Account Status -->
+                <div class="mb-3">
+                  <label for="accountStatus" class="form-label">Status <span class="text-danger">*</span></label>
+                  <select
+                    class="form-select"
+                    id="accountStatus"
+                    formControlName="accountStatus"
+                    [class.is-invalid]="hasError('accountStatus')">
+                    <option value="">Select a status</option>
+                    @for (status of statuses; track status) {
+                      <option [value]="status">{{ getStatusLabel(status) }}</option>
+                    }
+                  </select>
+                  @if (hasError('accountStatus')) {
+                    <div class="invalid-feedback d-block">
+                      {{ getErrorMessage('accountStatus') }}
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <hr class="my-4" />
+
+              <!-- Form Actions -->
+              <div class="d-flex gap-2">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="submitting() || !form()!.valid">
+                  @if (submitting()) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Saving...
+                  } @else {
+                    <i class="bi bi-check-circle me-2"></i>
+                    Save Changes
+                  }
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  (click)="onCancel()"
+                  [disabled]="submitting()">
+                  <i class="bi bi-x-circle me-2"></i>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Empty State -->
+    <div class="card shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+        <p class="mt-3 text-secondary">No user data available</p>
+      </div>
+    </div>
+  }
+</div>

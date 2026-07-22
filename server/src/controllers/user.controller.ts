@@ -11,9 +11,39 @@ export const getAllUsers = asyncHandler(
 
     const userRole = (req as any).user?.role;
     const userTenantId = (req as any).user?.tenantId;
+
+    // Extract query parameters
+    const { 
+      page = 1, 
+      limit = 20, 
+      search, 
+      company, 
+      role, 
+      status,
+      sortBy = 'fullName',
+      sortOrder = 'asc'
+    } = req.query;
+
+    // For admin users, return all users from all organizations
+    if (userRole !== 'admin') {
+      return sendResponse(
+        res,
+        403,
+        'Only admin users can access all users',
+        []
+      );
+    }
     
     const users =
-      await userService.getAllUsers(userRole, userTenantId);
+      await userService.getAllUsersWithPagination({
+        page: Number(page),
+        limit: Number(limit),
+        search: search as string,
+        role: role as string,
+        status: status as string,
+        sortBy: sortBy as string,
+        sortOrder: (sortOrder as string) === 'desc' ? 'desc' : 'asc'
+      });
 
     return sendResponse(
       res,
@@ -197,6 +227,58 @@ export const resetPassword = asyncHandler(
       res,
       200,
       result.message
+    );
+
+  }
+);
+
+export const activateUser = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const user = await userService.activateUser(
+      req.params.id as string
+    );
+
+    return sendResponse(
+      res,
+      200,
+      'User activated successfully',
+      user
+    );
+
+  }
+);
+
+export const deactivateUser = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const user = await userService.deactivateUser(
+      req.params.id as string
+    );
+
+    return sendResponse(
+      res,
+      200,
+      'User deactivated successfully',
+      user
+    );
+
+  }
+);
+
+export const impersonateUser = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const adminId = (req as any).user?.userId;
+    const userId = req.params.id as string;
+
+    const result = await userService.impersonateUser(adminId, userId);
+
+    return sendResponse(
+      res,
+      200,
+      'Impersonation token generated successfully',
+      result
     );
 
   }

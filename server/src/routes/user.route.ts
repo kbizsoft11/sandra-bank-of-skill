@@ -164,4 +164,28 @@ router.post(
     userController.resetPassword
 );
 
+router.post(
+    '/:id/activate',
+    authenticate,
+    allowRoles('admin'),
+    validateParams(userIdParamSchema),
+    userController.activateUser
+);
+
+router.post(
+    '/:id/deactivate',
+    authenticate,
+    allowRoles('admin'),
+    validateParams(userIdParamSchema),
+    userController.deactivateUser
+);
+
+router.post(
+    '/:id/impersonate',
+    authenticate,
+    allowRoles('admin'),
+    validateParams(userIdParamSchema),
+    userController.impersonateUser
+);
+
 export default router;

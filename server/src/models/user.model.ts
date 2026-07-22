@@ -99,7 +99,7 @@ const UserSchema = new Schema<IUser>(
 
         accountStatus: {
             type: String,
-            enum: ['invited', 'joined', 'active', 'inactive'],
+            enum: ['invited', 'joined', 'active', 'inactive', 'suspended'],
             default: 'active',
         },
 

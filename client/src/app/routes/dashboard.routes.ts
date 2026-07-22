@@ -13,7 +13,58 @@ export const dashboardRoutes: Routes = [
         loadComponent: () => import('../features/profile/profile').then(c => c.Profile)
     },
 
-    // Admin and Company routes - User management
+    // Admin routes - User management
+    {
+        path: 'users-admin',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-users/admin-users-list/admin-users-list').then(c => c.AdminUsersList)
+    },
+
+    {
+        path: 'users-admin/:id',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-users/view-user/view-user').then(c => c.ViewUserComponent)
+    },
+
+    {
+        path: 'users-admin/:id/edit',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-users/edit-user/edit-user').then(c => c.EditUserComponent)
+    },
+
+    // Admin routes - Company management
+    {
+        path: 'companies',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-companies/admin-companies-list').then(c => c.AdminCompaniesList)
+    },
+
+    {
+        path: 'companies/:id',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-companies/company-details').then(c => c.CompanyDetails)
+    },
+
+    {
+        path: 'organisation/:organisationId/employees',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-companies/organisation-employees').then(c => c.OrganisationEmployees)
+    },
+
+    {
+        path: 'employee/:employeeId/skills',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-companies/employee-skills').then(c => c.EmployeeSkills)
+    },
+
+    // Deprecated: Old Users routes kept for backward compatibility
     {
         path: 'users',
         canActivate: [roleGuard],
@@ -249,5 +300,13 @@ export const dashboardRoutes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['admin'] },
         loadComponent: () => import('../features/placeholder/placeholder').then(c => c.PlaceholderComponent)
+    },
+
+    // System Settings (Admin only)
+    {
+        path: 'system-settings',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/system-settings/system-settings').then(c => c.SystemSettingsComponent)
     },
 ];

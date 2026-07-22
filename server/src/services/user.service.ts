@@ -35,6 +35,39 @@ export const userService = {
 
   },
 
+  /**
+   * Get all users with pagination, search, filter, and sort
+   */
+  getAllUsersWithPagination: async (params: {
+    page: number;
+    limit: number;
+    search?: string;
+    role?: string;
+    status?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) => {
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      role,
+      status,
+      sortBy = 'fullName',
+      sortOrder = 'asc'
+    } = params;
+
+    return await userRepository.getAllUsersWithPagination({
+      page,
+      limit,
+      search,
+      role,
+      status,
+      sortBy,
+      sortOrder
+    });
+  },
+
   getEmployeesByCompany: async (companyId: string) => {
     // Get company user to find tenantId
     const company = await userRepository.findById(companyId);
@@ -577,6 +610,90 @@ export const userService = {
     }
 
     return await userRepository.getEmployeesBySkill(skillName, userTenantId);
+  },
+
+  /**
+   * Activate a user
+   */
+  activateUser: async (userId: string) => {
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const updatedUser = await userRepository.update(userId, {
+      isActive: true,
+      accountStatus: AccountStatus.ACTIVE,
+    });
+
+    return updatedUser;
+  },
+
+  /**
+   * Deactivate a user
+   */
+  deactivateUser: async (userId: string) => {
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const updatedUser = await userRepository.update(userId, {
+      isActive: false,
+      accountStatus: AccountStatus.SUSPENDED,
+    });
+
+    return updatedUser;
+  },
+
+  /**
+   * Impersonate a user (admin only)
+   */
+  impersonateUser: async (adminId: string, userId: string) => {
+    // Verify admin exists and is actually admin
+    const admin = await userRepository.findById(adminId);
+
+    if (!admin || admin.role !== 'admin') {
+      throw new Error('Only admin users can impersonate other users');
+    }
+
+    // Get the user to impersonate
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Import here to avoid circular dependency
+    const { generateToken } = require('../utils/jwt');
+
+    // Generate an impersonation token with short expiry (2 hours)
+    const impersonateToken = generateToken(
+      {
+        userId: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        tenantId: user.tenantId,
+        isImpersonated: true,
+        impersonatedBy: adminId,
+      },
+      {
+        expiresIn: '2h',
+      }
+    );
+
+    return {
+      token: impersonateToken,
+      user: {
+        userId: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+      },
+    };
   },
 
 };

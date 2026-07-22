@@ -1,0 +1,123 @@
+<div class="container-fluid py-4">
+
+  <!-- Header with Back Button -->
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <button (click)="goBack()" class="btn btn-light d-inline-flex align-items-center gap-2">
+      <i class="bi bi-arrow-left"></i>
+      Back to Companies
+    </button>
+    <div>
+      <h1 class="h3 fw-semibold mb-1">Employee Skills</h1>
+      <p class="text-secondary mb-0">View skills assigned to this employee</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="card shadow-sm">
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-secondary">Loading employee skills...</p>
+      </div>
+    </div>
+  } @else if (error()) {
+    <!-- Error State -->
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-circle-fill me-2"></i>
+      {{ error() }}
+      <button type="button" class="btn-close" (click)="error.set(null)"></button>
+    </div>
+  } @else if (skills().length === 0) {
+    <!-- Empty State -->
+    <div class="card shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+        <p class="mt-3 text-secondary">No skills found for this employee</p>
+      </div>
+    </div>
+  } @else {
+    <!-- Skills Table -->
+    <div class="card shadow-sm">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0 table-sm">
+          <thead class="table-light">
+            <tr>
+              <th class="px-2 px-md-4 py-3">Skill</th>
+              <th class="px-2 px-md-4 py-3 d-none d-lg-table-cell">Category</th>
+              <th class="px-2 px-md-4 py-3">Level</th>
+              <th class="px-2 px-md-4 py-3 d-none d-md-table-cell">Score</th>
+              <th class="px-2 px-md-4 py-3 d-none d-lg-table-cell">Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (skill of skills(); track skill._id) {
+              <tr>
+                <!-- Skill Name -->
+                <td class="px-2 px-md-4 py-3">
+                  <p class="fw-medium mb-0 text-dark text-truncate">{{ skill.skill_name }}</p>
+                </td>
+
+                <!-- Category (hidden on mobile) -->
+                <td class="px-2 px-md-4 py-3 d-none d-lg-table-cell">
+                  @if (skill.category?.cat_name) {
+                    <span class="badge bg-info-subtle text-info-emphasis px-2 px-md-3 py-1 text-truncate">
+                      {{ skill.category.cat_name }}
+                    </span>
+                  } @else {
+                    <span class="text-muted small">N/A</span>
+                  }
+                </td>
+
+                <!-- Proficiency Level -->
+                <td class="px-2 px-md-4 py-3">
+                  <span 
+                    class="badge rounded-pill px-2 px-md-3 py-1 fw-medium text-nowrap"
+                    [ngClass]="getProficiencyBadgeClass(skill.skill_level)">
+                    {{ skill.skill_level || 'Not Set' }}
+                  </span>
+                </td>
+
+                <!-- Skill Score (hidden on mobile) -->
+                <td class="px-2 px-md-4 py-3 d-none d-md-table-cell">
+                  @if (skill.skill_score) {
+                    <div class="progress" style="height: 20px; min-width: 60px;">
+                      <div 
+                        class="progress-bar bg-success"
+                        role="progressbar"
+                        [style.width.%]="(skill.skill_score / 100) * 100"
+                        [attr.aria-valuenow]="skill.skill_score"
+                        aria-valuemin="0"
+                        aria-valuemax="100">
+                        <span class="text-white fw-bold" style="font-size: 0.7rem;">{{ skill.skill_score }}%</span>
+                      </div>
+                    </div>
+                  } @else {
+                    <span class="text-muted small">N/A</span>
+                  }
+                </td>
+
+                <!-- Last Updated (hidden on mobile) -->
+                <td class="px-2 px-md-4 py-3 d-none d-lg-table-cell">
+                  <small class="text-secondary text-nowrap">{{ formatDate(skill.created_at) }}</small>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="alert alert-info d-flex align-items-center gap-2" role="alert">
+          <i class="bi bi-info-circle-fill"></i>
+          <span>Showing all {{ skills().length }} skill(s) assigned to this employee. This view is read-only.</span>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
