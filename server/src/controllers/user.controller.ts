@@ -140,9 +140,10 @@ export const impersonateEmployee = asyncHandler(
 
     const userRole = (req as any).user?.role;
     const userTenantId = (req as any).user?.tenantId;
+    const employeeId = req.params.id as string;
 
     const result = await userService.impersonateUser(
-      req.params.id as string,
+      employeeId,
       {
         role: userRole,
         tenantId: userTenantId,
@@ -299,10 +300,17 @@ export const deactivateUser = asyncHandler(
 export const impersonateUser = asyncHandler(
   async (req: Request, res: Response) => {
 
-    const adminId = (req as any).user?.userId;
     const userId = req.params.id as string;
+    const userRole = (req as any).user?.role;
+    const userTenantId = (req as any).user?.tenantId;
 
-    const result = await userService.impersonateUser(adminId, userId);
+    const result = await userService.impersonateUser(
+      userId,
+      {
+        role: userRole,
+        tenantId: userTenantId,
+      }
+    );
 
     return sendResponse(
       res,
