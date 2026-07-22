@@ -13,6 +13,8 @@ import {
   getOrganisationEmployees,
   getEmployeeSkills,
   updateCompanyStatus,
+  createCompany,
+  updateCompany,
 } from '../controllers/organisation.controller';
 import { z } from 'zod';
 
@@ -103,6 +105,23 @@ router.put(
   validateParams(idParamSchema),
   validate(statusUpdateSchema),
   updateCompanyStatus
+);
+
+// POST /admin/companies - Create a new company
+router.post(
+  '/admin/companies',
+  authenticate,
+  allowRoles('admin'),
+  createCompany
+);
+
+// PUT /admin/companies/:companyId - Update company details
+router.put(
+  '/admin/companies/:companyId',
+  authenticate,
+  allowRoles('admin'),
+  validateParams(idParamSchema),
+  updateCompany
 );
 
 export default router;

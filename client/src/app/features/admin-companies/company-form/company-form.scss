@@ -1,0 +1,637 @@
+// ============================================
+// COMPANY FORM COMPONENT STYLES
+// ============================================
+
+// Colors
+$primary: #0d6efd;
+$success: #198754;
+$danger: #dc3545;
+$warning: #ffc107;
+$info: #0dcaf0;
+$light: #f8f9fa;
+$border-color: #dee2e6;
+$text-muted: #6c757d;
+
+// ============================================
+// CONTAINER & LAYOUT
+// ============================================
+
+.company-form-container {
+  background-color: #f5f7fa;
+  padding: 2rem 0;
+  min-height: 100vh;
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3rem;
+  padding: 0 1rem;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  .page-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #212529;
+    margin: 0;
+  }
+
+  .page-subtitle {
+    font-size: 0.95rem;
+    color: $text-muted;
+    margin: 0.25rem 0 0 0;
+  }
+}
+
+.btn-circle-back {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background-color: #fff;
+  border: 1px solid $border-color;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: $light;
+    border-color: $primary;
+    color: $primary;
+  }
+
+  i {
+    font-size: 1.2rem;
+  }
+}
+
+// ============================================
+// CARD STYLES
+// ============================================
+
+.loading-card,
+.form-card {
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+
+  &:hover {
+    box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.1);
+  }
+}
+
+.form-card {
+  .card-body {
+    padding: 2.5rem;
+  }
+}
+
+// ============================================
+// FORM SECTIONS
+// ============================================
+
+.company-form {
+  .form-section {
+    margin-bottom: 3rem;
+
+    &:not(:last-of-type) {
+      padding-bottom: 2rem;
+      border-bottom: 1px solid $border-color;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+
+      .section-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 3rem;
+        height: 3rem;
+        background-color: rgba($primary, 0.1);
+        border-radius: 0.75rem;
+        margin-right: 1.5rem;
+        flex-shrink: 0;
+
+        i {
+          font-size: 1.5rem;
+          color: $primary;
+        }
+      }
+
+      .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #212529;
+        margin: 0;
+      }
+
+      .section-subtitle {
+        font-size: 0.9rem;
+        color: $text-muted;
+        margin: 0.5rem 0 0 0;
+      }
+    }
+
+    .section-content {
+      margin-left: 0;
+    }
+  }
+}
+
+// ============================================
+// FORM LABELS & BADGES
+// ============================================
+
+.form-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: #212529;
+  margin-bottom: 0.75rem;
+
+  .label-text {
+    flex: 1;
+  }
+
+  .badge-required,
+  .badge-optional {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 0.5rem;
+  }
+
+  .badge-required {
+    background-color: rgba($danger, 0.1);
+    color: $danger;
+  }
+
+  .badge-optional {
+    background-color: rgba($text-muted, 0.1);
+    color: $text-muted;
+  }
+}
+
+// ============================================
+// FORM INPUTS & CONTROLS
+// ============================================
+
+.form-input,
+.form-control,
+.form-select {
+  transition: all 0.3s ease;
+  border: 1px solid $border-color;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+
+  &:focus {
+    border-color: $primary;
+    background-color: #fff;
+    box-shadow: 0 0 0 0.25rem rgba($primary, 0.15);
+  }
+
+  &.is-invalid {
+    border-color: $danger;
+    background-image: none;
+
+    &:focus {
+      border-color: $danger;
+      box-shadow: 0 0 0 0.25rem rgba($danger, 0.15);
+    }
+  }
+
+  &.is-valid {
+    border-color: $success;
+    background-image: none;
+
+    &:focus {
+      border-color: $success;
+      box-shadow: 0 0 0 0.25rem rgba($success, 0.15);
+    }
+  }
+}
+
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+textarea.form-input,
+textarea.form-control {
+  resize: vertical;
+  min-height: 5rem;
+}
+
+// ============================================
+// PASSWORD INPUT GROUP
+// ============================================
+
+.password-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .password-input {
+    padding-right: 3rem;
+  }
+
+  .btn-password-toggle {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: $text-muted;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+
+    &:hover {
+      color: $primary;
+    }
+
+    i {
+      font-size: 1.2rem;
+    }
+  }
+}
+
+// ============================================
+// STATUS CARD & TOGGLE SWITCH
+// ============================================
+
+.status-card {
+  background: linear-gradient(135deg, rgba($primary, 0.05) 0%, rgba($success, 0.05) 100%);
+  border: 1px solid rgba($primary, 0.2);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+
+  .status-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    gap: 2rem;
+
+    p {
+      margin: 0;
+    }
+
+    .status-label {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #212529;
+    }
+
+    .status-description {
+      font-size: 0.9rem;
+      color: $text-muted;
+      margin-top: 0.25rem;
+    }
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+
+    .badge {
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .bg-success-subtle {
+      background-color: rgba($success, 0.1);
+      color: darken($success, 20%);
+    }
+
+    .bg-danger-subtle {
+      background-color: rgba($danger, 0.1);
+      color: darken($danger, 20%);
+    }
+  }
+}
+
+// ============================================
+// CUSTOM TOGGLE SWITCH
+// ============================================
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 3.5rem;
+  height: 2rem;
+  cursor: pointer;
+
+  .toggle-input {
+    display: none;
+
+    &:checked + .toggle-slider {
+      background-color: $success;
+
+      &::before {
+        transform: translateX(1.5rem);
+      }
+    }
+  }
+
+  .toggle-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: $border-color;
+    transition: all 0.4s ease;
+    border-radius: 2rem;
+
+    &::before {
+      content: '';
+      position: absolute;
+      width: 1.6rem;
+      height: 1.6rem;
+      background-color: #fff;
+      border-radius: 50%;
+      top: 0.2rem;
+      left: 0.2rem;
+      transition: all 0.4s ease;
+      box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+// ============================================
+// FORM ACTIONS
+// ============================================
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid $border-color;
+
+  .btn-lg {
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    font-size: 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    i {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+// ============================================
+// ERROR MESSAGES
+// ============================================
+
+.invalid-feedback {
+  display: block;
+  font-size: 0.85rem;
+  color: $danger;
+  margin-top: 0.5rem;
+  animation: slideDown 0.3s ease;
+
+  i {
+    font-size: 0.9rem;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ============================================
+// ALERT STYLES
+// ============================================
+
+.alert {
+  border-radius: 0.75rem;
+  border: none;
+  padding: 1.25rem 1.5rem;
+  font-size: 0.95rem;
+
+  &.alert-danger {
+    background-color: rgba($danger, 0.1);
+    color: darken($danger, 15%);
+
+    .btn-close {
+      opacity: 0.7;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// ============================================
+// SPINNER
+// ============================================
+
+.spinner-border {
+  width: 1.5rem;
+  height: 1.5rem;
+
+  &.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+// ============================================
+// RESPONSIVE DESIGN
+// ============================================
+
+@media (max-width: 768px) {
+  .company-form-container {
+    padding: 1rem 0;
+  }
+
+  .form-header {
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+
+    .header-content {
+      width: 100%;
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+    }
+  }
+
+  .form-card {
+    .card-body {
+      padding: 1.5rem;
+    }
+  }
+
+  .form-section {
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+
+      .section-icon {
+        margin-right: 0;
+        margin-bottom: 1rem;
+      }
+    }
+  }
+
+  .status-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+
+    .status-content {
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    .status-badge {
+      width: 100%;
+    }
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+
+    .btn-lg {
+      width: 100%;
+    }
+  }
+
+  .form-label {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .badge-required,
+    .badge-optional {
+      margin-left: 0;
+      margin-top: 0.5rem;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .company-form-container {
+    padding: 1rem 0;
+  }
+
+  .form-header {
+    padding: 0 0.75rem;
+
+    .page-title {
+      font-size: 1.25rem;
+    }
+
+    .page-subtitle {
+      font-size: 0.85rem;
+    }
+  }
+
+  .form-card {
+    margin: 0 0.5rem;
+
+    .card-body {
+      padding: 1.25rem;
+    }
+  }
+
+  .status-card {
+    padding: 1.5rem;
+  }
+
+  .password-input-group {
+    .btn-password-toggle {
+      right: 0.75rem;
+    }
+  }
+
+  .toggle-switch {
+    width: 3rem;
+    height: 1.75rem;
+
+    .toggle-input:checked + .toggle-slider {
+      &::before {
+        transform: translateX(1.25rem);
+      }
+    }
+
+    .toggle-slider {
+      &::before {
+        width: 1.3rem;
+        height: 1.3rem;
+        top: 0.225rem;
+        left: 0.225rem;
+      }
+    }
+  }
+}
+
+// ============================================
+// UTILITIES
+// ============================================
+
+.row.g-3 > [class*='col-'] {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}

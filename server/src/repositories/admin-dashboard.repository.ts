@@ -74,51 +74,117 @@ export const getAdminOverviewStats = async () => {
 
 /**
  * Get admin dashboard chart data
+ * If year is provided without month: return monthly data for that year
+ * If both year and month are provided: return daily data for that month
  */
 export const getAdminChartData = async (month?: number, year?: number) => {
-  // Companies growth (monthly data)
-  const companiesGrowth = await UserModel.aggregate([
-    {
-      $match: { role: 'company' },
-    },
-    {
-      $group: {
-        _id: {
-          year: { $year: '$createdAt' },
-          month: { $month: '$createdAt' },
-        },
-        count: { $sum: 1 },
-      },
-    },
-    {
-      $sort: { '_id.year': 1, '_id.month': 1 },
-    },
-    {
-      $limit: 12,
-    },
-  ]);
+  let companiesGrowth;
+  let employeesGrowth;
 
-  // Employees growth (monthly data)
-  const employeesGrowth = await UserModel.aggregate([
-    {
-      $match: { role: 'employee' },
-    },
-    {
-      $group: {
-        _id: {
-          year: { $year: '$createdAt' },
-          month: { $month: '$createdAt' },
+  const currentYear = new Date().getFullYear();
+  const targetYear = year || currentYear;
+
+  if (month) {
+    // Daily data for the selected month and year
+    companiesGrowth = await UserModel.aggregate([
+      {
+        $match: {
+          role: 'company',
+          createdAt: {
+            $gte: new Date(targetYear, month - 1, 1),
+            $lt: new Date(targetYear, month, 1),
+          },
         },
-        count: { $sum: 1 },
       },
-    },
-    {
-      $sort: { '_id.year': 1, '_id.month': 1 },
-    },
-    {
-      $limit: 12,
-    },
-  ]);
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+            day: { $dayOfMonth: '$createdAt' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { '_id.day': 1 },
+      },
+    ]);
+
+    employeesGrowth = await UserModel.aggregate([
+      {
+        $match: {
+          role: 'employee',
+          createdAt: {
+            $gte: new Date(targetYear, month - 1, 1),
+            $lt: new Date(targetYear, month, 1),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+            day: { $dayOfMonth: '$createdAt' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { '_id.day': 1 },
+      },
+    ]);
+  } else {
+    // Monthly data for the selected year
+    companiesGrowth = await UserModel.aggregate([
+      {
+        $match: {
+          role: 'company',
+          createdAt: {
+            $gte: new Date(targetYear, 0, 1),
+            $lt: new Date(targetYear + 1, 0, 1),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { '_id.month': 1 },
+      },
+    ]);
+
+    employeesGrowth = await UserModel.aggregate([
+      {
+        $match: {
+          role: 'employee',
+          createdAt: {
+            $gte: new Date(targetYear, 0, 1),
+            $lt: new Date(targetYear + 1, 0, 1),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { '_id.month': 1 },
+      },
+    ]);
+  }
 
   // Skills distribution by category
   const skillsDistribution = await Skill.aggregate([

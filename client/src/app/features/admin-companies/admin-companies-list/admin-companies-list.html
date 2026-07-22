@@ -6,6 +6,11 @@
       <h1 class="h3 fw-semibold mb-1">Companies</h1>
       <p class="text-secondary mb-0">Manage all organizations</p>
     </div>
+    <a 
+      routerLink="/admin/companies/create"
+      class="btn btn-primary">
+      <i class="bi bi-plus-circle me-2"></i>Create Company
+    </a>
   </div>
 
   <!-- Search and Filters -->
@@ -135,21 +140,37 @@
 
                 <!-- Actions -->
                 <td class="px-2 px-md-4 py-3">
-                  <div class="d-flex gap-1 gap-md-2 justify-content-center flex-wrap">
+                  <div class="d-flex gap-2 justify-content-center flex-wrap">
+                    <!-- Edit Button -->
+                    <a 
+                      [routerLink]="['/admin/companies', company._id, 'edit']"
+                      class="btn btn-sm btn-outline-info icon-btn"
+                      title="Edit Company"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top">
+                      <i class="bi bi-pencil-fill"></i>
+                    </a>
+                    
+                    <!-- View Button -->
                     <a 
                       [routerLink]="['/admin/companies', company._id]"
-                      class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 text-nowrap">
-                      <i class="bi bi-eye-fill d-none d-md-inline"></i>
-                      <span class="d-md-none">View</span>
-                      <span class="d-none d-md-inline">View</span>
+                      class="btn btn-sm btn-outline-primary icon-btn"
+                      title="View Details"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top">
+                      <i class="bi bi-eye-fill"></i>
                     </a>
+                    
+                    <!-- Toggle Status Button -->
                     <button 
+                      type="button"
                       (click)="toggleCompanyStatus(company)"
                       [class]="company.isActive ? 'btn btn-sm btn-outline-danger' : 'btn btn-sm btn-outline-success'"
-                      class="d-inline-flex align-items-center gap-1 text-nowrap">
-                      <i [class]="company.isActive ? 'bi bi-lock d-none d-md-inline' : 'bi bi-unlock d-none d-md-inline'"></i>
-                      <span class="d-md-none">{{ company.isActive ? 'Off' : 'On' }}</span>
-                      <span class="d-none d-md-inline">{{ company.isActive ? 'Deactivate' : 'Activate' }}</span>
+                      [title]="company.isActive ? 'Deactivate Company' : 'Activate Company'"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      class="icon-btn">
+                      <i [class]="company.isActive ? 'bi bi-lock-fill' : 'bi bi-unlock-fill'"></i>
                     </button>
                   </div>
                 </td>

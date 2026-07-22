@@ -160,7 +160,13 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       label: 'Global Search',
       path: 'employee-search',
       icon: 'bi bi-search',
-      roles: ['admin', 'company'],
+      roles: ['company'],
+    },
+    {
+      label: 'Global Search',
+      path: 'admin-global-search',
+      icon: 'bi bi-search',
+      roles: ['admin'],
     },
     {
       label: 'Skill Categories',

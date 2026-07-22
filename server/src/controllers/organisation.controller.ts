@@ -211,3 +211,39 @@ export const updateCompanyStatus = asyncHandler(
     );
   }
 );
+
+/**
+ * Create a new company
+ * Admin only
+ */
+export const createCompany = asyncHandler(
+  async (req: Request, res: Response) => {
+    const company = await organisationService.createCompany(req.body);
+
+    return sendResponse(
+      res,
+      201,
+      'Company created successfully',
+      company
+    );
+  }
+);
+
+/**
+ * Update company details
+ * Admin only
+ */
+export const updateCompany = asyncHandler(
+  async (req: Request, res: Response) => {
+    const companyId = req.params.companyId as string;
+
+    const company = await organisationService.updateCompany(companyId, req.body);
+
+    return sendResponse(
+      res,
+      200,
+      'Company updated successfully',
+      company
+    );
+  }
+);

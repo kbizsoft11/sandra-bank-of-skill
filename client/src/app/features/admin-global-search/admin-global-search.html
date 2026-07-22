@@ -1,0 +1,304 @@
+<div class="admin-global-search">
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="text-muted mt-3">Searching...</p>
+    </div>
+  } @else {
+    <div class="container-fluid">
+      <!-- Dashboard Summary Cards -->
+      @if (dashboardSummary()) {
+        <div class="row mb-4">
+          <div class="col-lg-4 col-md-6 col-sm-6 mb-3">
+            <div class="card shadow-sm h-100 text-center border-0">
+              <div class="card-body">
+                <i class="bi bi-building-fill text-primary fs-3 mb-2"></i>
+                <p class="text-muted small mb-1">Total Companies</p>
+                <h4 class="fw-bold">{{ dashboardSummary()!.totalCompanies }}</h4>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6 col-sm-6 mb-3">
+            <div class="card shadow-sm h-100 text-center border-0">
+              <div class="card-body">
+                <i class="bi bi-people-fill text-success fs-3 mb-2"></i>
+                <p class="text-muted small mb-1">Total Employees</p>
+                <h4 class="fw-bold">{{ dashboardSummary()!.totalEmployees }}</h4>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6 col-sm-6 mb-3">
+            <div class="card shadow-sm h-100 text-center border-0">
+              <div class="card-body">
+                <i class="bi bi-people-fill text-info fs-3 mb-2"></i>
+                <p class="text-muted small mb-1">Total Users</p>
+                <h4 class="fw-bold">{{ dashboardSummary()!.totalUsers }}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Search Filters Card -->
+      <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-light border-bottom">
+          <h5 class="mb-0 fw-semibold">
+            <i class="bi bi-funnel me-2"></i>Advanced Search Filters
+          </h5>
+        </div>
+        <div class="card-body">
+          <!-- Row 1: Search and Entity Filter -->
+          <div class="row mb-3">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Search</label>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Search by name, email, company, skill..."
+                [(ngModel)]="searchText"
+                (keyup.enter)="performSearch()"
+              />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Entity Type</label>
+              <select class="form-select" [(ngModel)]="selectedEntity">
+                @for (option of entityOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 2: Status and Sort -->
+          <div class="row mb-3">
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold">Status</label>
+              <select class="form-select" [(ngModel)]="selectedStatus">
+                @for (option of statusOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold">Sort By</label>
+              <select class="form-select" [(ngModel)]="sortBy">
+                @for (option of sortOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold">Order</label>
+              <select class="form-select" [(ngModel)]="sortOrder">
+                <option value="desc">Newest First</option>
+                <option value="asc">Oldest First</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 3: Date Range -->
+          <div class="row mb-3">
+            <div class="col-md-5 mb-3">
+              <label class="form-label fw-semibold">Start Date</label>
+              <input type="date" class="form-control" [(ngModel)]="startDate" />
+            </div>
+            <div class="col-md-5 mb-3">
+              <label class="form-label fw-semibold">End Date</label>
+              <input type="date" class="form-control" [(ngModel)]="endDate" />
+            </div>
+            <div class="col-md-2 mb-3">
+              <label class="form-label fw-semibold">&nbsp;</label>
+              <button
+                type="button"
+                class="btn btn-outline-secondary w-100"
+                data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Presets
+              </button>
+              <ul class="dropdown-menu w-100">
+                @for (preset of dateRangePresets; track preset.label) {
+                  <li>
+                    <button type="button" class="dropdown-item" (click)="applyDatePreset(preset)">
+                      {{ preset.label }}
+                    </button>
+                  </li>
+                }
+              </ul>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="row">
+            <div class="col-12">
+              <button type="button" class="btn btn-primary me-2" (click)="performSearch()">
+                <i class="bi bi-search me-2"></i>Search
+              </button>
+              <button type="button" class="btn btn-outline-secondary" (click)="clearFilters()">
+                <i class="bi bi-arrow-counterclockwise me-2"></i>Clear Filters
+              </button>
+              <span class="ms-3 text-muted">
+                @if (hasSearched()) {
+                  Found <strong>{{ resultCount() }}</strong> result(s)
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Results -->
+      @if (hasSearched()) {
+        <!-- Companies Results -->
+        @if ((displayResults()).companies && (displayResults()).companies!.length > 0) {
+          <div class="card shadow-sm mb-4 border-0">
+            <div class="card-header bg-light border-bottom">
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-building-fill me-2"></i>Companies
+                <span class="badge bg-primary ms-2">{{ (displayResults()).companies!.length }}</span>
+              </h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="ps-4">Company Name</th>
+                      <th>Email</th>
+                      <th>Status</th>
+                      <th class="pe-4">Created Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (company of (displayResults()).companies; track company._id) {
+                      <tr>
+                        <td class="fw-semibold ps-4">{{ company.fullName }}</td>
+                        <td>{{ company.email }}</td>
+                        <td>
+                          <span [ngClass]="'badge ' + getStatusBadgeClass(company.accountStatus)">
+                            {{ company.accountStatus }}
+                          </span>
+                        </td>
+                        <td class="pe-4">{{ formatDate(company.createdAt) }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Employees Results -->
+        @if ((displayResults()).employees && (displayResults()).employees!.length > 0) {
+          <div class="card shadow-sm mb-4 border-0">
+            <div class="card-header bg-light border-bottom">
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-people-fill me-2"></i>Employees
+                <span class="badge bg-success ms-2">{{ (displayResults()).employees!.length }}</span>
+              </h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="ps-4">Employee Name</th>
+                      <th>Email</th>
+                      <th>Company</th>
+                      <th>Department</th>
+                      <th>Skills</th>
+                      <th class="pe-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (employee of (displayResults()).employees; track employee._id) {
+                      <tr>
+                        <td class="fw-semibold ps-4">{{ employee.fullName }}</td>
+                        <td>{{ employee.email }}</td>
+                        <td>{{ employee['organisation.organisationName'] || 'N/A' }}</td>
+                        <td>{{ employee.department || 'N/A' }}</td>
+                        <td>
+                          <span class="badge bg-info">{{ employee.skillCount }} skills</span>
+                        </td>
+                        <td class="pe-4">
+                          <span [ngClass]="'badge ' + getStatusBadgeClass(employee.accountStatus)">
+                            {{ employee.accountStatus }}
+                          </span>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- No Results Message -->
+        @if (
+          (!((displayResults()).companies?.length) &&
+            !((displayResults()).employees?.length))
+        ) {
+          <div class="alert alert-info text-center" role="alert">
+            <i class="bi bi-info-circle me-2"></i>No results found. Try adjusting your filters.
+          </div>
+        }
+
+        <!-- Pagination -->
+        @if (pagination().totalPages > 1) {
+          <div class="card shadow-sm border-0">
+            <div class="card-body">
+              <nav aria-label="Page navigation">
+                <ul class="pagination mb-0 justify-content-center">
+                  <li class="page-item" [class.disabled]="currentPage() <= 1">
+                    <button type="button" class="page-link" (click)="previousPage()" [disabled]="currentPage() <= 1">
+                      Previous
+                    </button>
+                  </li>
+
+                  @for (page of [pagination().page]; track page) {
+                    @if (page > 2) {
+                      <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                      </li>
+                    }
+                  }
+
+                  @for (page of Array(Math.min(5, pagination().totalPages)).fill(1).map((_, i) => i + 1); track page) {
+                    <li class="page-item" [class.active]="currentPage() === page">
+                      <button type="button" class="page-link" (click)="goToPage(page)">
+                        {{ page }}
+                      </button>
+                    </li>
+                  }
+
+                  @if (pagination().totalPages > 5) {
+                    <li class="page-item disabled">
+                      <span class="page-link">...</span>
+                    </li>
+                  }
+
+                  <li class="page-item" [class.disabled]="currentPage() >= pagination().totalPages">
+                    <button
+                      type="button"
+                      class="page-link"
+                      (click)="nextPage()"
+                      [disabled]="currentPage() >= pagination().totalPages">
+                      Next
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+              <div class="text-center text-muted small mt-2">
+                Page {{ currentPage() }} of {{ pagination().totalPages }} | Total: {{ pagination().total }} results
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

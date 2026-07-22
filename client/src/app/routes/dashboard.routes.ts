@@ -23,6 +23,20 @@ export const dashboardRoutes: Routes = [
     },
 
     {
+        path: 'companies/create',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-companies/create-company/create-company').then(c => c.CreateCompany)
+    },
+
+    {
+        path: 'companies/:id/edit',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-companies/edit-company/edit-company').then(c => c.EditCompany)
+    },
+
+    {
         path: 'companies/:id',
         canActivate: [roleGuard],
         data: { roles: ['admin'] },
@@ -270,6 +284,14 @@ export const dashboardRoutes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['admin', 'company'] },
         loadComponent: () => import('../features/employee-search/employee-search').then(c => c.EmployeeSearch)
+    },
+
+    // Admin Global Search (Admin only)
+    {
+        path: 'admin-global-search',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-global-search/admin-global-search').then(c => c.AdminGlobalSearchComponent)
     },
 
     // Opportunities (Employee and Company)

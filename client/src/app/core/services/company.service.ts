@@ -140,4 +140,26 @@ export class CompanyService {
       `${this.api}/${id}`
     );
   }
+
+  /**
+   * Create a new company
+   * Admin only
+   */
+  createCompany(payload: any): Observable<any> {
+    return this.http.post(
+      `${this.api}/admin/companies`,
+      payload
+    );
+  }
+
+  /**
+   * Update company details
+   * Admin only
+   */
+  updateCompany(companyId: string, payload: any): Observable<any> {
+    return this.http.put(
+      `${this.api}/admin/companies/${companyId}`,
+      payload
+    );
+  }
 }

@@ -35,9 +35,10 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   private companiesChart: Chart | null = null;
   private employeesChart: Chart | null = null;
 
-  // Month filter
-  readonly selectedMonth = signal<number>(new Date().getMonth() + 1);
+  // Month filter (0 = all months)
+  readonly selectedMonth = signal<number>(0);
   readonly selectedYear = signal<number>(new Date().getFullYear());
+  readonly viewType = signal<'yearly' | 'monthly'>('yearly');
 
   readonly availableMonths = signal<{ label: string; value: number }[]>(
     this.generateMonths()
@@ -175,11 +176,43 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       this.companiesChart.destroy();
     }
 
-    // Format data for chart
-    const labels = growthData.map(item =>
-      this.formatMonthYear(item._id.year, item._id.month)
-    );
-    const counts = growthData.map(item => item.count);
+    // Format data for chart based on view type
+    let labels: string[] = [];
+    let counts: number[] = [];
+    let isDaily = this.viewType() === 'monthly';
+
+    if (isDaily) {
+      // Day-wise data
+      const daysInMonth = new Date(this.selectedYear(), this.selectedMonth(), 0).getDate();
+      const dataMap: { [key: number]: number } = {};
+
+      growthData.forEach(item => {
+        dataMap[item._id.day] = item.count;
+      });
+
+      // Fill all days in the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        labels.push(`Day ${day}`);
+        counts.push(dataMap[day] || 0);
+      }
+    } else {
+      // Monthly data
+      const monthNames = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      ];
+
+      // Fill all months
+      const dataMap: { [key: number]: number } = {};
+      growthData.forEach(item => {
+        dataMap[item._id.month] = item.count;
+      });
+
+      for (let month = 1; month <= 12; month++) {
+        labels.push(monthNames[month - 1]);
+        counts.push(dataMap[month] || 0);
+      }
+    }
 
     const config: ChartConfiguration = {
       type: 'line',
@@ -190,24 +223,50 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
             label: 'Companies Created',
             data: counts,
             borderColor: '#0d6efd',
-            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            backgroundColor: 'rgba(13, 110, 253, 0.05)',
+            borderWidth: 3,
             tension: 0.4,
             fill: true,
             pointBackgroundColor: '#0d6efd',
             pointBorderColor: '#fff',
             pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointHoverBorderWidth: 3,
+            cubicInterpolationMode: 'monotone',
+            segment: {
+              borderColor: (ctx: any) => {
+                if (ctx.p0DataIndex === ctx.p1DataIndex - 1) {
+                  return '#0d6efd';
+                }
+                return '#0d6efd';
+              },
+            },
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
         plugins: {
           legend: {
             display: true,
             position: 'top',
+            labels: {
+              usePointStyle: true,
+              padding: 15,
+              font: {
+                size: 12,
+                weight: 'bold',
+              },
+            },
+          },
+          filler: {
+            propagate: true,
           },
         },
         scales: {
@@ -215,10 +274,26 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
             beginAtZero: true,
             ticks: {
               stepSize: 1,
+              font: {
+                size: 11,
+              },
+            },
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)',
+            },
+          },
+          x: {
+            grid: {
+              display: false,
+            },
+            ticks: {
+              font: {
+                size: 11,
+              },
             },
           },
         },
-      },
+      } as any,
     };
 
     this.companiesChart = new Chart(canvas, config);
@@ -234,11 +309,43 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       this.employeesChart.destroy();
     }
 
-    // Format data for chart
-    const labels = growthData.map(item =>
-      this.formatMonthYear(item._id.year, item._id.month)
-    );
-    const counts = growthData.map(item => item.count);
+    // Format data for chart based on view type
+    let labels: string[] = [];
+    let counts: number[] = [];
+    let isDaily = this.viewType() === 'monthly';
+
+    if (isDaily) {
+      // Day-wise data
+      const daysInMonth = new Date(this.selectedYear(), this.selectedMonth(), 0).getDate();
+      const dataMap: { [key: number]: number } = {};
+
+      growthData.forEach(item => {
+        dataMap[item._id.day] = item.count;
+      });
+
+      // Fill all days in the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        labels.push(`Day ${day}`);
+        counts.push(dataMap[day] || 0);
+      }
+    } else {
+      // Monthly data
+      const monthNames = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      ];
+
+      // Fill all months
+      const dataMap: { [key: number]: number } = {};
+      growthData.forEach(item => {
+        dataMap[item._id.month] = item.count;
+      });
+
+      for (let month = 1; month <= 12; month++) {
+        labels.push(monthNames[month - 1]);
+        counts.push(dataMap[month] || 0);
+      }
+    }
 
     const config: ChartConfiguration = {
       type: 'line',
@@ -249,24 +356,42 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
             label: 'Employees Added',
             data: counts,
             borderColor: '#198754',
-            backgroundColor: 'rgba(25, 135, 84, 0.1)',
+            backgroundColor: 'rgba(25, 135, 84, 0.05)',
+            borderWidth: 3,
             tension: 0.4,
             fill: true,
             pointBackgroundColor: '#198754',
             pointBorderColor: '#fff',
             pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointHoverBorderWidth: 3,
+            cubicInterpolationMode: 'monotone',
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
         plugins: {
           legend: {
             display: true,
             position: 'top',
+            labels: {
+              usePointStyle: true,
+              padding: 15,
+              font: {
+                size: 12,
+                weight: 'bold',
+              },
+            },
+          },
+          filler: {
+            propagate: true,
           },
         },
         scales: {
@@ -274,10 +399,26 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
             beginAtZero: true,
             ticks: {
               stepSize: 1,
+              font: {
+                size: 11,
+              },
+            },
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)',
+            },
+          },
+          x: {
+            grid: {
+              display: false,
+            },
+            ticks: {
+              font: {
+                size: 11,
+              },
             },
           },
         },
-      },
+      } as any,
     };
 
     this.employeesChart = new Chart(canvas, config);
@@ -303,7 +444,25 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     this.loadDashboardData();
   }
 
+  onViewTypeChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.viewType.set(select.value as 'yearly' | 'monthly');
+    
+    // Reset month when switching to yearly view
+    if (select.value === 'yearly') {
+      this.selectedMonth.set(0);
+    } else {
+      // Set to first month when switching to monthly view
+      this.selectedMonth.set(1);
+    }
+    
+    this.loadDashboardData();
+  }
+
   getCurrentMonthYear(): string {
+    if (this.selectedMonth() === 0) {
+      return `Year ${this.selectedYear()}`;
+    }
     const monthNames = [
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December',

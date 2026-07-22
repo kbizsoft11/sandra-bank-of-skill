@@ -4,6 +4,8 @@ import { Types } from 'mongoose';
 import { UserModel } from '../models/user.model';
 import { Organisation } from '../models/organisation.model';
 import { Skill } from '../models/skill.model';
+import { AccountStatus } from '../types/common.types';
+import { hashPassword } from '../utils/password';
 
 export const organisationService = {
   /**
@@ -327,7 +329,7 @@ export const organisationService = {
       companyId,
       {
         isActive,
-        accountStatus: isActive ? 'active' : 'inactive',
+        accountStatus: isActive ? AccountStatus.ACTIVE : AccountStatus.JOINED,
       },
       { new: true }
     ).select('-password');
@@ -337,5 +339,138 @@ export const organisationService = {
     }
 
     return company;
+  },
+
+  /**
+   * Create a new company
+   */
+  createCompany: async (payload: any) => {
+    try {
+      // Extract company-specific fields
+      const {
+        fullName,
+        email,
+        password,
+        description,
+        industry,
+        companySize,
+        website,
+        country,
+      } = payload;
+
+      // Validate required fields
+      if (!fullName || !email) {
+        throw new Error('Company name and email are required');
+      }
+
+      if (!password) {
+        throw new Error('Password is required');
+      }
+
+      // Check if company already exists
+      const existingCompany = await UserModel.findOne({ email });
+      if (existingCompany) {
+        throw new Error('Company with this email already exists');
+      }
+
+      // Hash the password
+      const hashedPassword = await hashPassword(password);
+
+      // Create company user
+      const company = new UserModel({
+        fullName,
+        email,
+        password: hashedPassword,
+        role: 'company',
+        isActive: true,
+        accountStatus: AccountStatus.JOINED,
+        tenantId: new Types.ObjectId().toString(),
+      });
+
+      await company.save();
+
+      // Create organisation record
+      const organisation = new Organisation({
+        tenantId: company.tenantId,
+        organisationName: fullName,
+        ownerUserId: company._id.toString(),
+        description,
+        industry,
+        companySize,
+        website,
+        country,
+      });
+
+      await organisation.save();
+
+      // Return company without password
+      return company.toObject({ transform: (doc: any, ret: any) => {
+        delete ret.password;
+        return ret;
+      }});
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Update company details
+   */
+  updateCompany: async (companyId: string, payload: any) => {
+    try {
+      const {
+        fullName,
+        email,
+        password,
+        description,
+        industry,
+        companySize,
+        website,
+        country,
+        isActive,
+      } = payload;
+
+      // Get the company user
+      const company = await UserModel.findById(companyId);
+      if (!company) {
+        throw new Error('Company not found');
+      }
+
+      // Update company user
+      if (fullName) company.fullName = fullName;
+      if (email) company.email = email;
+      
+      // Hash password if provided
+      if (password) {
+        company.password = await hashPassword(password);
+      }
+      
+      if (typeof isActive === 'boolean') {
+        company.isActive = isActive;
+        company.accountStatus = isActive ? AccountStatus.ACTIVE : AccountStatus.JOINED;
+      }
+
+      await company.save();
+
+      // Update organisation record
+      const org = await Organisation.findOne({ tenantId: company.tenantId });
+      if (org) {
+        if (description) org.description = description;
+        if (industry) org.industry = industry;
+        if (companySize) org.companySize = companySize;
+        if (website) org.website = website;
+        if (country) org.country = country;
+        if (fullName) org.organisationName = fullName;
+
+        await org.save();
+      }
+
+      return company.toObject({ transform: (doc: any, ret: any) => {
+        delete ret.password;
+        return ret;
+      }});
+    } catch (error) {
+      throw error;
+    }
   },
 };
