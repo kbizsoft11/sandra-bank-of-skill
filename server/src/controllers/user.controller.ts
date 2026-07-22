@@ -721,7 +721,7 @@ const parseImportFileToObjects = (file: Express.Multer.File): Record<string, str
     const sheet = workbook.Sheets[sheetName];
     const rawRows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: '' });
 
-    return rawRows.map((row) => {
+    return rawRows.map((row: Record<string, any>) => {
       const normalized: Record<string, string> = {};
       Object.entries(row).forEach(([key, value]) => {
         normalized[key.trim().toLowerCase()] = value?.toString?.().trim() || '';
