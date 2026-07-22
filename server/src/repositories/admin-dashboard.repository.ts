@@ -321,13 +321,23 @@ export const createActivity = async (
   type: string,
   details?: Record<string, any>
 ) => {
-  const activityRecord = new ActivityModel({
+  const activityPayload: Record<string, any> = {
     userId,
     user,
     activity,
     type,
     details,
-  });
+  };
+
+  if (details?.tenantId) {
+    activityPayload.tenantId = details.tenantId;
+  }
+
+  if (details?.organisationId) {
+    activityPayload.organisationId = details.organisationId;
+  }
+
+  const activityRecord = new ActivityModel(activityPayload);
 
   return activityRecord.save();
 };

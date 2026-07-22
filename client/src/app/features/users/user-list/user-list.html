@@ -45,21 +45,117 @@
   </div>
 
   @if (auth.role() === 'company') {
-    <div class="border-bottom px-3 px-sm-4 py-3">
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-        <div class="d-flex align-items-center gap-2 rounded-pill bg-light p-1 shadow-sm">
-          <button type="button" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" [class.btn-primary]="activeTab() === 'joined'" [class.btn-outline-primary]="activeTab() !== 'joined'" (click)="setActiveTab('joined')">
-            <i class="bi bi-person-check-fill me-1"></i>
-            Joined Users
+  <div class="border-bottom px-3 px-sm-4 py-3">
+    <div class="user-list-toolbar">
+      <!-- Tabs -->
+      <div class="toolbar-tabs" role="tablist">
+        <button type="button" class="tab-btn" [class.active]="activeTab() === 'joined'" (click)="setActiveTab('joined')">
+          <i class="bi bi-person-check-fill"></i>
+          <span class="d-none d-sm-inline">Joined Users</span>
+          <span class="d-inline d-sm-none">Joined</span>
+        </button>
+        <button type="button" class="tab-btn" [class.active]="activeTab() === 'invited'" (click)="setActiveTab('invited')">
+          <i class="bi bi-envelope-paper-fill"></i>
+          <span class="d-none d-sm-inline">Invited Users</span>
+          <span class="d-inline d-sm-none">Invited</span>
+        </button>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <!-- Action Buttons -->
+      <div class="toolbar-actions">
+        <button (click)="toggleFilters()" class="toolbar-btn" [class.active]="showFilters()">
+          <i class="bi bi-funnel-fill"></i>
+          <span>Filters</span>
+          <i class="bi toolbar-chevron" [class.bi-chevron-up]="showFilters()" [class.bi-chevron-down]="!showFilters()"></i>
+        </button>
+
+        @if (selectedEmployees.size > 0) {
+          <button (click)="openBulkUpdateModal()" class="toolbar-btn toolbar-btn-warning">
+            <i class="bi bi-pencil-square"></i>
+            <span>Update ({{ selectedEmployees.size }})</span>
           </button>
-          <button type="button" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" [class.btn-primary]="activeTab() === 'invited'" [class.btn-outline-primary]="activeTab() !== 'invited'" (click)="setActiveTab('invited')">
-            <i class="bi bi-envelope-paper-fill me-1"></i>
-            Invited Users
+        }
+
+        <div class="toolbar-actions-secondary">
+          <button (click)="openImportModal()" class="toolbar-btn">
+            <i class="bi bi-file-earmark-arrow-up-fill"></i>
+            <span class="d-none d-md-inline">Import</span>
+          </button>
+
+          <button (click)="exportEmployees()" [disabled]="isExporting" class="toolbar-btn">
+            @if (isExporting) {
+              <span class="spinner-border spinner-border-sm"></span>
+            } @else {
+              <i class="bi bi-file-earmark-arrow-down-fill"></i>
+            }
+            <span class="d-none d-md-inline">Export</span>
           </button>
         </div>
       </div>
     </div>
-  }
+
+    <!-- Filters Panel (Collapsible) -->
+    @if (showFilters()) {
+      <div class="mt-3 p-3 bg-light rounded-3 animate-slide-down">
+        <div class="row g-3">
+          <div class="col-12 col-sm-6 col-lg-3">
+            <label class="form-label small fw-semibold mb-1">Department</label>
+            <select [(ngModel)]="selectedDepartment" (change)="applyFilters()" class="form-select form-select-sm">
+              <option value="">All Departments</option>
+              @for (dept of departments(); track dept._id || dept) {
+                <option [value]="dept._id || dept">{{ dept.name || dept }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="col-12 col-sm-6 col-lg-3">
+            <label class="form-label small fw-semibold mb-1">Team</label>
+            <select [(ngModel)]="selectedTeam" (change)="applyFilters()" class="form-select form-select-sm">
+              <option value="">All Teams</option>
+              @for (team of teams(); track team._id || team) {
+                <option [value]="team._id || team">{{ team.name || team }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="col-12 col-sm-6 col-lg-3">
+            <label class="form-label small fw-semibold mb-1">Job Role</label>
+            <select [(ngModel)]="selectedJobRole" (change)="applyFilters()" class="form-select form-select-sm">
+              <option value="">All Job Roles</option>
+              @for (role of jobRoles(); track role._id || role) {
+                <option [value]="role._id || role">{{ role.name || role }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="col-12 col-sm-6 col-lg-3">
+            <label class="form-label small fw-semibold mb-1">Status</label>
+            <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="form-select form-select-sm">
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div class="col-12">
+            <div class="d-flex gap-2 justify-content-end">
+              <button (click)="clearFilters()" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-x-circle me-1"></i>
+                Clear Filters
+              </button>
+              <button (click)="applyFilters()" class="btn btn-sm btn-primary">
+                <i class="bi bi-search me-1"></i>
+                Apply Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}
 
   <div class="px-3 px-sm-4 py-3">
     <app-data-table
@@ -78,6 +174,20 @@
       (pageChange)="onPage($event)"
       (pageSizeChange)="onPageSize($event)"
     >
+      <!-- Checkbox Column (for company role only) -->
+      @if (auth.role() === 'company') {
+        <ng-template appTableCol="select" let-user>
+          <div class="form-check">
+            <input 
+              class="form-check-input" 
+              type="checkbox" 
+              [checked]="isEmployeeSelected(user._id)"
+              (change)="toggleEmployeeSelection(user._id)"
+              (click)="$event.stopPropagation()">
+          </div>
+        </ng-template>
+      }
+
       <!-- Name: avatar + full name -->
       <ng-template appTableCol="fullName" let-user>
         <div class="d-flex align-items-center gap-3">
@@ -86,7 +196,10 @@
           >
             {{ user.fullName?.charAt(0)?.toUpperCase() || '?' }}
           </div>
-          <p class="fw-medium mb-0 text-dark">{{ user.fullName }}</p>
+          <div>
+            <p class="fw-medium mb-0 text-dark">{{ user.fullName }}</p>
+            <small class="text-muted d-block d-lg-none">{{ user.email }}</small>
+          </div>
         </div>
       </ng-template>
 
@@ -147,7 +260,7 @@
                     </button>
                   </li>
 
-                  @if (user.isActive && user.accountStatus !== 'invited') {
+                  @if (user.isActive && user.accountStatus !== 'invited' && auth.role() === 'company') {
                     <li>
                       <button type="button" class="dropdown-item d-flex align-items-center gap-2" (click)="loginAsEmployee(user)">
                         <i class="bi bi-box-arrow-in-right text-success"></i>
@@ -293,6 +406,319 @@
               <i class="bi bi-send-fill me-2"></i>
               <span>Send Invite</span>
             }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Bulk Update Modal -->
+@if (showBulkUpdateModal) {
+  <div class="modal-backdrop fade show" (click)="closeBulkUpdateModal()"></div>
+  <div class="modal fade show d-block" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-semibold">Bulk Update Employees</h5>
+          <button type="button" class="btn-close" (click)="closeBulkUpdateModal()"></button>
+        </div>
+
+        <div class="modal-body pt-2">
+          <p class="text-secondary small mb-4">
+            Update {{ selectedEmployees.size }} selected employee(s). Leave fields empty to keep existing values.
+          </p>
+
+          <form [formGroup]="bulkUpdateForm">
+            <div class="mb-3">
+              <label class="form-label fw-medium">Department</label>
+              <select class="form-select" formControlName="department">
+                <option value="">-- No Change --</option>
+                @for (dept of departments(); track dept._id || dept) {
+                  <option [value]="dept._id || dept">{{ dept.name || dept }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-medium">Team</label>
+              <select class="form-select" formControlName="team">
+                <option value="">-- No Change --</option>
+                @for (team of teams(); track team._id || team) {
+                  <option [value]="team._id || team">{{ team.name || team }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-medium">Job Role</label>
+              <select class="form-select" formControlName="jobRole">
+                <option value="">-- No Change --</option>
+                @for (role of jobRoles(); track role._id || role) {
+                  <option [value]="role._id || role">{{ role.name || role }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-medium">Status</label>
+              <select class="form-select" formControlName="status">
+                <option value="">-- No Change --</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            @if (bulkUpdateError) {
+              <div class="alert alert-danger py-2">
+                {{ bulkUpdateError }}
+              </div>
+            }
+
+            @if (bulkUpdateSuccess) {
+              <div class="alert alert-success py-2">
+                {{ bulkUpdateSuccess }}
+              </div>
+            }
+          </form>
+        </div>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn btn-light"
+            (click)="closeBulkUpdateModal()"
+            [disabled]="isBulkUpdating">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="isBulkUpdating"
+            (click)="bulkUpdate()">
+            @if (isBulkUpdating) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              <span>Updating...</span>
+            } @else {
+              <i class="bi bi-check-circle-fill me-2"></i>
+              <span>Update Employees</span>
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Import Employees Modal -->
+@if (showImportModal) {
+  <div class="modal-backdrop fade show" (click)="closeImportModal()"></div>
+  <div class="modal fade show d-block" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-semibold">Import Employees</h5>
+          <button type="button" class="btn-close" (click)="closeImportModal()"></button>
+        </div>
+
+        <div class="modal-body pt-2">
+          <p class="text-secondary small mb-3">
+            Upload a CSV or Excel file to import multiple employees at once.
+          </p>
+
+          <div class="mb-3">
+            <label class="form-label fw-medium">Select File</label>
+            <input
+              type="file"
+              class="form-control"
+              accept=".csv,.xlsx,.xls"
+              (change)="onFileSelected($event)">
+            <small class="text-secondary d-block mt-1">
+              Accepted formats: CSV, Excel (.xlsx, .xls)
+            </small>
+          </div>
+
+          @if (importFile) {
+            <div class="alert alert-info py-2 d-flex align-items-center gap-2">
+              <i class="bi bi-file-earmark-text"></i>
+              <span>{{ importFile.name }} ({{ (importFile.size / 1024).toFixed(2) }} KB)</span>
+            </div>
+          }
+
+          <div class="mb-3">
+            <button (click)="downloadTemplate()" class="btn btn-sm btn-outline-primary w-100">
+              <i class="bi bi-download me-2"></i>
+              Download Template File
+            </button>
+          </div>
+
+          @if (importError) {
+            <div class="alert alert-danger py-2">
+              {{ importError }}
+            </div>
+          }
+
+          @if (importSuccess) {
+            <div class="alert alert-success py-2">
+              {{ importSuccess }}
+            </div>
+          }
+        </div>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn btn-light"
+            (click)="closeImportModal()"
+            [disabled]="isImporting">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="!importFile || isImporting"
+            (click)="importEmployees()">
+            @if (isImporting) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              <span>Importing...</span>
+            } @else {
+              <i class="bi bi-upload me-2"></i>
+              <span>Import Employees</span>
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Employee Activities Modal -->
+@if (showActivityModal && selectedEmployee) {
+  <div class="modal-backdrop fade show" (click)="closeActivityModal()"></div>
+  <div class="modal fade show d-block" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header border-0 pb-0">
+          <div>
+            <h5 class="modal-title fw-semibold">Employee Activities</h5>
+            <p class="small text-muted mb-0">{{ selectedEmployee.fullName }}</p>
+          </div>
+          <button type="button" class="btn-close" (click)="closeActivityModal()"></button>
+        </div>
+
+        <div class="modal-body pt-2">
+          <!-- Activity Type Tabs -->
+          <ul class="nav nav-pills nav-fill mb-4 bg-light rounded-3 p-2">
+            <li class="nav-item">
+              <button 
+                class="nav-link rounded-pill py-2 px-3" 
+                [class.active]="activityType === 'login'"
+                (click)="setActivityType('login')">
+                <i class="bi bi-box-arrow-in-right me-1"></i>
+                <span class="d-none d-sm-inline">Login History</span>
+                <span class="d-inline d-sm-none">Login</span>
+              </button>
+            </li>
+            <li class="nav-item">
+              <button 
+                class="nav-link rounded-pill py-2 px-3" 
+                [class.active]="activityType === 'course'"
+                (click)="setActivityType('course')">
+                <i class="bi bi-book me-1"></i>
+                <span class="d-none d-sm-inline">Courses</span>
+                <span class="d-inline d-sm-none">Courses</span>
+              </button>
+            </li>
+            <li class="nav-item">
+              <button 
+                class="nav-link rounded-pill py-2 px-3" 
+                [class.active]="activityType === 'assessment'"
+                (click)="setActivityType('assessment')">
+                <i class="bi bi-clipboard-check me-1"></i>
+                <span class="d-none d-sm-inline">Assessments</span>
+                <span class="d-inline d-sm-none">Tests</span>
+              </button>
+            </li>
+            <li class="nav-item">
+              <button 
+                class="nav-link rounded-pill py-2 px-3" 
+                [class.active]="activityType === 'skill'"
+                (click)="setActivityType('skill')">
+                <i class="bi bi-star me-1"></i>
+                <span class="d-none d-sm-inline">Skills</span>
+                <span class="d-inline d-sm-none">Skills</span>
+              </button>
+            </li>
+            <li class="nav-item">
+              <button 
+                class="nav-link rounded-pill py-2 px-3" 
+                [class.active]="activityType === 'recent'"
+                (click)="setActivityType('recent')">
+                <i class="bi bi-clock-history me-1"></i>
+                <span class="d-none d-sm-inline">Recent</span>
+                <span class="d-inline d-sm-none">Recent</span>
+              </button>
+            </li>
+          </ul>
+
+          <!-- Activities List -->
+          <div class="activities-container">
+            @if (isLoadingActivities()) {
+              <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-muted mt-2 mb-0">Loading activities...</p>
+              </div>
+            } @else if (employeeActivities().length === 0) {
+              <div class="text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <p class="text-muted mt-3 mb-0">No activities found</p>
+              </div>
+            } @else {
+              <div class="list-group list-group-flush">
+                @for (activity of employeeActivities(); track activity._id || $index) {
+                  <div class="list-group-item px-0">
+                    <div class="d-flex gap-3">
+                      <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                          <i class="bi" [ngClass]="getActivityIcon(activityType)"></i>
+                        </div>
+                      </div>
+                      <div class="flex-grow-1">
+                        <h6 class="mb-1 fw-semibold">{{ activity.title || activity.description || 'Activity' }}</h6>
+                        <p class="text-muted small mb-1">{{ activity.details || activity.message || 'No additional details' }}</p>
+                        <small class="text-muted">
+                          <i class="bi bi-clock me-1"></i>
+                          {{ activity.createdAt || activity.timestamp || activity.date | date:'medium' }}
+                        </small>
+                      </div>
+                      @if (activity.status) {
+                        <div class="flex-shrink-0">
+                          <span class="badge" [ngClass]="{
+                            'bg-success': activity.status === 'completed' || activity.status === 'passed',
+                            'bg-warning': activity.status === 'in-progress' || activity.status === 'pending',
+                            'bg-danger': activity.status === 'failed',
+                            'bg-info': activity.status === 'active'
+                          }">
+                            {{ activity.status }}
+                          </span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-light" (click)="closeActivityModal()">
+            Close
           </button>
         </div>
 

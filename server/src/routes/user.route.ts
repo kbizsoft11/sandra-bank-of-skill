@@ -17,9 +17,10 @@ import {
     inviteUserSchema,
     updateProfileSchema,
     searchEmployeesQuerySchema,
+    allActivitiesQuerySchema,
 } from '../validators/user.validator';
 
-import { upload } from '../utils/file-upload';
+import { upload, importUpload } from '../utils/file-upload';
 
 const router = Router();
 
@@ -63,6 +64,15 @@ router.get(
     userController.searchEmployees
 );
 
+// Get all employee activities - Company and Admin only
+router.get(
+    '/all-activities',
+    authenticate,
+    allowRoles('admin', 'company'),
+    validateQuery(allActivitiesQuerySchema),
+    userController.getAllActivities
+);
+
 // Company skills endpoints - Company only
 router.get(
     '/company-skills',
@@ -78,12 +88,66 @@ router.get(
     userController.getEmployeesBySkill
 );
 
+router.get(
+    '/departments',
+    authenticate,
+    allowRoles('admin', 'company'),
+    userController.getDepartments
+);
+
+router.get(
+    '/teams',
+    authenticate,
+    allowRoles('admin', 'company'),
+    userController.getTeams
+);
+
+router.get(
+    '/job-roles',
+    authenticate,
+    allowRoles('admin', 'company'),
+    userController.getJobRoles
+);
+
+router.get(
+    '/export',
+    authenticate,
+    allowRoles('admin', 'company'),
+    userController.exportEmployees
+);
+
+router.post(
+    '/import',
+    authenticate,
+    allowRoles('company'),
+    importUpload.single('file'),
+    userController.importEmployees
+);
+
 // Get employees by company ID - Admin only
 router.get(
     '/company/:companyId/employees',
     authenticate,
     allowRoles('admin'),
     userController.getEmployeesByCompany
+);
+
+router.get(
+    '/:id/activities',
+    authenticate,
+    allowRoles('admin', 'company'),
+    validateParams(userIdParamSchema),
+    validateQuery(allActivitiesQuerySchema),
+    userController.getEmployeeActivities
+);
+
+router.get(
+    '/:id/login-history',
+    authenticate,
+    allowRoles('admin', 'company'),
+    validateParams(userIdParamSchema),
+    validateQuery(allActivitiesQuerySchema),
+    userController.getEmployeeLoginHistory
 );
 
 router.get(
@@ -178,14 +242,6 @@ router.post(
     allowRoles('admin'),
     validateParams(userIdParamSchema),
     userController.deactivateUser
-);
-
-router.post(
-    '/:id/impersonate',
-    authenticate,
-    allowRoles('admin'),
-    validateParams(userIdParamSchema),
-    userController.impersonateUser
 );
 
 export default router;

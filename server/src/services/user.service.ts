@@ -6,6 +6,7 @@ import { InviteUserDto } from '../dto/invite-user.dto';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
 
 import { userRepository } from '../repositories/user.repository';
+import { ActivityModel } from '../models/activity.model';
 
 import { hashPassword, generateRandomPassword } from '../utils/password';
 import { sendInvitationEmail, sendInvitationLinkEmail, sendPasswordResetNotificationEmail } from './email.service';
@@ -15,6 +16,7 @@ import { AccountStatus } from '../types/common.types';
 import { v4 as uuidv4 } from 'uuid';
 import { env } from '../config/env';
 import { assignOnboardingQuestionnaires } from './onboarding.service';
+import * as AdminDashboardService from './admin-dashboard.service';
 import { generateInvitationToken, generateToken } from '../utils/jwt';
 
 export const userService = {
@@ -130,6 +132,9 @@ export const userService = {
     limit?: number;
     sortKey?: string;
     sortDirection?: string;
+    status?: string;
+    accountStatus?: string;
+    excludeAccountStatus?: string;
     userRole?: string;
     userTenantId?: string;
   }) => {
@@ -142,6 +147,9 @@ export const userService = {
       limit,
       sortKey,
       sortDirection,
+      status,
+      accountStatus,
+      excludeAccountStatus,
       userRole,
       userTenantId,
     } = params;
@@ -166,7 +174,150 @@ export const userService = {
       limit,
       sortKey,
       sortDirection,
+      status,
+      accountStatus,
+      excludeAccountStatus,
     });
+  },
+
+  getEmployeeActivities: async (params: {
+    employeeId: string;
+    type?: string;
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    dateRange?: string;
+    startDate?: string;
+    endDate?: string;
+    userRole?: string;
+    userTenantId?: string;
+  }) => {
+    const {
+      employeeId,
+      type,
+      page = 1,
+      limit = 20,
+      status,
+      search,
+      dateRange,
+      startDate,
+      endDate,
+      userRole,
+      userTenantId,
+    } = params;
+
+    return await userService.getAllActivities({
+      employeeId,
+      activityType: type,
+      page,
+      limit,
+      status,
+      search,
+      dateRange,
+      startDate,
+      endDate,
+      userRole,
+      userTenantId,
+    });
+  },
+
+  getEmployeeLoginHistory: async (params: {
+    employeeId: string;
+    page?: number;
+    limit?: number;
+    userRole?: string;
+    userTenantId?: string;
+  }) => {
+    const {
+      employeeId,
+      page = 1,
+      limit = 20,
+      userRole,
+      userTenantId,
+    } = params;
+
+    return await userService.getAllActivities({
+      employeeId,
+      activityType: 'login',
+      page,
+      limit,
+      userRole,
+      userTenantId,
+    });
+  },
+
+  getDepartments: async () => {
+    return await userRepository.getDistinctDepartments();
+  },
+
+  getTeams: async () => {
+    return await userRepository.getDistinctTeams();
+  },
+
+  getJobRoles: async () => {
+    return await userRepository.getDistinctJobRoles();
+  },
+
+  exportEmployees: async (params: {
+    search?: string;
+    department?: string;
+    team?: string;
+    jobRole?: string;
+    status?: string;
+    accountStatus?: string;
+    excludeAccountStatus?: string;
+    userRole?: string;
+    userTenantId?: string;
+  }) => {
+    const {
+      search,
+      department,
+      team,
+      jobRole,
+      status,
+      accountStatus,
+      excludeAccountStatus,
+      userRole,
+      userTenantId,
+    } = params;
+
+    const filter: any = {
+      role: 'employee',
+    };
+
+    if (userRole === 'company') {
+      filter.tenantId = userTenantId;
+    }
+
+    if (search) {
+      filter.$or = [
+        { fullName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    if (department) {
+      filter.department = { $regex: department, $options: 'i' };
+    }
+
+    if (team) {
+      filter.team = { $regex: team, $options: 'i' };
+    }
+
+    if (jobRole) {
+      filter.title = { $regex: jobRole, $options: 'i' };
+    }
+
+    if (accountStatus) {
+      filter.accountStatus = accountStatus;
+    } else if (status) {
+      filter.accountStatus = status;
+    } else if (excludeAccountStatus) {
+      filter.accountStatus = { $ne: excludeAccountStatus };
+    }
+
+    return await userRepository.exportEmployees(filter);
   },
 
   getUserById: async (id: string, actor?: { role?: string; tenantId?: string; userId?: string }) => {
@@ -219,7 +370,22 @@ export const userService = {
       updatePayload.accountStatus = 'active';
     }
 
-    return await userRepository.update(employeeId, updatePayload);
+    const updatedEmployee = await userRepository.update(employeeId, updatePayload);
+
+    await AdminDashboardService.createActivity(
+      employeeId,
+      employee.fullName,
+      `Employee account has been ${isActive ? 'activated' : 'deactivated'}`,
+      'employee_status_change',
+      {
+        status: isActive ? 'active' : 'inactive',
+        employeeId,
+        tenantId: employee.tenantId,
+        organisationId: employee.organisationId,
+      }
+    );
+
+    return updatedEmployee;
 
   },
 
@@ -233,21 +399,25 @@ export const userService = {
       throw new Error('Employee not found');
     }
 
-    if (employee.role !== 'employee') {
+    // Allow admin to impersonate any user
+    if (actor.role === 'admin') {
+      // Admin can impersonate anyone
+    } else if (employee.role !== 'employee') {
       throw new Error('User is not an employee');
     }
 
+    // For company users, verify tenant match
     if (actor.role === 'company') {
       if (!actor.tenantId || employee.tenantId !== actor.tenantId) {
         throw new Error('Unauthorized to impersonate this employee');
       }
     }
 
-    if (!employee.isActive) {
+    if (!employee.isActive && actor.role !== 'admin') {
       throw new Error('Cannot impersonate an inactive employee');
     }
 
-    if (employee.accountStatus === 'invited') {
+    if (employee.accountStatus === 'invited' && actor.role !== 'admin') {
       throw new Error('Employee must accept invitation before logging in');
     }
 
@@ -450,7 +620,7 @@ export const userService = {
     const generatedPassword = generateRandomPassword();
     const hashedPassword = await hashPassword(generatedPassword);
 
-    const fullName = payload.email.split('@')[0];
+    const fullName = payload.fullName?.trim() || payload.email.split('@')[0];
 
     const newUser = await userRepository.create({
       fullName,
@@ -507,6 +677,119 @@ export const userService = {
       message: 'Invitation sent successfully. The recipient can complete signup using the secure invitation link.',
     };
 
+  },
+
+  importEmployees: async (
+    rows: Array<{ email: string; fullName?: string; department?: string; team?: string; jobRole?: string; message?: string }>,
+    invitedByUserId: string,
+    invitedByName: string
+  ) => {
+    const inviter = await userRepository.findById(invitedByUserId);
+
+    if (!inviter) {
+      throw new Error('Inviter user not found');
+    }
+
+    if (inviter.role !== 'company') {
+      throw new Error('Only company users can import employees');
+    }
+
+    if (!inviter.tenantId || !inviter.organisationId) {
+      throw new Error('Company user must have tenantId and organisationId to import employees');
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const result = {
+      imported: 0,
+      skipped: 0,
+      existingEmails: [] as string[],
+      invalidRows: [] as { row: any; reason: string }[],
+      errors: [] as { email?: string; reason: string }[],
+    };
+
+    for (const row of rows) {
+      const email = (row.email || '').trim().toLowerCase();
+      const fullName = row.fullName?.trim() || email.split('@')[0];
+
+      if (!email || !emailRegex.test(email)) {
+        result.invalidRows.push({ row, reason: 'Invalid or missing email address' });
+        continue;
+      }
+
+      const existingUser = await userRepository.findByEmail(email);
+      if (existingUser) {
+        result.skipped += 1;
+        result.existingEmails.push(email);
+        continue;
+      }
+
+      try {
+        const generatedPassword = generateRandomPassword();
+        const hashedPassword = await hashPassword(generatedPassword);
+
+        const newUser = await userRepository.create({
+          fullName,
+          email,
+          password: hashedPassword,
+          role: 'employee',
+          tenantId: inviter.tenantId,
+          organisationId: inviter.organisationId,
+          department: row.department?.trim() || undefined,
+          team: row.team?.trim() || undefined,
+          title: row.jobRole?.trim() || undefined,
+          profileCompleted: false,
+          isActive: true,
+          emailVerified: false,
+          onboardingStatus: 'registered',
+          accountStatus: AccountStatus.INVITED,
+          invitedAt: new Date(),
+          hasCompletedOnboarding: false,
+        });
+
+        try {
+          await assignOnboardingQuestionnaires(
+            newUser._id.toString(),
+            inviter.tenantId,
+            inviter.organisationId,
+            invitedByUserId
+          );
+        } catch (error) {
+          console.error('Failed to assign onboarding questionnaires:', error);
+        }
+
+        const inviteToken = generateInvitationToken({
+          userId: newUser._id,
+          email: newUser.email,
+          role: 'employee',
+          tenantId: inviter.tenantId,
+          organisationId: inviter.organisationId,
+          invitedByUserId,
+          purpose: 'invitation',
+        });
+
+        const inviteLink = `${env.CLIENT_URL || 'http://localhost:4200'}/auth/invite-signup?token=${encodeURIComponent(inviteToken)}`;
+
+        await sendInvitationLinkEmail(
+          email,
+          fullName,
+          invitedByName,
+          inviteLink,
+          row.message?.trim()
+        );
+
+        result.imported += 1;
+      } catch (error: any) {
+        result.errors.push({
+          email,
+          reason: error?.message || 'Failed to import employee',
+        });
+      }
+    }
+
+    return {
+      ...result,
+      message: `${result.imported} employee(s) imported successfully. ${result.skipped} existing email(s) were skipped.`,
+    };
   },
 
   /**
@@ -686,49 +969,113 @@ export const userService = {
   },
 
   /**
-   * Impersonate a user (admin only)
+   * Get all employee activities with pagination and filters
    */
-  impersonateUser: async (adminId: string, userId: string) => {
-    // Verify admin exists and is actually admin
-    const admin = await userRepository.findById(adminId);
+  getAllActivities: async (params: {
+    page?: number;
+    limit?: number;
+    activityType?: string;
+    employeeId?: string;
+    status?: string;
+    search?: string;
+    dateRange?: string;
+    startDate?: string;
+    endDate?: string;
+    userRole?: string;
+    userTenantId?: string;
+  }) => {
+    const {
+      page = 1,
+      limit = 20,
+      activityType,
+      employeeId,
+      status,
+      search,
+      dateRange,
+      startDate,
+      endDate,
+      userRole,
+      userTenantId,
+    } = params;
 
-    if (!admin || admin.role !== 'admin') {
-      throw new Error('Only admin users can impersonate other users');
+    const filter: any = {};
+
+    if (userRole === 'company') {
+      filter.tenantId = userTenantId;
     }
 
-    // Get the user to impersonate
-    const user = await userRepository.findById(userId);
-
-    if (!user) {
-      throw new Error('User not found');
+    if (activityType) {
+      filter.type = activityType;
     }
 
-    // Import here to avoid circular dependency
-    const { generateToken } = require('../utils/jwt');
+    if (employeeId) {
+      filter.userId = employeeId;
+    }
 
-    // Generate an impersonation token with short expiry (2 hours)
-    const impersonateToken = generateToken(
-      {
-        userId: user._id,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role,
-        tenantId: user.tenantId,
-        isImpersonated: true,
-        impersonatedBy: adminId,
-      },
-      {
-        expiresIn: '2h',
+    if (status) {
+      filter.status = status;
+    }
+
+    if (search) {
+      filter.$or = [
+        { user: { $regex: search, $options: 'i' } },
+        { activity: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    if (startDate || endDate || dateRange) {
+      const createdAtFilter: any = {};
+      const now = new Date();
+
+      if (dateRange === 'today') {
+        createdAtFilter.$gte = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      } else if (dateRange === 'week') {
+        createdAtFilter.$gte = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      } else if (dateRange === 'month') {
+        createdAtFilter.$gte = new Date(now.getFullYear(), now.getMonth(), 1);
+      } else if (dateRange === 'year') {
+        createdAtFilter.$gte = new Date(now.getFullYear(), 0, 1);
       }
-    );
+
+      if (startDate) {
+        const start = new Date(startDate);
+        if (!createdAtFilter.$gte || start > createdAtFilter.$gte) {
+          createdAtFilter.$gte = start;
+        }
+      }
+      if (endDate) {
+        createdAtFilter.$lte = new Date(endDate);
+      }
+
+      if (Object.keys(createdAtFilter).length > 0) {
+        filter.createdAt = createdAtFilter;
+      }
+    }
+
+    const total = await ActivityModel.countDocuments(filter);
+
+    const activities = await ActivityModel.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
 
     return {
-      token: impersonateToken,
-      user: {
-        userId: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
+      activities: activities.map(activity => ({
+        _id: activity._id,
+        employeeId: activity.userId,
+        employeeName: activity.user,
+        activityType: activity.type,
+        description: activity.activity,
+        status: activity.status || activity.details?.status || 'completed',
+        timestamp: activity.createdAt,
+        details: activity.details,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
     };
   },

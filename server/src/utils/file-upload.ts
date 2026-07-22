@@ -40,6 +40,28 @@ export const upload = multer({
   }
 });
 
+const importFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const allowedTypes = [
+    'text/csv',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only CSV and Excel files are allowed.'));
+  }
+};
+
+export const importUpload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: importFileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max file size
+  },
+});
+
 // Delete old profile image
 export const deleteOldProfileImage = (imagePath: string): void => {
   if (imagePath && fs.existsSync(imagePath)) {

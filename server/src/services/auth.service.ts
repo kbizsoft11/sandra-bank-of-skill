@@ -24,6 +24,7 @@ import {
 } from '../utils/otp.util';
 import { generateTenantIdFromName } from '../utils/tenant.util';
 import { sendVerificationEmail, sendWelcomeEmail } from './email.service';
+import * as AdminDashboardService from './admin-dashboard.service';
 
 
 const logOtpForDevelopment = (
@@ -542,6 +543,17 @@ export const authService = {
     }
 
     await userRepository.update(user._id.toString(), updatePayload);
+
+    await AdminDashboardService.createActivity(
+      user._id.toString(),
+      user.fullName,
+      'Logged in successfully',
+      'login',
+      {
+        tenantId: user.tenantId,
+        organisationId: user.organisationId,
+      }
+    );
 
     const token = generateToken({
       userId: user._id,

@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
 import { RoleService, Role } from '../../../core/services/role.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -10,12 +10,11 @@ import { Router, RouterLink } from '@angular/router';
 import { DataTableComponent } from '../../../shared/data-table/data-table.component';
 import { TableColDirective } from '../../../shared/data-table/table-col.directive';
 import { TableColumn } from '../../../shared/data-table/table-column.model';
-import { TableActions } from '../../../shared/components/table-actions/table-actions';
 
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, TableActions, DataTableComponent, TableColDirective],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, FormsModule, DataTableComponent, TableColDirective],
   templateUrl: './user-list.html',
   styleUrl: './user-list.scss',
 })
@@ -41,6 +40,39 @@ export class UserList implements OnInit {
   // For admin hierarchy view
   readonly viewingCompanyEmployees = signal<boolean>(false);
   readonly selectedCompany = signal<any | null>(null);
+
+  // Filter states
+  readonly departments = signal<any[]>([]);
+  readonly teams = signal<any[]>([]);
+  readonly jobRoles = signal<any[]>([]);
+  readonly showFilters = signal<boolean>(false);
+  selectedDepartment = '';
+  selectedTeam = '';
+  selectedJobRole = '';
+  selectedStatus = '';
+
+  // Bulk operations
+  selectedEmployees = new Set<string>();
+  showBulkUpdateModal = false;
+  bulkUpdateForm!: FormGroup;
+  isBulkUpdating = false;
+  bulkUpdateError = '';
+  bulkUpdateSuccess = '';
+
+  // Import/Export
+  showImportModal = false;
+  importFile: File | null = null;
+  isImporting = false;
+  importError = '';
+  importSuccess = '';
+  isExporting = false;
+
+  // Activity tracking
+  showActivityModal = false;
+  selectedEmployee: any = null;
+  activityType: 'login' | 'course' | 'assessment' | 'skill' | 'recent' = 'login';
+  employeeActivities = signal<any[]>([]);
+  isLoadingActivities = signal<boolean>(false);
 
   // Filtered users based on role and view state
   readonly displayedUsers = computed(() => {
@@ -69,26 +101,85 @@ export class UserList implements OnInit {
   inviteSuccess = '';
 
   // Data table columns
-  readonly columns: TableColumn[] = [
-    { key: 'fullName', header: 'Name', sortable: true },
-    { key: 'email', header: 'Email', sortable: true },
-    { key: 'role', header: 'Role' },
-    { key: 'accountStatus', header: 'Status' },
-    { key: 'actions', header: 'Actions', align: 'end', width: '240px' },
-  ];
+  readonly columns: TableColumn[] = [];
 
   ngOnInit(): void {
+    // Initialize columns based on role
+    this.initializeColumns();
+    
     // Use server-side listing for company users (supports pagination/search/sort)
     if (this.auth.role() === 'company') {
       this.fetchPage();
+      this.loadFilterOptions();
     } else {
       this.loadUsers();
     }
     this.initializeInviteForm();
+    this.initializeBulkUpdateForm();
     // Load roles if user is a company
     if (this.auth.role() === 'company') {
       this.loadRoles();
     }
+  }
+
+  private initializeColumns(): void {
+    const baseColumns: TableColumn[] = [];
+
+    // Add select column for company role
+    if (this.auth.role() === 'company') {
+      baseColumns.push({ key: 'select', header: '', width: '50px' });
+    }
+
+    baseColumns.push(
+      { key: 'fullName', header: 'Name', sortable: true },
+      { key: 'email', header: 'Email', sortable: true },
+      { key: 'role', header: 'Role' },
+      { key: 'accountStatus', header: 'Status' },
+      { key: 'actions', header: 'Actions', align: 'end', width: '240px' }
+    );
+
+    this.columns.push(...baseColumns);
+  }
+
+  private initializeBulkUpdateForm(): void {
+    this.bulkUpdateForm = this.fb.group({
+      department: [''],
+      team: [''],
+      jobRole: [''],
+      status: [''],
+    });
+  }
+
+  private loadFilterOptions(): void {
+    // Load departments
+    this.userService.getDepartments().subscribe({
+      next: (response) => {
+        this.departments.set(response.data || []);
+      },
+      error: (error) => {
+        console.error('Error loading departments:', error);
+      },
+    });
+
+    // Load teams
+    this.userService.getTeams().subscribe({
+      next: (response) => {
+        this.teams.set(response.data || []);
+      },
+      error: (error) => {
+        console.error('Error loading teams:', error);
+      },
+    });
+
+    // Load job roles
+    this.userService.getJobRoles().subscribe({
+      next: (response) => {
+        this.jobRoles.set(response.data || []);
+      },
+      error: (error) => {
+        console.error('Error loading job roles:', error);
+      },
+    });
   }
 
   private initializeInviteForm(): void {
@@ -127,6 +218,25 @@ export class UserList implements OnInit {
 
   setActiveTab(tab: 'invited' | 'joined'): void {
     this.activeTab.set(tab);
+    this.serverPage = 1;
+    this.fetchPage();
+  }
+
+  toggleFilters(): void {
+    this.showFilters.set(!this.showFilters());
+  }
+
+  applyFilters(): void {
+    this.serverPage = 1;
+    this.fetchPage();
+  }
+
+  clearFilters(): void {
+    this.selectedDepartment = '';
+    this.selectedTeam = '';
+    this.selectedJobRole = '';
+    this.selectedStatus = '';
+    this.applyFilters();
   }
 
   // Get the title based on role and view state
@@ -230,9 +340,17 @@ export class UserList implements OnInit {
   private fetchPage(): void {
     this.isLoading.set(true);
 
+    // Determine account status based on active tab
+    const accountStatus = this.activeTab() === 'invited' ? 'invited' : undefined;
+
     this.userService
       .searchEmployees({
         search: this.serverSearchTerm || undefined,
+        department: this.selectedDepartment || undefined,
+        team: this.selectedTeam || undefined,
+        jobRole: this.selectedJobRole || undefined,
+        status: this.selectedStatus || undefined,
+        accountStatus: accountStatus,
         page: this.serverPage,
         limit: this.serverPageSize,
         sortKey: this.serverSortKey || undefined,
@@ -506,5 +624,262 @@ export class UserList implements OnInit {
         });
       }
     });
+  }
+
+  // ============================================================================
+  // Bulk Operations
+  // ============================================================================
+
+  toggleEmployeeSelection(employeeId: string): void {
+    if (this.selectedEmployees.has(employeeId)) {
+      this.selectedEmployees.delete(employeeId);
+    } else {
+      this.selectedEmployees.add(employeeId);
+    }
+  }
+
+  isEmployeeSelected(employeeId: string): boolean {
+    return this.selectedEmployees.has(employeeId);
+  }
+
+  toggleSelectAll(): void {
+    if (this.selectedEmployees.size === this.users().length) {
+      this.selectedEmployees.clear();
+    } else {
+      this.users().forEach(user => this.selectedEmployees.add(user._id));
+    }
+  }
+
+  get allSelected(): boolean {
+    return this.users().length > 0 && this.selectedEmployees.size === this.users().length;
+  }
+
+  openBulkUpdateModal(): void {
+    if (this.selectedEmployees.size === 0) {
+      this.alertService.error('Please select at least one employee');
+      return;
+    }
+    this.showBulkUpdateModal = true;
+    this.bulkUpdateForm.reset();
+    this.bulkUpdateError = '';
+    this.bulkUpdateSuccess = '';
+  }
+
+  closeBulkUpdateModal(): void {
+    this.showBulkUpdateModal = false;
+    this.bulkUpdateForm.reset();
+    this.bulkUpdateError = '';
+    this.bulkUpdateSuccess = '';
+  }
+
+  bulkUpdate(): void {
+    if (this.bulkUpdateForm.invalid) {
+      return;
+    }
+
+    const updates: any = {};
+    const formValue = this.bulkUpdateForm.value;
+
+    if (formValue.department) updates.department = formValue.department;
+    if (formValue.team) updates.team = formValue.team;
+    if (formValue.jobRole) updates.jobRole = formValue.jobRole;
+    if (formValue.status) updates.status = formValue.status;
+
+    if (Object.keys(updates).length === 0) {
+      this.bulkUpdateError = 'Please select at least one field to update';
+      return;
+    }
+
+    this.isBulkUpdating = true;
+    this.bulkUpdateError = '';
+    this.bulkUpdateSuccess = '';
+
+    this.userService.bulkUpdateEmployees({
+      employeeIds: Array.from(this.selectedEmployees),
+      updates
+    }).subscribe({
+      next: () => {
+        this.isBulkUpdating = false;
+        this.bulkUpdateSuccess = `Successfully updated ${this.selectedEmployees.size} employee(s)`;
+        this.selectedEmployees.clear();
+        this.fetchPage();
+
+        setTimeout(() => {
+          this.closeBulkUpdateModal();
+        }, 2000);
+      },
+      error: (error) => {
+        this.isBulkUpdating = false;
+        this.bulkUpdateError = error.error?.message || 'Failed to update employees. Please try again.';
+      },
+    });
+  }
+
+  // ============================================================================
+  // Import/Export
+  // ============================================================================
+
+  openImportModal(): void {
+    this.showImportModal = true;
+    this.importFile = null;
+    this.importError = '';
+    this.importSuccess = '';
+  }
+
+  closeImportModal(): void {
+    this.showImportModal = false;
+    this.importFile = null;
+    this.importError = '';
+    this.importSuccess = '';
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate file type
+      const validTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+      if (!validTypes.includes(file.type)) {
+        this.importError = 'Please select a valid CSV or Excel file';
+        this.importFile = null;
+        return;
+      }
+      this.importFile = file;
+      this.importError = '';
+    }
+  }
+
+  importEmployees(): void {
+    if (!this.importFile) {
+      this.importError = 'Please select a file to import';
+      return;
+    }
+
+    this.isImporting = true;
+    this.importError = '';
+    this.importSuccess = '';
+
+    this.userService.importEmployees(this.importFile).subscribe({
+      next: (response) => {
+        this.isImporting = false;
+        this.importSuccess = response.message || 'Employees imported successfully';
+        this.fetchPage();
+
+        setTimeout(() => {
+          this.closeImportModal();
+        }, 2000);
+      },
+      error: (error) => {
+        this.isImporting = false;
+        this.importError = error.error?.message || 'Failed to import employees. Please try again.';
+      },
+    });
+  }
+
+  exportEmployees(): void {
+    this.isExporting = true;
+    const accountStatus = this.activeTab() === 'invited' ? 'invited' : undefined;
+
+    this.userService.exportEmployees({
+      search: this.serverSearchTerm || undefined,
+      department: this.selectedDepartment || undefined,
+      team: this.selectedTeam || undefined,
+      jobRole: this.selectedJobRole || undefined,
+      status: this.selectedStatus || undefined,
+      accountStatus,
+    }).subscribe({
+      next: (blob) => {
+        this.isExporting = false;
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `employees_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.alertService.toast('Employee list exported successfully', 'success');
+      },
+      error: (error) => {
+        this.isExporting = false;
+        this.alertService.error(error.error?.message || 'Failed to export employees. Please try again.');
+      },
+    });
+  }
+
+  downloadTemplate(): void {
+    // Create a sample CSV template
+    const headers = ['Email', 'Full Name', 'Department', 'Team', 'Job Role'];
+    const sampleRow = ['employee@example.com', 'John Doe', 'Engineering', 'Backend', 'Software Engineer'];
+    const csvContent = [headers, sampleRow].map(row => row.join(',')).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'employee_import_template.csv';
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  // ============================================================================
+  // Activity Tracking
+  // ============================================================================
+
+  viewEmployeeActivities(employee: any): void {
+    this.selectedEmployee = employee;
+    this.activityType = 'login';
+    this.showActivityModal = true;
+    this.loadActivities();
+  }
+
+  closeActivityModal(): void {
+    this.showActivityModal = false;
+    this.selectedEmployee = null;
+    this.employeeActivities.set([]);
+  }
+
+  setActivityType(type: 'login' | 'course' | 'assessment' | 'skill' | 'recent'): void {
+    this.activityType = type;
+    this.loadActivities();
+  }
+
+  loadActivities(): void {
+    if (!this.selectedEmployee) return;
+
+    this.isLoadingActivities.set(true);
+    this.employeeActivities.set([]);
+
+    if (this.activityType === 'login') {
+      this.userService.getLoginHistory(this.selectedEmployee._id).subscribe({
+        next: (response) => {
+          this.isLoadingActivities.set(false);
+          this.employeeActivities.set(response.data || []);
+        },
+        error: (error) => {
+          this.isLoadingActivities.set(false);
+          console.error('Error loading login history:', error);
+        },
+      });
+    } else {
+      this.userService.getEmployeeActivities(this.selectedEmployee._id, this.activityType).subscribe({
+        next: (response) => {
+          this.isLoadingActivities.set(false);
+          this.employeeActivities.set(response.data || []);
+        },
+        error: (error) => {
+          this.isLoadingActivities.set(false);
+          console.error('Error loading activities:', error);
+        },
+      });
+    }
+  }
+
+  getActivityIcon(type: string): string {
+    switch (type) {
+      case 'login': return 'bi-box-arrow-in-right';
+      case 'course': return 'bi-book';
+      case 'assessment': return 'bi-clipboard-check';
+      case 'skill': return 'bi-star';
+      case 'recent': return 'bi-clock-history';
+      default: return 'bi-activity';
+    }
   }
 }

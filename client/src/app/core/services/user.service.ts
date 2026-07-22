@@ -174,6 +174,10 @@ export class UserService {
     skill?: string;
     category?: string;
     department?: string;
+    team?: string;
+    jobRole?: string;
+    status?: string;
+    accountStatus?: string;
     page?: number;
     limit?: number;
     sortKey?: string;
@@ -193,6 +197,18 @@ export class UserService {
     }
     if (params.department) {
       httpParams = httpParams.set('department', params.department);
+    }
+    if (params.team) {
+      httpParams = httpParams.set('team', params.team);
+    }
+    if (params.jobRole) {
+      httpParams = httpParams.set('jobRole', params.jobRole);
+    }
+    if (params.status) {
+      httpParams = httpParams.set('status', params.status);
+    }
+    if (params.accountStatus) {
+      httpParams = httpParams.set('accountStatus', params.accountStatus);
     }
     if (params.page) {
       httpParams = httpParams.set('page', params.page.toString());
@@ -214,6 +230,104 @@ export class UserService {
 
   }
 
+  bulkUpdateEmployees(payload: {
+    employeeIds: string[];
+    updates: {
+      department?: string;
+      team?: string;
+      jobRole?: string;
+      status?: string;
+    };
+  }): Observable<any> {
+    return this.http.patch(
+      `${this.api}/bulk-update`,
+      payload
+    );
+  }
+
+  importEmployees(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post(
+      `${this.api}/import`,
+      formData
+    );
+  }
+
+  exportEmployees(params?: {
+    search?: string;
+    department?: string;
+    team?: string;
+    jobRole?: string;
+    status?: string;
+    accountStatus?: string;
+  }): Observable<Blob> {
+    let httpParams = new HttpParams();
+
+    if (params?.search) {
+      httpParams = httpParams.set('search', params.search);
+    }
+    if (params?.department) {
+      httpParams = httpParams.set('department', params.department);
+    }
+    if (params?.team) {
+      httpParams = httpParams.set('team', params.team);
+    }
+    if (params?.jobRole) {
+      httpParams = httpParams.set('jobRole', params.jobRole);
+    }
+    if (params?.status) {
+      httpParams = httpParams.set('status', params.status);
+    }
+
+    return this.http.get(
+      `${this.api}/export`,
+      { params: httpParams, responseType: 'blob' }
+    );
+  }
+
+  getEmployeeActivities(employeeId: string, type?: string): Observable<any> {
+    let httpParams = new HttpParams();
+    if (type) {
+      httpParams = httpParams.set('type', type);
+    }
+
+    return this.http.get(
+      `${this.api}/${employeeId}/activities`,
+      { params: httpParams }
+    );
+  }
+
+  getLoginHistory(employeeId: string, page: number = 1, limit: number = 10): Observable<any> {
+    let httpParams = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+
+    return this.http.get(
+      `${this.api}/${employeeId}/login-history`,
+      { params: httpParams }
+    );
+  }
+
+  getDepartments(): Observable<any> {
+    return this.http.get(
+      `${this.api}/departments`
+    );
+  }
+
+  getTeams(): Observable<any> {
+    return this.http.get(
+      `${this.api}/teams`
+    );
+  }
+
+  getJobRoles(): Observable<any> {
+    return this.http.get(
+      `${this.api}/job-roles`
+    );
+  }
+
   getCompanySkills(): Observable<any> {
 
     return this.http.get(
@@ -223,11 +337,55 @@ export class UserService {
   }
 
   getEmployeesBySkill(skillName: string): Observable<any> {
-
     return this.http.get(
       `${this.api}/company-skills/${encodeURIComponent(skillName)}/employees`
     );
-
   }
 
+  getAllActivities(params: {
+    page?: number;
+    limit?: number;
+    activityType?: string;
+    employeeId?: string;
+    status?: string;
+    search?: string;
+    dateRange?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Observable<any> {
+    let httpParams = new HttpParams();
+
+    if (params.page) {
+      httpParams = httpParams.set('page', params.page.toString());
+    }
+    if (params.limit) {
+      httpParams = httpParams.set('limit', params.limit.toString());
+    }
+    if (params.activityType) {
+      httpParams = httpParams.set('activityType', params.activityType);
+    }
+    if (params.employeeId) {
+      httpParams = httpParams.set('employeeId', params.employeeId);
+    }
+    if (params.status) {
+      httpParams = httpParams.set('status', params.status);
+    }
+    if (params.search) {
+      httpParams = httpParams.set('search', params.search);
+    }
+    if (params.dateRange) {
+      httpParams = httpParams.set('dateRange', params.dateRange);
+    }
+    if (params.startDate) {
+      httpParams = httpParams.set('startDate', params.startDate);
+    }
+    if (params.endDate) {
+      httpParams = httpParams.set('endDate', params.endDate);
+    }
+
+    return this.http.get(
+      `${this.api}/all-activities`,
+      { params: httpParams }
+    );
+  }
 }

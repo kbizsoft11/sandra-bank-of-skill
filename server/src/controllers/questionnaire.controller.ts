@@ -6,6 +6,7 @@ import { sendResponse } from '../utils/api-response';
 import { asyncHandler } from '../utils/async-handler';
 import { v4 as uuidv4 } from 'uuid';
 import { assignQuestionnaireToCompanyEmployees, getPendingOnboardingQuestionnaire } from '../services/onboarding.service';
+import * as AdminDashboardService from '../services/admin-dashboard.service';
 
 // ==================== COMPANY ROLE CONTROLLERS ====================
 
@@ -588,6 +589,22 @@ export const submitQuestionnaireResponse = asyncHandler(
         }
 
         await response.save();
+
+        if (isComplete) {
+            const userFullName = user.fullName || '';
+            await AdminDashboardService.createActivity(
+                user.userId,
+                userFullName,
+                'Completed a questionnaire',
+                'assessment',
+                {
+                    questionnaireId: id,
+                    questionnaireTitle: response.questionnaireId || id,
+                    tenantId: user.tenantId,
+                    organisationId: user.organisationId,
+                }
+            );
+        }
 
         return sendResponse(
             res,

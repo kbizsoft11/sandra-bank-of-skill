@@ -18,6 +18,8 @@ export interface IUser {
 
   designationId?: string;
 
+  team?: string;
+
   department?: string;
 
   location?: string;

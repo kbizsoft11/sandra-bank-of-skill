@@ -88,6 +88,13 @@ export const dashboardRoutes: Routes = [
     },
 
     {
+        path: 'employee-activity',
+        canActivate: [roleGuard],
+        data: { roles: ['admin', 'company'] },
+        loadComponent: () => import('../features/employee-activity/employee-activity').then(c => c.EmployeeActivity)
+    },
+
+    {
         path: 'users/create',
         canActivate: [roleGuard],
         data: { roles: ['admin'] },

@@ -214,4 +214,74 @@ export const searchEmployeesQuerySchema = z.object({
         .optional()
         .describe('Sort direction'),
 
+    status: z
+        .string()
+        .optional()
+        .describe('Filter by employee account status (joined, active, inactive)'),
+
+    accountStatus: z
+        .string()
+        .optional()
+        .describe('Filter by exact account status (invited, joined, active, inactive)'),
+
+    excludeAccountStatus: z
+        .string()
+        .optional()
+        .describe('Exclude specific account status from the search results'),
+
+});
+
+export const allActivitiesQuerySchema = z.object({
+
+    page: z
+        .coerce
+        .number()
+        .positive()
+        .optional()
+        .default(1),
+
+    limit: z
+        .coerce
+        .number()
+        .positive()
+        .max(100)
+        .optional()
+        .default(20),
+
+    activityType: z
+        .string()
+        .optional()
+        .describe('Filter by activity type (login, course, assessment, skill)'),
+
+    employeeId: z
+        .string()
+        .regex(objectIdRegex, 'Invalid employee id')
+        .optional()
+        .describe('Filter by specific employee'),
+
+    status: z
+        .string()
+        .optional()
+        .describe('Filter by activity status'),
+
+    search: z
+        .string()
+        .optional()
+        .describe('Search activities'),
+
+    dateRange: z
+        .string()
+        .optional()
+        .describe('Date range filter (today, week, month, year)'),
+
+    startDate: z
+        .string()
+        .optional()
+        .describe('Start date for custom range'),
+
+    endDate: z
+        .string()
+        .optional()
+        .describe('End date for custom range'),
+
 });

@@ -52,6 +52,36 @@ export const userRepository = {
     return UserModel.findOne({ email });
   },
 
+  getDistinctDepartments: async () => {
+    const departments = await UserModel.aggregate([
+      { $match: { department: { $exists: true, $ne: '' } } },
+      { $group: { _id: { $toLower: '$department' }, value: { $first: '$department' } } },
+      { $sort: { value: 1 } },
+      { $project: { _id: 0, value: 1 } },
+    ]);
+    return departments.map((item: any) => item.value);
+  },
+
+  getDistinctTeams: async () => {
+    const teams = await UserModel.aggregate([
+      { $match: { team: { $exists: true, $ne: '' } } },
+      { $group: { _id: { $toLower: '$team' }, value: { $first: '$team' } } },
+      { $sort: { value: 1 } },
+      { $project: { _id: 0, value: 1 } },
+    ]);
+    return teams.map((item: any) => item.value);
+  },
+
+  getDistinctJobRoles: async () => {
+    const jobRoles = await UserModel.aggregate([
+      { $match: { title: { $exists: true, $ne: '' } } },
+      { $group: { _id: { $toLower: '$title' }, value: { $first: '$title' } } },
+      { $sort: { value: 1 } },
+      { $project: { _id: 0, value: 1 } },
+    ]);
+    return jobRoles.map((item: any) => item.value);
+  },
+
   searchEmployees: async (params: {
     search?: string;
     skill?: string;
@@ -62,6 +92,9 @@ export const userRepository = {
     limit?: number;
     sortKey?: string;
     sortDirection?: string;
+    status?: string;
+    accountStatus?: string;
+    excludeAccountStatus?: string;
   }) => {
     const {
       search,
@@ -73,6 +106,9 @@ export const userRepository = {
       limit = 20,
       sortKey,
       sortDirection,
+      status,
+      accountStatus,
+      excludeAccountStatus,
     } = params;
 
     // Build the aggregation pipeline
@@ -147,6 +183,15 @@ export const userRepository = {
     // Filter by department
     if (department) {
       filterStage.department = { $regex: department, $options: 'i' };
+    }
+
+    // Filter by account status
+    if (accountStatus) {
+      filterStage.accountStatus = accountStatus;
+    } else if (status) {
+      filterStage.accountStatus = status;
+    } else if (excludeAccountStatus) {
+      filterStage.accountStatus = { $ne: excludeAccountStatus };
     }
 
     if (Object.keys(filterStage).length > 0) {
@@ -523,5 +568,29 @@ export const userRepository = {
         totalPages: Math.ceil(total / limit),
       },
     };
+  },
+
+  exportEmployees: async (filter: Record<string, any>) => {
+    const pipeline: any[] = [
+      { $match: filter },
+      {
+        $lookup: {
+          from: 'organisations',
+          localField: 'organisationId',
+          foreignField: '_id',
+          as: 'organisation',
+        },
+      },
+      {
+        $unwind: {
+          path: '$organisation',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      { $project: { password: 0 } },
+      { $sort: { fullName: 1 } },
+    ];
+
+    return UserModel.aggregate(pipeline);
   },
 };

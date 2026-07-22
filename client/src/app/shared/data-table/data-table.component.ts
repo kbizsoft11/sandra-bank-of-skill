@@ -38,7 +38,7 @@ import { SortDirection, SortEvent, TableColumn } from './table-column.model';
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableColDirective],
+  imports: [CommonModule, FormsModule],
   templateUrl: './data-table.html',
   styleUrls: ['./data-table.scss']
 })

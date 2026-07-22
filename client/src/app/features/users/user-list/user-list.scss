@@ -1,17 +1,41 @@
 $bp-sm: 576px;
+$bp-md: 768px;
+$bp-lg: 992px;
 
+// ============================================================================
+// User Avatar
+// ============================================================================
 .user-avatar {
   width: 40px;
   height: 40px;
   flex-shrink: 0;
+
+  @media (max-width: ($bp-sm - 1)) {
+    width: 36px;
+    height: 36px;
+    font-size: 0.875rem;
+  }
 }
 
+// ============================================================================
+// Action Cells
+// ============================================================================
 .action-cell {
   flex-wrap: nowrap;
+  gap: 0.5rem;
+
+  @media (max-width: ($bp-md - 1)) {
+    gap: 0.375rem;
+  }
 }
 
 .action-btn {
   white-space: nowrap;
+
+  @media (max-width: ($bp-lg - 1)) {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.875rem;
+  }
 }
 
 .action-menu-toggle {
@@ -31,8 +55,16 @@ $bp-sm: 576px;
   &:focus {
     background-color: #f1f3f5;
   }
+
+  @media (max-width: ($bp-md - 1)) {
+    width: 28px;
+    height: 28px;
+  }
 }
 
+// ============================================================================
+// Dropdowns
+// ============================================================================
 .dropdown-menu {
   min-width: 180px;
   padding: 0.375rem;
@@ -62,9 +94,38 @@ $bp-sm: 576px;
   }
 }
 
-// ---------------------------------------------------------------------------
-// Invite User Modal (unchanged)
-// ---------------------------------------------------------------------------
+// ============================================================================
+// Animations
+// ============================================================================
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+// ============================================================================
+// Filter Panel
+// ============================================================================
+.form-select-sm,
+.form-control-sm {
+  @media (max-width: ($bp-sm - 1)) {
+    font-size: 14px;
+    padding: 0.375rem 0.75rem;
+  }
+}
+
+// ============================================================================
+// Modals (Mobile-First)
+// ============================================================================
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -73,6 +134,16 @@ $bp-sm: 576px;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   z-index: 1040;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal {
@@ -91,11 +162,39 @@ $bp-sm: 576px;
   margin: 0;
   display: flex;
   align-items: flex-end;
+  animation: slideUp 0.3s ease-out;
 
   @media (min-width: $bp-sm) {
     max-width: 520px;
     align-items: center;
     margin: 1.75rem auto;
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  &.modal-lg {
+    @media (min-width: $bp-lg) {
+      max-width: 800px;
+    }
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -116,14 +215,44 @@ $bp-sm: 576px;
 
 .modal-header {
   flex-shrink: 0;
+  padding: 1rem;
+
+  @media (min-width: $bp-sm) {
+    padding: 1.25rem 1.5rem;
+  }
 }
 
 .modal-body {
   flex: 1 1 auto;
   overflow-y: auto;
   min-height: 0;
+  padding: 1rem;
+
+  @media (min-width: $bp-sm) {
+    padding: 1rem 1.5rem;
+  }
+
+  // Custom scrollbar for webkit browsers
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
 }
 
+// Ensure inputs are at least 16px on mobile to prevent zoom
 .form-control,
 .form-select {
   @media (max-width: ($bp-sm - 1)) {
@@ -138,6 +267,7 @@ $bp-sm: 576px;
   gap: 0.625rem;
   padding: 1rem;
   border-top: 1px solid #e5e7eb;
+  background: #fafafa;
 
   @media (min-width: $bp-sm) {
     flex-direction: row;
@@ -147,7 +277,7 @@ $bp-sm: 576px;
 
   .btn {
     width: 100%;
-    min-height: 44px;
+    min-height: 44px; // Touch-friendly on mobile
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -159,6 +289,323 @@ $bp-sm: 576px;
   }
 }
 
+.modal-footer {
+  flex-shrink: 0;
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+
+  @media (min-width: $bp-sm) {
+    padding: 1rem 1.5rem;
+  }
+}
+
 textarea.form-control {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+// ============================================================================
+// Activities Container
+// ============================================================================
+.activities-container {
+  max-height: 400px;
+  overflow-y: auto;
+
+  @media (max-width: ($bp-sm - 1)) {
+    max-height: 300px;
+  }
+
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
+}
+
+// ============================================================================
+// Nav Pills (Activity Tabs)
+// ============================================================================
+.nav-pills {
+  .nav-link {
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+
+    @media (max-width: ($bp-sm - 1)) {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.813rem;
+    }
+
+    &.active {
+      background-color: #0d6efd;
+      color: white;
+    }
+
+    &:not(.active) {
+      color: #6c757d;
+
+      &:hover {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+      }
+    }
+  }
+}
+
+// ============================================================================
+// List Group
+// ============================================================================
+.list-group-item {
+  border-left: none;
+  border-right: none;
+  padding: 1rem 0;
+
+  &:first-child {
+    border-top: none;
+  }
+
+  @media (max-width: ($bp-sm - 1)) {
+    padding: 0.75rem 0;
+  }
+}
+
+// ============================================================================
+// Badges
+// ============================================================================
+.badge {
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+
+  @media (max-width: ($bp-sm - 1)) {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+  }
+}
+
+// ============================================================================
+// Utility Classes
+// ============================================================================
+.text-truncate-mobile {
+  @media (max-width: ($bp-sm - 1)) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// ============================================================================
+// Touch-friendly buttons on mobile
+// ============================================================================
+@media (max-width: ($bp-sm - 1)) {
+  .btn-sm {
+    min-height: 36px;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .btn {
+    min-height: 44px;
+  }
+}
+
+// ============================================================================
+// Loading States
+// ============================================================================
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}
+
+
+// ============================================================================
+// User List Toolbar (mobile-first)
+// ============================================================================
+.user-list-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+
+  @media (min-width: $bp-lg) {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+// Tab pill group
+.toolbar-tabs {
+  display: flex;
+  gap: 4px;
+  background: #f1f3f5;
+  border-radius: 999px;
+  padding: 4px;
+  overflow-x: auto;
   scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (min-width: $bp-lg) {
+    flex-shrink: 0;
+  }
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  border: none;
+  background: transparent;
+  color: #495057;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  i {
+    font-size: 0.85rem;
+  }
+
+  &:hover:not(.active) {
+    background-color: rgba(13, 110, 253, 0.08);
+    color: #0d6efd;
+  }
+
+  &.active {
+    background-color: #0d6efd;
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+}
+
+// Divider between tabs and actions — hidden until there's a row to divide
+.toolbar-divider {
+  display: none;
+
+  @media (min-width: $bp-lg) {
+    display: block;
+    width: 1px;
+    height: 28px;
+    background-color: #e5e7eb;
+    flex-shrink: 0;
+  }
+}
+
+// Action button row
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  @media (min-width: $bp-lg) {
+    flex-wrap: nowrap;
+    margin-left: auto;
+  }
+}
+
+.toolbar-actions-secondary {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 2px;
+
+  .toolbar-btn {
+    border: none;
+  }
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  border: 1px solid #dee2e6;
+  background: #fff;
+  color: #495057;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  line-height: 1;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  min-height: 36px;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  i {
+    font-size: 0.85rem;
+  }
+
+  &:hover {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+  }
+
+  &.active {
+    background-color: rgba(13, 110, 253, 0.08);
+    border-color: #0d6efd;
+    color: #0d6efd;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.toolbar-btn-warning {
+    background-color: #fff8e1;
+    border-color: #ffc107;
+    color: #7a5c00;
+
+    &:hover {
+      background-color: #fff3cd;
+    }
+  }
+}
+
+.toolbar-chevron {
+  font-size: 0.7rem;
+  transition: transform 0.15s ease;
+}
+
+// Mobile: stack tabs full-width, actions full-width row that can wrap
+@media (max-width: ($bp-sm - 1)) {
+  .toolbar-tabs {
+    width: 100%;
+  }
+
+  .tab-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .toolbar-actions {
+    width: 100%;
+  }
+
+  .toolbar-btn,
+  .toolbar-actions-secondary {
+    flex: 1 1 auto;
+  }
+
+  .toolbar-btn {
+    justify-content: center;
+  }
 }

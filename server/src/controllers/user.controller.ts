@@ -1,10 +1,68 @@
 import { Request, Response } from 'express';
+import * as XLSX from 'xlsx';
 
 import { userService } from '../services/user.service';
+import * as AdminDashboardService from '../services/admin-dashboard.service';
 
 import { sendResponse } from '../utils/api-response';
 import { asyncHandler } from '../utils/async-handler';
 import { userRepository } from '../repositories/user.repository';
+
+const parseCsvLine = (line: string): string[] => {
+  const values: string[] = [];
+  let current = '';
+  let insideQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"') {
+      if (insideQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        insideQuotes = !insideQuotes;
+      }
+      continue;
+    }
+
+    if (char === ',' && !insideQuotes) {
+      values.push(current);
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  values.push(current);
+  return values;
+};
+
+const parseCsvToObjects = (csv: string): Record<string, string>[] => {
+  const lines = csv
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+
+  if (lines.length === 0) {
+    return [];
+  }
+
+  const headerRow = parseCsvLine(lines[0]);
+  const headers = headerRow.map(header => header.trim().toLowerCase());
+
+  return lines.slice(1).map(line => {
+    const values = parseCsvLine(line);
+    const obj: Record<string, string> = {};
+
+    headers.forEach((header, index) => {
+      obj[header] = (values[index] || '').trim();
+    });
+
+    return obj;
+  });
+};
 
 export const getAllUsers = asyncHandler(
   async (req: Request, res: Response) => {
@@ -300,9 +358,14 @@ export const impersonateUser = asyncHandler(
   async (req: Request, res: Response) => {
 
     const adminId = (req as any).user?.userId;
+    const userRole = (req as any).user?.role;
     const userId = req.params.id as string;
 
-    const result = await userService.impersonateUser(adminId, userId);
+    // Admin can impersonate any user, so we pass role info
+    const result = await userService.impersonateUser(userId, {
+      role: userRole,
+      tenantId: undefined, // Admin doesn't need tenant restriction
+    });
 
     return sendResponse(
       res,
@@ -335,8 +398,23 @@ export const updateMyProfile = asyncHandler(
   async (req: Request, res: Response) => {
 
     const userId = (req as any).user?.userId;
+    const userFullName = (req as any).user?.fullName || '';
+    const tenantId = (req as any).user?.tenantId;
+    const organisationId = (req as any).user?.organisationId;
 
     const user = await userService.updateMyProfile(userId, req.body);
+
+    await AdminDashboardService.createActivity(
+      userId,
+      userFullName,
+      'Updated profile information',
+      'profile',
+      {
+        changedFields: Object.keys(req.body || {}),
+        tenantId,
+        organisationId,
+      }
+    );
 
     return sendResponse(
       res,
@@ -350,8 +428,10 @@ export const updateMyProfile = asyncHandler(
 
 export const updateProfilePicture = asyncHandler(
   async (req: Request, res: Response) => {
-
     const userId = (req as any).user?.userId;
+    const userFullName = (req as any).user?.fullName || '';
+    const tenantId = (req as any).user?.tenantId;
+    const organisationId = (req as any).user?.organisationId;
 
     if (!req.file) {
       throw new Error('No file uploaded');
@@ -359,12 +439,25 @@ export const updateProfilePicture = asyncHandler(
 
     const user = await userService.updateProfilePicture(userId, req.file.filename);
 
+    await AdminDashboardService.createActivity(
+      userId,
+      userFullName,
+      'Updated profile picture',
+      'profile',
+      {
+        profileImage: user?.profileImage || null,
+        tenantId,
+        organisationId,
+      }
+    );
+
     return sendResponse(
       res,
       200,
       'Profile picture updated successfully',
       user
     );
+
 
   }
 );
@@ -413,7 +506,7 @@ export const searchEmployees = asyncHandler(
     const userRole = (req as any).user?.role;
     const userTenantId = (req as any).user?.tenantId;
 
-    const { search, skill, category, department, page, limit, sortKey, sortDirection } = req.query;
+    const { search, skill, category, department, page, limit, sortKey, sortDirection, status, accountStatus, excludeAccountStatus } = req.query;
 
     const result = await userService.searchEmployees({
       search: search as string,
@@ -424,6 +517,9 @@ export const searchEmployees = asyncHandler(
       limit: limit ? Number(limit) : undefined,
       sortKey: sortKey as string,
       sortDirection: sortDirection as string,
+      status: status as string,
+      accountStatus: accountStatus as string,
+      excludeAccountStatus: excludeAccountStatus as string,
       userRole,
       userTenantId,
     });
@@ -435,6 +531,62 @@ export const searchEmployees = asyncHandler(
       result
     );
 
+  }
+);
+
+export const getEmployeeActivities = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userRole = (req as any).user?.role;
+    const userTenantId = (req as any).user?.tenantId;
+    const employeeId = req.params.id as string;
+
+    const { type, page, limit, status, search, dateRange, startDate, endDate } = req.query;
+
+    const result = await userService.getEmployeeActivities({
+      employeeId,
+      type: type as string,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      status: status as string,
+      search: search as string,
+      dateRange: dateRange as string,
+      startDate: startDate as string,
+      endDate: endDate as string,
+      userRole,
+      userTenantId,
+    });
+
+    return sendResponse(
+      res,
+      200,
+      'Employee activities fetched successfully',
+      result
+    );
+  }
+);
+
+export const getEmployeeLoginHistory = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userRole = (req as any).user?.role;
+    const userTenantId = (req as any).user?.tenantId;
+    const employeeId = req.params.id as string;
+
+    const { page, limit } = req.query;
+
+    const result = await userService.getEmployeeLoginHistory({
+      employeeId,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      userRole,
+      userTenantId,
+    });
+
+    return sendResponse(
+      res,
+      200,
+      'Employee login history fetched successfully',
+      result
+    );
   }
 );
 
@@ -471,6 +623,192 @@ export const getEmployeesBySkill = asyncHandler(
       200,
       'Employees with skill fetched successfully',
       employees
+    );
+
+  }
+);
+
+export const getDepartments = asyncHandler(
+  async (_req: Request, res: Response) => {
+    const departments = await userService.getDepartments();
+    return sendResponse(res, 200, 'Departments fetched successfully', departments);
+  }
+);
+
+export const getTeams = asyncHandler(
+  async (_req: Request, res: Response) => {
+    const teams = await userService.getTeams();
+    return sendResponse(res, 200, 'Teams fetched successfully', teams);
+  }
+);
+
+export const getJobRoles = asyncHandler(
+  async (_req: Request, res: Response) => {
+    const jobRoles = await userService.getJobRoles();
+    return sendResponse(res, 200, 'Job roles fetched successfully', jobRoles);
+  }
+);
+
+export const exportEmployees = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userRole = (req as any).user?.role;
+    const userTenantId = (req as any).user?.tenantId;
+
+    const { search, department, team, jobRole, status, accountStatus, excludeAccountStatus } = req.query;
+
+    const employees = await userService.exportEmployees({
+      search: search as string,
+      department: department as string,
+      team: team as string,
+      jobRole: jobRole as string,
+      status: status as string,
+      accountStatus: accountStatus as string,
+      excludeAccountStatus: excludeAccountStatus as string,
+      userRole,
+      userTenantId,
+    });
+
+    const headers = [
+      'Full Name',
+      'Email',
+      'Department',
+      'Team',
+      'Job Role',
+      'Status',
+      'Account Status',
+      'Organisation',
+      'Tenant Name',
+    ];
+
+    const csvRows = employees.map((employee: any) => {
+      const organisationName = employee.organisation?.organisationName || employee.organisationName || '';
+      return [
+        employee.fullName || '',
+        employee.email || '',
+        employee.department || '',
+        employee.team || '',
+        employee.title || '',
+        employee.isActive ? 'Active' : 'Inactive',
+        employee.accountStatus || '',
+        organisationName,
+        organisationName,
+      ];
+    });
+
+    const csvContent = [headers, ...csvRows]
+      .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="employees_export.csv"');
+    res.status(200).send(csvContent);
+  }
+);
+
+const parseImportFileToObjects = (file: Express.Multer.File): Record<string, string>[] => {
+  const fileName = file.originalname.toLowerCase();
+
+  if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
+    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+
+    if (!sheetName) {
+      return [];
+    }
+
+    const sheet = workbook.Sheets[sheetName];
+    const rawRows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: '' });
+
+    return rawRows.map((row) => {
+      const normalized: Record<string, string> = {};
+      Object.entries(row).forEach(([key, value]) => {
+        normalized[key.trim().toLowerCase()] = value?.toString?.().trim() || '';
+      });
+      return normalized;
+    });
+  }
+
+  return parseCsvToObjects(file.buffer.toString('utf8'));
+};
+
+export const importEmployees = asyncHandler(
+  async (req: Request, res: Response) => {
+    const invitedByUserId = (req as any).user?.userId;
+    const invitedByName = (req as any).user?.fullName || 'Company Administrator';
+
+    if (!invitedByUserId) {
+      throw new Error('Unable to identify inviting user');
+    }
+
+    if (!req.file || !req.file.buffer) {
+      throw new Error('No import file uploaded');
+    }
+
+    const rows = parseImportFileToObjects(req.file as Express.Multer.File).map((row) => ({
+      email: (row['email'] || row['email address'] || '').trim(),
+      fullName: (row['full name'] || row['name'] || '').trim(),
+      department: (row['department'] || '').trim(),
+      team: (row['team'] || '').trim(),
+      jobRole: (row['job role'] || row['title'] || row['role'] || '').trim(),
+      message: (row['message'] || '').trim(),
+    }));
+
+    if (rows.length === 0) {
+      return sendResponse(res, 400, 'The import file appears to be empty or invalid', {
+        imported: 0,
+        skipped: 0,
+        errors: [],
+      });
+    }
+
+    const result = await userService.importEmployees(rows, invitedByUserId, invitedByName);
+
+    return sendResponse(
+      res,
+      200,
+      'Employees imported successfully',
+      result
+    );
+  }
+);
+
+export const getAllActivities = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const userRole = (req as any).user?.role;
+    const userTenantId = (req as any).user?.tenantId;
+
+    const { 
+      page, 
+      limit, 
+      activityType, 
+      employeeId, 
+      status, 
+      search, 
+      dateRange, 
+      startDate, 
+      endDate 
+    } = req.query;
+
+    const result = await userService.getAllActivities({
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      activityType: activityType as string,
+      employeeId: employeeId as string,
+      status: status as string,
+      search: search as string,
+      dateRange: dateRange as string,
+      startDate: startDate as string,
+      endDate: endDate as string,
+      userRole,
+      userTenantId,
+    });
+
+    return sendResponse(
+      res,
+      200,
+      'Activities fetched successfully',
+      result
     );
 
   }

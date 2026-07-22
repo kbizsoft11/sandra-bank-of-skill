@@ -5,6 +5,9 @@ interface IActivity extends Document {
   user: string; // Full name or identifier
   activity: string; // Description of the activity
   type: string; // Type of activity (e.g., 'company_created', 'employee_added', 'skill_added')
+  status?: string;
+  tenantId?: string;
+  organisationId?: string;
   details?: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
@@ -28,6 +31,20 @@ const ActivitySchema = new Schema<IActivity>(
     type: {
       type: String,
       required: true,
+      index: true,
+    },
+    status: {
+      type: String,
+      required: false,
+    },
+    tenantId: {
+      type: String,
+      required: false,
+      index: true,
+    },
+    organisationId: {
+      type: String,
+      required: false,
       index: true,
     },
     details: {

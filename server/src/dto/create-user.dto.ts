@@ -16,6 +16,12 @@ export interface CreateUserDto {
 
   organisationId?: string;
 
+  department?: string;
+
+  team?: string;
+
+  title?: string;
+
   profileCompleted?: boolean;
 
   hasCompletedOnboarding?: boolean;

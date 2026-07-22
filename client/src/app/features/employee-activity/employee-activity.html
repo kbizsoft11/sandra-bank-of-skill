@@ -1,0 +1,211 @@
+<div class="employee-activity-page">
+  <!-- Page Header -->
+  <div class="rounded-4 border bg-white shadow-sm overflow-hidden mb-4">
+    <div class="activity-header border-bottom px-3 px-sm-4 py-3">
+      <div class="activity-header-title">
+        <h1 class="h4 fw-semibold mb-1 text-dark">
+          <i class="bi bi-activity me-2"></i>
+          Employee Activity Tracking
+        </h1>
+        <p class="text-secondary small mb-0">Monitor and analyze all employee activities in real-time</p>
+      </div>
+
+      <div class="activity-header-actions">
+        <button (click)="toggleFilters()" class="toolbar-btn" [class.active]="showFilters()">
+          <i class="bi bi-funnel-fill"></i>
+          <span>Filters</span>
+          <i class="bi toolbar-chevron" [class.bi-chevron-up]="showFilters()" [class.bi-chevron-down]="!showFilters()"></i>
+        </button>
+        <button (click)="exportActivities()" class="toolbar-btn toolbar-btn-primary">
+          <i class="bi bi-download"></i>
+          <span>Export</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Advanced Filters Panel (Collapsible) -->
+    @if (showFilters()) {
+      <div class="filters-panel border-bottom px-3 px-sm-4 py-3 bg-light animate-slide-down">
+        <div class="row g-3">
+          <!-- Employee Filter -->
+          <div class="col-12 col-sm-6 col-lg-3">
+            <label class="form-label small fw-semibold mb-1">Employee</label>
+            <select [(ngModel)]="selectedEmployee" (change)="applyFilters()" class="form-select form-select-sm">
+              <option value="">All Employees</option>
+              @for (emp of employees(); track emp._id) {
+                <option [value]="emp._id">{{ emp.fullName }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Activity Type Filter -->
+          <div class="col-12 col-sm-6 col-lg-3">
+            <label class="form-label small fw-semibold mb-1">Activity Type</label>
+            <select [(ngModel)]="activityType" (change)="applyFilters()" class="form-select form-select-sm">
+              <option value="all">All Activities</option>
+              <option value="login">Login History</option>
+              <option value="course">Course Activity</option>
+              <option value="assessment">Assessments</option>
+              <option value="skill">Skill Updates</option>
+            </select>
+          </div>
+
+          <!-- Date Range Filter -->
+          <div class="col-12 col-sm-6 col-lg-2">
+            <label class="form-label small fw-semibold mb-1">Time Period</label>
+            <select class="form-select form-select-sm" [(ngModel)]="dateRangeFilter" (change)="applyFilters()">
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="week">Last 7 Days</option>
+              <option value="month">Last 30 Days</option>
+              <option value="custom">Custom Range</option>
+            </select>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="col-12 col-sm-6 col-lg-2">
+            <label class="form-label small fw-semibold mb-1">Status</label>
+            <select class="form-select form-select-sm" [(ngModel)]="selectedStatus" (change)="applyFilters()">
+              <option value="">All Status</option>
+              <option value="success">Success</option>
+              <option value="completed">Completed</option>
+              <option value="passed">Passed</option>
+              <option value="failed">Failed</option>
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+            </select>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="col-12 col-sm-6 col-lg-2">
+            <label class="form-label small fw-semibold mb-1 d-none d-lg-block">&nbsp;</label>
+            <button (click)="clearFilters()" class="btn btn-sm btn-outline-secondary w-100">
+              <i class="bi bi-x-circle me-1"></i>
+              Clear Filters
+            </button>
+          </div>
+
+          <!-- Custom Date Range -->
+          @if (dateRangeFilter === 'custom') {
+            <div class="col-12 col-sm-6 col-md-3">
+              <label class="form-label small fw-semibold mb-1">Start Date</label>
+              <input 
+                type="date" 
+                class="form-control form-control-sm" 
+                [(ngModel)]="customStartDate"
+                (change)="applyFilters()">
+            </div>
+            <div class="col-12 col-sm-6 col-md-3">
+              <label class="form-label small fw-semibold mb-1">End Date</label>
+              <input 
+                type="date" 
+                class="form-control form-control-sm" 
+                [(ngModel)]="customEndDate"
+                (change)="applyFilters()">
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Activities Table -->
+    <div class="px-3 px-sm-4 py-3">
+      <app-data-table
+        [columns]="columns"
+        [data]="activities()"
+        [serverSide]="false"
+        [totalItems]="totalActivities"
+        [loading]="isLoadingActivities()"
+        [searchable]="true"
+        searchPlaceholder="Search activities by description..."
+        emptyMessage="No activities found. Try adjusting your filters."
+        (searchChange)="onSearch($event)"
+        (sortChange)="onSort($event)"
+        (pageChange)="onPage($event)"
+        (pageSizeChange)="onPageSize($event)"
+      >
+        <!-- Employee Name with Avatar -->
+        <ng-template appTableCol="employeeName" let-activity>
+          <div class="d-flex align-items-center gap-2">
+            <div class="employee-avatar-sm bg-primary-subtle text-primary fw-semibold">
+              {{ activity.employeeName?.charAt(0)?.toUpperCase() || '?' }}
+            </div>
+            <span class="fw-medium">{{ activity.employeeName || 'Unknown' }}</span>
+          </div>
+        </ng-template>
+
+        <!-- Activity Type with Icon -->
+        <ng-template appTableCol="activityType" let-activity>
+          <span class="badge" [class]="'bg-' + getActivityColor(activity.activityType) + '-subtle text-' + getActivityColor(activity.activityType) + '-emphasis'">
+            <i class="bi me-1" [ngClass]="getActivityIcon(activity.activityType)"></i>
+            <span class="text-capitalize">{{ activity.activityType || 'N/A' }}</span>
+          </span>
+        </ng-template>
+
+        <!-- Description -->
+        <ng-template appTableCol="description" let-activity>
+          <div>
+            <p class="mb-1 fw-medium">{{ activity.description || 'No description' }}</p>
+            <div class="d-flex flex-wrap gap-2 small text-muted">
+              @if (activity.ipAddress) {
+                <span>
+                  <i class="bi bi-geo-alt me-1"></i>
+                  {{ activity.ipAddress }}
+                </span>
+              }
+              @if (activity.device) {
+                <span>
+                  <i class="bi bi-device-ssd me-1"></i>
+                  {{ activity.device }}
+                </span>
+              }
+              @if (activity.score !== undefined && activity.score !== null) {
+                <span>
+                  <i class="bi bi-graph-up me-1"></i>
+                  Score: {{ activity.score }}%
+                </span>
+              }
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- Status Badge -->
+        <ng-template appTableCol="status" let-activity>
+          <span class="badge rounded-pill px-3 py-2 fw-medium" [ngClass]="getStatusBadgeClass(activity.status)">
+            {{ activity.status || 'N/A' }}
+          </span>
+        </ng-template>
+
+        <!-- Timestamp -->
+        <ng-template appTableCol="timestamp" let-activity>
+          <div class="text-nowrap">
+            <div class="fw-medium">{{ activity.timestamp | date:'short' }}</div>
+            <small class="text-muted">{{ activity.timestamp | date:'MMM d, y' }}</small>
+          </div>
+        </ng-template>
+
+        <!-- Actions -->
+        <ng-template appTableCol="actions" let-activity>
+          <div class="d-flex align-items-center justify-content-end gap-2">
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-primary"
+              (click)="viewEmployeeDetails(activity)"
+              title="View Employee"
+            >
+              <i class="bi bi-person"></i>
+            </button>
+          </div>
+        </ng-template>
+      </app-data-table>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="stats-card rounded-3 border bg-white shadow-sm p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="min-w-0">
+            <p class="text-muted small mb-1">Total Activities</p>
+            <h3 class="h4 fw-bold mb-0">{{ totalActivities }}</h3>

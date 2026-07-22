@@ -50,6 +50,10 @@ const UserSchema = new Schema<IUser>(
             type: String,
         },
 
+        team: {
+            type: String,
+        },
+
         department: {
             type: String,
         },
