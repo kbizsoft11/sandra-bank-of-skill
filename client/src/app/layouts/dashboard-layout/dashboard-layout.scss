@@ -9,14 +9,13 @@
   margin-left: 270px;
   flex: 1;
   min-width: 0;
-  padding: 22px 28px 60px;
 }
 
 .dashboard-main {
   display: block !important;
   flex: 1;
   min-height: 0;
-  padding-top: 0 !important;
+  padding: 22px 0px 0 !important;
 }
 
 .sidebar-backdrop {
@@ -34,6 +33,10 @@
 @media (max-width: 991.98px) {
   .main-content {
     margin-left: 0;
-    padding: 16px 16px 50px;
+    padding: 0;
+  }
+
+  .dashboard-main {
+    padding: 16px 16px 50px !important;
   }
 }

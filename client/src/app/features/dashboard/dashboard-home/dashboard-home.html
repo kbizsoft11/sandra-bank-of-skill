@@ -1,5 +1,4 @@
 <div class="main-content">
-  <h1 class="welcome-title">Welcome back, {{ currentUserName }}! 👋</h1>
   
   @if (loading()) {
     <div class="text-center py-5">
@@ -149,231 +148,607 @@
 
     <!-- COMPANY DASHBOARD -->
     @if (isCompany()) {
-      <p class="welcome-sub">Your Organization Overview</p>
+      <!-- Top thin dark strip -->
+      <div class="top-strip"></div>
 
-      <div class="row g-3 mb-3">
-        <div class="col-6 col-md-4 col-lg">
-          <div class="stat-card">
-            <div class="stat-icon bg-blue-soft"><i class="bi bi-people-fill"></i></div>
-            <div class="stat-label">Total Employees</div>
-            <div class="stat-value">{{ companyStats()?.totalEmployees || 0 }}</div>
+      <!-- Sub Nav -->
+      <nav class="sub-nav">
+        <div class="d-flex align-items-center justify-content-between px-3 py-2 flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-4 flex-wrap">
+            <div class="user-badge">
+              <i class="bi bi-person-circle"></i>
+              <span>My Summary</span>
+            </div>
+            <ul class="nav nav-tabs border-0 flex-wrap" role="tablist">
+              <li class="nav-item">
+                <button type="button" class="nav-link" [class.active]="companyDashboardTab() === 'summary'" (click)="$event.preventDefault(); selectCompanyDashboardTab('summary')">Summary</button>
+              </li>
+              <li class="nav-item">
+                <button type="button" class="nav-link" [class.active]="companyDashboardTab() === 'skills'" (click)="$event.preventDefault(); selectCompanyDashboardTab('skills')">Skills</button>
+              </li>
+              <li class="nav-item"><span class="nav-link"><i class="bi bi-lock-fill small-icon"></i> Roles</span></li>
+              <li class="nav-item">
+                <button type="button" class="nav-link" [class.active]="companyDashboardTab() === 'trends'" (click)="$event.preventDefault(); selectCompanyDashboardTab('trends')">Trends</button>
+              </li>
+              <li class="nav-item">
+                <button type="button" class="nav-link" [class.active]="companyDashboardTab() === 'assessments'" (click)="$event.preventDefault(); selectCompanyDashboardTab('assessments')">Assessments</button>
+              </li>
+              <li class="nav-item"><span class="nav-link"><i class="bi bi-lock-fill small-icon"></i> Attachments</span></li>
+              <li class="nav-item">
+                <button type="button" class="nav-link" [class.active]="companyDashboardTab() === 'about'" (click)="$event.preventDefault(); selectCompanyDashboardTab('about')">About</button>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+              Actions
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><button class="dropdown-item" type="button" (click)="$event.preventDefault()">Export</button></li>
+              <li><button class="dropdown-item" type="button" (click)="$event.preventDefault()">Print</button></li>
+              <li><button class="dropdown-item" type="button" (click)="$event.preventDefault()">Share</button></li>
+            </ul>
           </div>
         </div>
+      </nav>
 
-        <div class="col-6 col-md-4 col-lg">
-          <div class="stat-card">
-            <div class="stat-icon bg-green-soft"><i class="bi bi-person-check-fill"></i></div>
-            <div class="stat-label">Active Employees</div>
-            <div class="stat-value">{{ companyStats()?.activeEmployees || 0 }}</div>
-          </div>
-        </div>
-
-        <div class="col-6 col-md-4 col-lg">
-          <div class="stat-card">
-            <div class="stat-icon bg-purple-soft"><i class="bi bi-person-plus-fill"></i></div>
-            <div class="stat-label">Recent Joiners</div>
-            <div class="stat-value">{{ getRecentJoinersCount() }}</div>
-          </div>
-        </div>
-
-        <div class="col-6 col-md-4 col-lg">
-          <div class="stat-card">
-            <div class="stat-icon bg-orange-soft"><i class="bi bi-envelope-paper-fill"></i></div>
-            <div class="stat-label">Pending Invites</div>
-            <div class="stat-value">{{ getPendingInvitesCount() }}</div>
-          </div>
-        </div>
-
-        <div class="col-6 col-md-4 col-lg">
-          <div class="stat-card">
-            <div class="stat-icon bg-warning-soft"><i class="bi bi-envelope-fill"></i></div>
-            <div class="stat-label">Invited</div>
-            <div class="stat-value">{{ companyStats()?.invitedEmployees || 0 }}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row g-3 mb-3">
-        <div class="col-12 col-lg-8">
-          <div class="row g-3">
-            <div class="col-12 col-md-6">
-              <div class="dash-card">
-                <div class="dash-card-header">
-                  <div class="dash-card-title">Latest Joined Users</div>
+      <!-- Main content -->
+      <main class="container-fluid px-3 py-3">
+        @if (companyDashboardTab() === 'summary') {
+        <!-- Row 1: About + At a glance -->
+        <div class="row g-3 mb-1">
+          <div class="col-lg-4 col-md-6">
+            <div class="card-box h-100">
+              <div class="card-title">
+                <i class="bi bi-box-arrow-up-right small-icon"></i> About
+              </div>
+              <div class="d-flex align-items-center gap-3 mt-3">
+                <div class="avatar-circle">{{ getUserInitials() }}</div>
+                <div>
+                  <h5 class="mb-2">{{ currentUserName }}</h5>
+                  <span class="d-block link-line" role="button" tabindex="0">
+                    <i class="bi bi-people-fill"></i> {{ companyStats()?.totalEmployees || 0 }} employees
+                  </span>
+                  <span class="d-block link-line text-warning" role="button" tabindex="0">
+                    <i class="bi bi-envelope-paper-fill"></i> {{ getPendingInvitesCount() }} pending invites
+                  </span>
                 </div>
+              </div>
+            </div>
+          </div>
 
-                @if (getLatestUsersByStatus('joined').length > 0) {
-                  @for (employee of getLatestUsersByStatus('joined'); track employee._id) {
-                    <div class="person-row">
-                      <div class="person-left">
-                        <div class="person-avatar">
-                          {{ employee.fullName?.charAt(0) || 'E' }}
-                        </div>
-                        <div class="min-w-0">
-                          <div class="person-name">{{ employee.fullName }}</div>
-                          <div class="person-role">{{ employee.email }}</div>
-                        </div>
-                      </div>
-                      <div class="person-right">
-                        <span class="badge bg-info">Joined</span>
-                      </div>
+          <div class="col-lg-8 col-md-6">
+            <div class="card-box h-100">
+              <div class="card-title">
+                <i class="bi bi-box-arrow-up-right small-icon"></i> At a glance
+              </div>
+              <div class="d-flex align-items-end flex-wrap gap-5 mt-3 glance-row">
+                <div class="text-center">
+                  <div class="mini-bar mini-bar-yellow">
+                    <div class="mini-bar-fill" [style.height.%]="getCompanyActivePercentage()"></div>
+                  </div>
+                  <div class="mini-bar-value">{{ companyStats()?.activeEmployees || 0 }}</div>
+                  <div class="mini-bar-label">Active</div>
+                </div>
+                <div class="text-center">
+                  <div class="mini-bar mini-bar-blue">
+                    <div class="mini-bar-fill" [style.height.%]="getCompanySkillsPercentage()"></div>
+                  </div>
+                  <div class="mini-bar-value">{{ companyStats()?.totalSkills || 0 }}</div>
+                  <div class="mini-bar-label">Total Skills</div>
+                </div>
+                <div class="text-center">
+                  <div class="big-number">{{ companyStats()?.totalQuestionnaires || 0 }}</div>
+                  <div class="mini-bar-label">Questionnaires</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ask Sam -->
+        <div class="card-box mb-3 mt-3">
+          <div class="d-flex align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-2">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sam" class="ask-sam-avatar" alt="Sam">
+              <span class="fw-semibold">Ask Sam</span>
+            </div>
+            <button type="button" class="btn-ask" (click)="$event.preventDefault()"><i class="bi bi-stars"></i> Who are my top performers?</button>
+            <button type="button" class="btn-ask" (click)="$event.preventDefault()"><i class="bi bi-stars"></i> Which skills are trending?</button>
+            <button type="button" class="btn-ask" (click)="$event.preventDefault()"><i class="bi bi-stars"></i> What gaps do we have?</button>
+            <button type="button" class="btn-ask" (click)="$event.preventDefault()"><i class="bi bi-stars"></i> Who needs training?</button>
+          </div>
+        </div>
+
+        <!-- Row 2: Top Skill Categories / Top skills / Top Employees -->
+        <div class="row g-3 mb-1">
+          <div class="col-lg-4">
+            <div class="card-box h-100">
+              <div class="card-title"><i class="bi bi-box-arrow-up-right small-icon"></i> Employee Status</div>
+              <div class="stacked-chart mt-3">
+                <div class="chart-y-axis">
+                  <span>{{ companyStats()?.totalEmployees || 0 }}</span>
+                  <span>{{ Math.floor((companyStats()?.totalEmployees || 0) * 0.75) }}</span>
+                  <span>{{ Math.floor((companyStats()?.totalEmployees || 0) * 0.5) }}</span>
+                  <span>{{ Math.floor((companyStats()?.totalEmployees || 0) * 0.25) }}</span>
+                  <span>0</span>
+                </div>
+                <div class="chart-bars">
+                  <div class="chart-col">
+                    <span class="chart-value">{{ companyStats()?.totalEmployees || 0 }}</span>
+                    <div class="stack-bar" [style.height]="'80%'">
+                      <div class="seg seg-green" [style.height.%]="getEmployeeStatusPercentage('active')"></div>
+                      <div class="seg seg-orange" [style.height.%]="getEmployeeStatusPercentage('invited')"></div>
                     </div>
+                    <div class="chart-label">All Employees</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="card-box h-100">
+              <div class="card-title"><i class="bi bi-box-arrow-up-right small-icon"></i> Top Skills</div>
+              <ul class="ranked-list mt-3">
+                @if (companyStats()?.topSkills && companyStats()?.topSkills.length > 0) {
+                  @for (skill of companyStats()?.topSkills.slice(0, 10); track skill.skillName; let idx = $index) {
+                    <li>
+                      <span class="rank">{{ idx + 1 }}</span>
+                      <span class="badge-score badge-green">{{ skill.employeeCount }}</span>
+                      <span class="skill-name-link">{{ skill.skillName }}</span>
+                    </li>
                   }
                 } @else {
-                  <p class="text-muted text-center py-3">No joined users yet</p>
+                  <li class="text-muted text-center py-2">No skills data available</li>
                 }
-              </div>
+              </ul>
+              <span class="view-more" role="button" tabindex="0">View all skills...</span>
             </div>
+          </div>
 
-            <div class="col-12 col-md-6">
-              <div class="dash-card">
-                <div class="dash-card-header">
-                  <div class="dash-card-title">Latest Invited Users</div>
-                </div>
-
-                @if (getLatestUsersByStatus('invited').length > 0) {
-                  @for (employee of getLatestUsersByStatus('invited'); track employee._id) {
-                    <div class="person-row">
-                      <div class="person-left">
-                        <div class="person-avatar">
-                          {{ employee.fullName?.charAt(0) || 'E' }}
-                        </div>
-                        <div class="min-w-0">
-                          <div class="person-name">{{ employee.fullName }}</div>
-                          <div class="person-role">{{ employee.email }}</div>
-                        </div>
-                      </div>
-                      <div class="person-right">
-                        <span class="badge bg-warning">Invited</span>
-                      </div>
-                    </div>
+          <div class="col-lg-4">
+            <div class="card-box h-100">
+              <div class="card-title"><i class="bi bi-box-arrow-up-right small-icon"></i> Top Employees</div>
+              <ul class="ranked-list mt-3">
+                @if (companyStats()?.topEmployees && companyStats()?.topEmployees.length > 0) {
+                  @for (employee of companyStats()?.topEmployees.slice(0, 10); track employee._id; let idx = $index) {
+                    <li>
+                      <span class="rank">{{ idx + 1 }}</span>
+                      <span class="badge-score badge-blue">{{ employee.skillCount }}</span>
+                      <span class="employee-name-link">{{ employee.fullName }}</span>
+                    </li>
                   }
                 } @else {
-                  <p class="text-muted text-center py-3">No invited users yet</p>
+                  <li class="text-muted text-center py-2">No employee data available</li>
                 }
-              </div>
+              </ul>
+              <a [routerLink]="['/' + getRolePrefix(), 'users']" class="view-more">View all employees...</a>
             </div>
           </div>
         </div>
 
-        <div class="col-12 col-lg-4">
-          <div class="dash-card h-100">
-            <div class="dash-card-header">
-              <div class="dash-card-title">Quick Actions</div>
+        <!-- Row 3: Recent Employees / Quick Actions -->
+        <div class="row g-3 mb-3 mt-1">
+          <div class="col-lg-8">
+            <div class="card-box h-100">
+              <div class="card-title"><i class="bi bi-box-arrow-up-right small-icon"></i> Recent Employees</div>
+              <ul class="people-list mt-3">
+                @if (companyStats()?.recentEmployees && companyStats()?.recentEmployees.length > 0) {
+                  @for (employee of companyStats()?.recentEmployees.slice(0, 5); track employee._id) {
+                    <li>
+                      <span class="mini-avatar">{{ getPersonInitials(employee.fullName) }}</span>
+                      <span class="flex-grow-1 employee-name-link">{{ employee.fullName }}</span>
+                      <span class="badge-score" [ngClass]="employee.accountStatus === 'joined' ? 'badge-green' : 'badge-blue'">
+                        {{ employee.accountStatus || 'joined' }}
+                      </span>
+                    </li>
+                  }
+                } @else {
+                  <li class="text-muted text-center py-2">No recent employees</li>
+                }
+              </ul>
             </div>
-            <div class="d-grid gap-2 mt-3">
-              <a [routerLink]="['/' + getRolePrefix(), 'users']" class="btn btn-outline-primary">
-                <i class="bi bi-people-fill me-2"></i>Manage Employees
-              </a>
-              <a [routerLink]="['/' + getRolePrefix(), 'company-skill-categories']" class="btn btn-outline-success">
-                <i class="bi bi-tags-fill me-2"></i>Manage Skills Category
-              </a>
-              <a [routerLink]="['/' + getRolePrefix(), 'organisation']" class="btn btn-outline-info">
-                <i class="bi bi-building-fill me-2"></i>Organisation Details
-              </a>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="card-box h-100">
+              <div class="card-title"><i class="bi bi-box-arrow-up-right small-icon"></i> Quick Actions</div>
+              <div class="d-grid gap-2 mt-3">
+                <a [routerLink]="['/' + getRolePrefix(), 'users']" class="btn btn-outline-primary btn-sm">
+                  <i class="bi bi-people-fill me-2"></i>Manage Employees
+                </a>
+                <a [routerLink]="['/' + getRolePrefix(), 'company-skill-categories']" class="btn btn-outline-success btn-sm">
+                  <i class="bi bi-tags-fill me-2"></i>Skill Categories
+                </a>
+                <a [routerLink]="['/' + getRolePrefix(), 'questionnaires']" class="btn btn-outline-info btn-sm">
+                  <i class="bi bi-clipboard-check me-2"></i>Questionnaires
+                </a>
+              </div>
             </div>
           </div>
         </div>
+        } @else if (companyDashboardTab() === 'skills') {
+    <main class="skills-page">
+      <div class="skills-layout">
+
+        <!-- Left filter panel -->
+        <aside class="filter-panel">
+          <div class="filter-group">
+            <div class="filter-heading">View</div>
+            <label class="filter-check">
+              <input type="checkbox" checked> Self-assessment
+            </label>
+            <label class="filter-check">
+              <input type="checkbox" checked> Supervisor assessment
+            </label>
+            <label class="filter-check">
+              <input type="checkbox" checked> Averaged ratings
+            </label>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-heading">Filters</div>
+            <button type="button" class="filter-option" (click)="$event.preventDefault()">No filter</button>
+            <button type="button" class="filter-option" (click)="$event.preventDefault()">Active skills</button>
+            <button type="button" class="filter-option active" (click)="$event.preventDefault()">Assigned skills</button>
+          </div>
+        </aside>
+
+        <!-- Right side: skills tree table -->
+        <section class="skills-table-wrap">
+          <div class="filter-applied-bar">
+            <span></span>
+            <div class="filter-applied-text">Filter applied: <strong>Assigned skills</strong></div>
+            <button type="button" class="btn-quick-review" (click)="$event.preventDefault()"><i class="bi bi-lightning-fill"></i> Quick Review</button>
+          </div>
+
+          <div class="table-toolbar">
+            <button type="button" class="btn-toolbar" (click)="$event.preventDefault()"><i class="bi bi-folder2-open"></i> Open all</button>
+            <button type="button" class="btn-toolbar" (click)="$event.preventDefault()"><i class="bi bi-folder"></i> Close all</button>
+          </div>
+
+          <div class="table-scroll">
+            <table class="skills-table">
+              <thead>
+                <tr class="group-row">
+                  <th class="col-name"></th>
+                  <th class="col-icon"><i class="bi bi-question-circle"></i></th>
+                  <th class="col-icon"><i class="bi bi-bullseye"></i></th>
+                  <th class="group-avg" colspan="3">Averaged ratings</th>
+                  <th class="group-self" colspan="3">Self-assessment</th>
+                  <th class="group-sup" colspan="3">Supervisor assessment</th>
+                </tr>
+                <tr class="icon-row">
+                  <th class="col-name"></th>
+                  <th class="col-icon"></th>
+                  <th class="col-icon"></th>
+                  <th class="group-avg"><i class="bi bi-star-fill"></i></th>
+                  <th class="group-avg"><i class="bi bi-arrow-down-up"></i></th>
+                  <th class="group-avg"><i class="bi bi-percent"></i></th>
+                  <th class="group-self"><i class="bi bi-star-fill"></i></th>
+                  <th class="group-self"><i class="bi bi-percent"></i></th>
+                  <th class="group-self"><i class="bi bi-heart-fill"></i></th>
+                  <th class="group-sup"><i class="bi bi-star-fill"></i></th>
+                  <th class="group-sup"><i class="bi bi-percent"></i></th>
+                  <th class="group-sup"><i class="bi bi-person-fill"></i></th>
+                </tr>
+              </thead>
+              <tbody>
+
+                <!-- Category: Finance and Accounting -->
+                <tr class="category-row">
+                  <td class="col-name"><i class="bi bi-dash-square"></i> Finance and Accounting</td>
+                  <td class="col-icon"><i class="bi bi-three-dots"></i></td>
+                  <td class="col-icon"></td>
+                  <td colspan="3"><span class="score score-green">3.07</span></td>
+                  <td colspan="3"><span class="score score-green">3.07</span></td>
+                  <td colspan="3"><span class="score score-blue">2.64</span></td>
+                </tr>
+
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Budgeting and forecasting</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-orange">2.0</span></td><td colspan="3"><span class="score score-orange">2</span></td><td colspan="3"><span class="score score-blue">1</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Business valuation</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">5.0</span></td><td colspan="3"><span class="score score-green">5</span></td><td colspan="3"><span class="score score-blue">1</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Capital budgeting</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-orange">2.0</span></td><td colspan="3"><span class="score score-orange">2</span></td><td colspan="3"><span class="score score-blue">1</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Capital markets</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">4.0</span></td><td colspan="3"><span class="score score-green">4</span></td><td colspan="3"><span class="score score-blue">2</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Cash flow management</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-orange">2.0</span></td><td colspan="3"><span class="score score-orange">2</span></td><td colspan="3"><span class="score score-blue">1</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Corporate finance</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-red">1.0</span></td><td colspan="3"><span class="score score-red">1</span></td><td colspan="3"><span class="score score-blue">4</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Cost accounting</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">4.0</span></td><td colspan="3"><span class="score score-green">4</span></td><td colspan="3"><span class="score score-blue">1</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Debt management</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-lime">3.0</span></td><td colspan="3"><span class="score score-lime">3</span></td><td colspan="3"><span class="score score-blue">3</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial analysis</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-lime">3.0</span></td><td colspan="3"><span class="score score-lime">3</span></td><td colspan="3"><span class="score score-blue">5</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial communication</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-orange">2.0</span></td><td colspan="3"><span class="score score-orange">2</span></td><td colspan="3"><span class="score score-blue">5</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial controls</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">5.0</span></td><td colspan="3"><span class="score score-green">5</span></td><td colspan="3"><span class="score score-blue">2</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial ethics</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-red">1.0</span></td><td colspan="3"><span class="score score-red">1</span></td><td colspan="3"><span class="score score-blue">3</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial innovation</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-orange">2.0</span></td><td colspan="3"><span class="score score-orange">2</span></td><td colspan="3"><span class="score score-blue">5</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial investment analysis</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">4.0</span></td><td colspan="3"><span class="score score-green">4</span></td><td colspan="3"><span class="score score-blue">4</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial leadership</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">5.0</span></td><td colspan="3"><span class="score score-green">5</span></td><td colspan="3"><span class="score score-blue">1</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial management systems</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-lime">3.0</span></td><td colspan="3"><span class="score score-lime">3</span></td><td colspan="3"><span class="score score-blue">4</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial modeling</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">5.0</span></td><td colspan="3"><span class="score score-green">5</span></td><td colspan="3"><span class="score score-blue">5</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial planning</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">5.0</span></td><td colspan="3"><span class="score score-green">5</span></td><td colspan="3"><span class="score score-blue">1</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial regulation</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-red">1.0</span></td><td colspan="3"><span class="score score-red">1</span></td><td colspan="3"><span class="score score-blue">2</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial reporting</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">4.0</span></td><td colspan="3"><span class="score score-green">4</span></td><td colspan="3"><span class="score score-blue">3</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial risk management</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-lime">3.0</span></td><td colspan="3"><span class="score score-lime">3</span></td><td colspan="3"><span class="score score-blue">3</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial software and tools</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">5.0</span></td><td colspan="3"><span class="score score-green">5</span></td><td colspan="3"><span class="score score-blue">2</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Financial statement analysis</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">4.0</span></td><td colspan="3"><span class="score score-green">4</span></td><td colspan="3"><span class="score score-blue">2</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">International finance</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-orange">2.0</span></td><td colspan="3"><span class="score score-orange">2</span></td><td colspan="3"><span class="score score-blue">5</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Investor relations</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-lime">3.0</span></td><td colspan="3"><span class="score score-lime">3</span></td><td colspan="3"><span class="score score-blue">2</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Strategic financial management</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-red">1.0</span></td><td colspan="3"><span class="score score-red">1</span></td><td colspan="3"><span class="score score-blue">1</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Tax planning</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">4.0</span></td><td colspan="3"><span class="score score-green">4</span></td><td colspan="3"><span class="score score-blue">1</span></td></tr>
+                <tr class="skill-row"><td class="col-name"><span class="tree-dots"></span><span class="skill-link">Working capital management</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-red">1.0</span></td><td colspan="3"><span class="score score-red">1</span></td><td colspan="3"><span class="score score-blue">4</span></td></tr>
+
+                <!-- Category: Information and Communications Technology (ICT) -->
+                <tr class="category-row">
+                  <td class="col-name"><i class="bi bi-dash-square"></i> Information and Communications Technology (ICT)</td>
+                  <td class="col-icon"></td>
+                  <td class="col-icon"></td>
+                  <td colspan="3"><span class="score score-green">3.67</span></td>
+                  <td colspan="3"><span class="score score-green">3.67</span></td>
+                  <td colspan="3"><span class="score score-blue">3.00</span></td>
+                </tr>
+
+                <!-- Sub-category: General Computer Use -->
+                <tr class="subcategory-row">
+                  <td class="col-name"><span class="tree-dots"></span><i class="bi bi-dash-square"></i> General Computer Use</td>
+                  <td class="col-icon"></td>
+                  <td class="col-icon"></td>
+                  <td colspan="3"><span class="score score-green">3.67</span></td>
+                  <td colspan="3"><span class="score score-green">3.67</span></td>
+                  <td colspan="3"><span class="score score-blue">3.00</span></td>
+                </tr>
+
+                <tr class="skill-row sub"><td class="col-name"><span class="tree-dots deep"></span><span class="skill-link">Adobe Illustrator</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-orange">2.0</span></td><td colspan="3"><span class="score score-orange">2</span></td><td colspan="3"><span class="score score-blue">-</span></td></tr>
+                <tr class="skill-row sub"><td class="col-name"><span class="tree-dots deep"></span><span class="skill-link">Adobe Photoshop</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">5.0</span></td><td colspan="3"><span class="score score-green">5</span></td><td colspan="3"><span class="score score-blue">1</span></td></tr>
+                <tr class="skill-row sub"><td class="col-name"><span class="tree-dots deep"></span><span class="skill-link">Audio editing software</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-red">1.0</span></td><td colspan="3"><span class="score score-red">1</span></td><td colspan="3"><span class="score score-blue">4</span></td></tr>
+                <tr class="skill-row sub"><td class="col-name"><span class="tree-dots deep"></span><span class="skill-link">Basic computer troubleshooting</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-lime">3.0</span></td><td colspan="3"><span class="score score-lime">3</span></td><td colspan="3"><span class="score score-blue">5</span></td></tr>
+                <tr class="skill-row sub"><td class="col-name"><span class="tree-dots deep"></span><span class="skill-link">Email communications</span></td><td class="col-icon check">✓</td><td class="col-icon">-</td><td colspan="3"><span class="score score-green">4.0</span></td><td colspan="3"><span class="score score-green">4</span></td><td colspan="3"><span class="score score-blue">3</span></td></tr>
+
+              </tbody>
+            </table>
+          </div>
+        </section>
+
       </div>
-
-      <div class="row g-3 mb-3">
-        <div class="col-12 col-md-6">
-          <div class="dash-card">
-            <div class="dash-card-header">
-              <div class="dash-card-title">
-                <i class="bi bi-trophy-fill me-2 text-warning"></i>
-                Top Skills
-              </div>
-            </div>
-            
-            @if (companyStats()?.topSkills && companyStats()?.topSkills.length > 0) {
-              <div class="mt-3">
-                @for (skill of companyStats()?.topSkills; track skill.skillName; let idx = $index) {
-                  <div class="person-row">
-                    <div class="person-left">
-                      <div class="skill-rank">
-                        {{ idx + 1 }}
-                      </div>
-                      <div class="min-w-0">
-                        <div class="person-name">{{ skill.skillName }}</div>
-                        <div class="person-role text-muted">
-                          {{ skill.employeeCount }} employee{{ skill.employeeCount !== 1 ? 's' : '' }}
-                        </div>
-                      </div>
-                    </div>
-                    <div class="person-right">
-                      <span class="badge bg-primary">{{ skill.employeeCount }}</span>
-                    </div>
-                  </div>
+    </main>
+        } @else if (companyDashboardTab() === 'trends') {
+          <main class="trends-page">
+            <div class="trends-layout">
+              <aside class="trends-category-panel">
+                @for (category of trendCategories; track category) {
+                  <button
+                    type="button"
+                    class="trend-category"
+                    [class.active]="selectedTrendCategory() === category"
+                    [class.sub]="category === 'General Computer Use'"
+                    (click)="$event.preventDefault(); selectTrendCategory(category)">
+                    @if (category === 'General Computer Use') {
+                      <span class="tree-dots"></span>
+                    }
+                    <i class="bi bi-bookmark-fill"></i>
+                    <span>{{ category }}</span>
+                  </button>
                 }
+              </aside>
+
+              <section class="trends-content-panel">
+                <div class="trends-toolbar">
+                  <div class="dropdown">
+                    <button class="btn-export dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                      <i class="bi bi-download"></i> Export CSV
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li><button class="dropdown-item" type="button" (click)="$event.preventDefault()">Export as CSV</button></li>
+                      <li><button class="dropdown-item" type="button" (click)="$event.preventDefault()">Export as PDF</button></li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="trends-empty-state">
+                  <h3>{{ selectedTrendCategory() }}</h3>
+                  <p>There are no trends to display for this category</p>
+                </div>
+              </section>
+            </div>
+          </main>
+        } @else if (companyDashboardTab() === 'assessments') {
+          <main class="container-fluid px-3 py-3">
+            @if (assessmentsLoading()) {
+              <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
               </div>
             } @else {
-              <div class="text-center py-4 text-muted">
-                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-                <div>No skills data available</div>
-                <small>Employees haven't added skills yet</small>
+            <!-- Row 1: Self assessment / Supervisor assessment -->
+            <div class="row g-3 mb-3">
+              <div class="col-lg-6">
+                <div class="card-box h-100">
+                  <div class="assess-card-title">Self assessment</div>
+                  <div class="mb-3">
+                    <span class="assess-meta-label">Last completed:</span>
+                    @if (companyAssessments()?.selfAssessment?.lastCompletedAt) {
+                      <span class="assess-meta-value">{{ formatDateWithRelative(companyAssessments()?.selfAssessment?.lastCompletedAt) }}</span>
+                    } @else {
+                      <span class="assess-meta-value muted">Never</span>
+                    }
+                  </div>
+                  <button type="button" class="btn-retake">Re-take »</button>
+                </div>
               </div>
-            }
-          </div>
-        </div>
-
-        <div class="col-12 col-md-6">
-          <div class="dash-card">
-            <div class="dash-card-header">
-              <div class="dash-card-title">
-                <i class="bi bi-star-fill me-2 text-success"></i>
-                Top Employees
+              <div class="col-lg-6">
+                <div class="card-box h-100">
+                  <div class="assess-card-title">Supervisor assessment</div>
+                  <div class="mb-3">
+                    <span class="assess-meta-label">Last completed:</span>
+                    @if (companyAssessments()?.supervisorAssessment?.lastCompletedAt) {
+                      <span class="assess-meta-value">{{ formatDateWithRelative(companyAssessments()?.supervisorAssessment?.lastCompletedAt) }}</span>
+                    } @else {
+                      <span class="assess-meta-value muted">Never</span>
+                    }
+                  </div>
+                </div>
               </div>
             </div>
-            
-            @if (companyStats()?.topEmployees && companyStats()?.topEmployees.length > 0) {
-              <div class="mt-3">
-                @for (employee of companyStats()?.topEmployees; track employee._id; let idx = $index) {
-                  <div class="person-row">
-                    <div class="person-left">
-                      <div class="person-avatar" [class.top-performer]="idx < 3">
-                        @if (idx === 0) {
-                          <i class="bi bi-trophy-fill"></i>
-                        } @else if (idx === 1) {
-                          <i class="bi bi-award-fill"></i>
-                        } @else if (idx === 2) {
-                          <i class="bi bi-star-fill"></i>
-                        } @else {
-                          {{ employee.fullName?.charAt(0) || 'E' }}
-                        }
-                      </div>
-                      <div class="min-w-0">
-                        <div class="person-name">{{ employee.fullName }}</div>
-                        <div class="person-role text-muted">
-                          @if (employee.department) {
-                            {{ employee.department }}
-                            @if (employee.location) {
-                              • {{ employee.location }}
-                            }
-                          } @else if (employee.location) {
-                            {{ employee.location }}
-                          } @else {
-                            No department
-                          }
-                        </div>
-                      </div>
-                    </div>
-                    <div class="person-right">
-                      <span class="badge bg-success">{{ employee.skillCount }} skills</span>
-                    </div>
-                  </div>
-                }
+            <!-- Row 2: History -->
+            <div class="card-box">
+              <div class="assess-card-title" style="border-bottom:none; margin-bottom:8px;">History</div>
+              <div class="history-toolbar">
+                <div class="d-flex align-items-center gap-2">
+                  <select class="per-page-select" [value]="assessmentsPerPage()" (change)="onAssessmentsPerPageChange($event)">
+                    <option [value]="10">10</option>
+                    <option [value]="25">25</option>
+                    <option [value]="50">50</option>
+                  </select>
+                  <span>per page</span>
+                  <span class="ms-2">{{ getAssessmentsPaginationLabel() }}</span>
+                </div>
+                <div class="pagination-mini">
+                  <button type="button" class="btn" [disabled]="assessmentsPage() <= 1" (click)="goToAssessmentsPage(assessmentsPage() - 1)">← Previous</button>
+                  @for (page of getAssessmentPageNumbers(); track page) {
+                    <button type="button" class="btn" [class.active-page]="assessmentsPage() === page" (click)="goToAssessmentsPage(page)">{{ page }}</button>
+                  }
+                  <button type="button" class="btn" [disabled]="assessmentsPage() >= (companyAssessments()?.pagination?.totalPages || 1)" (click)="goToAssessmentsPage(assessmentsPage() + 1)">Next →</button>
+                </div>
               </div>
-            } @else {
-              <div class="text-center py-4 text-muted">
-                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-                <div>No employee data available</div>
-                <small>Employees haven't added skills yet</small>
+              <div class="table-responsive-wrap">
+                <table class="assess-table">
+                  <thead>
+                    <tr>
+                      <th>Completion date</th>
+                      <th>Type</th>
+                      <th>Skill set</th>
+                      <th>Categories</th>
+                      <th>Skills</th>
+                      <th>Overall comments</th>
+                      <th>Completed by</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @if (companyAssessments()?.history?.length) {
+                      @for (record of companyAssessments()?.history; track record.completionDate) {
+                        <tr>
+                          <td>{{ formatDate(record.completionDate) }}</td>
+                          <td>{{ record.type }}</td>
+                          <td>{{ record.skillSet }}</td>
+                          <td>{{ record.categories }}</td>
+                          <td>{{ record.skills }}</td>
+                          <td>{{ record.overallComments || '' }}</td>
+                          <td><span class="employee-name-link">{{ record.completedBy }}</span></td>
+                          <td>
+                            <button type="button" class="btn-download" title="Download">
+                              <i class="bi bi-download"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      }
+                    } @else {
+                      <tr>
+                        <td colspan="8" class="text-center text-muted py-3">No assessment history available</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
               </div>
+              <div class="history-toolbar mt-2 mb-0">
+                <div class="d-flex align-items-center gap-2">
+                  <select class="per-page-select" [value]="assessmentsPerPage()" (change)="onAssessmentsPerPageChange($event)">
+                    <option [value]="10">10</option>
+                    <option [value]="25">25</option>
+                    <option [value]="50">50</option>
+                  </select>
+                  <span>per page</span>
+                  <span class="ms-2">{{ getAssessmentsPaginationLabel() }}</span>
+                </div>
+                <div class="pagination-mini">
+                  <button type="button" class="btn" [disabled]="assessmentsPage() <= 1" (click)="goToAssessmentsPage(assessmentsPage() - 1)">← Previous</button>
+                  @for (page of getAssessmentPageNumbers(); track page) {
+                    <button type="button" class="btn" [class.active-page]="assessmentsPage() === page" (click)="goToAssessmentsPage(page)">{{ page }}</button>
+                  }
+                  <button type="button" class="btn" [disabled]="assessmentsPage() >= (companyAssessments()?.pagination?.totalPages || 1)" (click)="goToAssessmentsPage(assessmentsPage() + 1)">Next →</button>
+                </div>
+              </div>
+            </div>
             }
-          </div>
-        </div>
-      </div>
+          </main>
+        } @else if (companyDashboardTab() === 'about') {
+          <main class="container-fluid px-3 py-3">
+            @if (aboutLoading()) {
+              <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            } @else if (companyAbout()) {
+            <div class="about-section-title">About</div>
+            <table class="about-table">
+              <tbody>
+                <tr>
+                  <th>First name</th>
+                  <td>{{ companyAbout()?.firstName || '—' }}</td>
+                </tr>
+                <tr>
+                  <th>Surname</th>
+                  <td>{{ companyAbout()?.surname || '—' }}</td>
+                </tr>
+                <tr>
+                  <th>Email</th>
+                  <td><a [href]="'mailto:' + companyAbout()?.email">{{ companyAbout()?.email }}</a></td>
+                </tr>
+                <tr>
+                  <th>Role</th>
+                  <td>{{ companyAbout()?.role || '—' }}</td>
+                </tr>
+                <tr>
+                  <th>
+                    <span class="about-link-label" role="button" tabindex="0"><i class="bi bi-box-arrow-up-right"></i> Skill set</span>
+                  </th>
+                  <td>{{ companyAbout()?.skillSet || '—' }}</td>
+                </tr>
+                <tr>
+                  <th>Security Group</th>
+                  <td>{{ companyAbout()?.securityGroup || '—' }}</td>
+                </tr>
+                <tr>
+                  <th>Supervises</th>
+                  <td>{{ companyAbout()?.supervises || '—' }}</td>
+                </tr>
+                <tr>
+                  <th>Supervisors</th>
+                  <td>{{ companyAbout()?.supervisors || '(none)' }}</td>
+                </tr>
+                <tr>
+                  <th>Last login</th>
+                  <td>
+                    @if (companyAbout()?.lastLoginAt) {
+                      {{ formatDateWithRelative(companyAbout()?.lastLoginAt) }}
+                    } @else {
+                      Never
+                    }
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    <span class="about-link-label" role="button" tabindex="0"><i class="bi bi-box-arrow-up-right"></i> Account type</span>
+                  </th>
+                  <td>{{ companyAbout()?.accountType || 'Local' }}</td>
+                </tr>
+                <tr>
+                  <th>Creation date</th>
+                  <td>
+                    @if (companyAbout()?.createdAt) {
+                      {{ formatDateWithRelative(companyAbout()?.createdAt) }}
+                    } @else {
+                      —
+                    }
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            } @else {
+              <p class="text-muted text-center py-5">Unable to load profile information.</p>
+            }
+          </main>
+        }
+      </main>
     }
 
     <!-- EMPLOYEE DASHBOARD -->

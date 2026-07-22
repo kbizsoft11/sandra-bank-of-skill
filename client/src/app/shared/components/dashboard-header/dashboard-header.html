@@ -1,40 +1,52 @@
-<header class="dashboard-header">
-  <div class="topbar">
-    <button class="mobile-toggle" id="mobileToggle" type="button" aria-label="Toggle navigation" (click)="onToggleSidebar()">
-      <i class="bi bi-list"></i>
-    </button>
+<div class="top-strip"></div>
 
-    <div class="search-input-wrap">
-      <i class="bi bi-search"></i>
-      <input type="text" placeholder="Search by skills, roles, or keywords..." />
-    </div>
-
-    <button class="icon-btn" type="button" aria-label="Notifications">
-      <i class="bi bi-bell"></i>
-      <span class="badge-dot">4</span>
-    </button>
-
-    <button class="icon-btn" type="button" aria-label="Help">
-      <i class="bi bi-question-circle"></i>
-    </button>
-
-    <div class="profile-chip dropdown" (click)="toggleProfileMenu($event)">
-      @if (profileImage()) {
-        <img [src]="profileImage()" [alt]="auth.user()?.fullName" />
-      } @else {
-        <div class="profile-avatar" [style.background]="getRandomColor()">
-          {{ getInitials() }}
-        </div>
-      }
-      <div>
-        <div class="name">{{ auth.user()?.fullName || 'User' }}</div>
-        <div class="role">{{ auth.user()?.role || 'Admin' }}</div>
+<!-- Header -->
+<header class="site-header">
+  <div class="d-flex align-items-center justify-content-between px-3 py-2 flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-3">
+      <button class="sidebar-toggle-btn" id="mobileToggle" type="button" aria-label="Open menu" (click)="onToggleSidebar()">
+        <i class="bi bi-list"></i>
+      </button>
+      
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search...">
       </div>
-      <i class="bi bi-chevron-down" style="color: #9aa3af; font-size: 13px"></i>
-
-      <div class="profile-menu" *ngIf="showProfileMenu" (click)="$event.stopPropagation()">
-        <a class="profile-menu-item" [routerLink]="profileLink">Profile</a>
-        <button class="profile-menu-item btn-logout" type="button" (click)="logout()">Logout</button>
+      
+      <span class="id-number">{{ getUserId() }}</span>
+    </div>
+    
+    <div class="d-flex align-items-center gap-3 flex-wrap header-right">
+      <a href="#" class="header-link">
+        <i class="bi bi-play-fill"></i>
+        <i class="bi bi-box-arrow-up-right small-icon"></i>
+        Watch a setup video
+      </a>
+      
+      <a href="#" class="header-link">
+        <i class="bi bi-chat-dots"></i>
+        <i class="bi bi-box-arrow-up-right small-icon"></i>
+        Connect with an account manager
+      </a>
+      
+      <a href="#" class="btn-pill">
+        <i class="bi bi-eye"></i>
+        Averaged ratings
+      </a>
+      
+      <a href="#" class="header-icon" aria-label="Notifications">
+        <i class="bi bi-bell"></i>
+      </a>
+      
+      <div class="dropdown">
+        <a href="#" class="header-icon dropdown-toggle" data-bs-toggle="dropdown" aria-label="User menu" (click)="toggleProfileMenu($event)">
+          <i class="bi bi-person-circle"></i>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" [class.show]="showProfileMenu">
+          <li><a class="dropdown-item" [routerLink]="profileLink">Profile</a></li>
+          <li><a class="dropdown-item" href="#">Settings</a></li>
+          <li><button class="dropdown-item" type="button" (click)="logout()">Logout</button></li>
+        </ul>
       </div>
     </div>
   </div>

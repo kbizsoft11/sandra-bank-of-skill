@@ -40,4 +40,26 @@ router.get(
   dashboardController.getEmployeeStats
 );
 
+/**
+ * GET /dashboard/company/about
+ * Get company dashboard about tab data
+ */
+router.get(
+  '/company/about',
+  authenticate,
+  allowRoles('company'),
+  dashboardController.getCompanyAbout
+);
+
+/**
+ * GET /dashboard/company/assessments
+ * Get company dashboard assessments tab data
+ */
+router.get(
+  '/company/assessments',
+  authenticate,
+  allowRoles('company'),
+  dashboardController.getCompanyAssessments
+);
+
 export default router;

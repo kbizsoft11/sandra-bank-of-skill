@@ -7,6 +7,7 @@ export interface ISkill extends Document {
   skill_desc?: string;
   skill_level: string;
   skill_score: number;
+  interest_level?: number;
   created_at: Date;
 }
 
@@ -49,6 +50,13 @@ const skillSchema = new Schema<ISkill>(
       default: 0,
       min: 0,
       max: 100,
+    },
+
+    interest_level: {
+      type: Number,
+      min: 1,
+      max: 5,
+      required: false,
     },
   },
   {
