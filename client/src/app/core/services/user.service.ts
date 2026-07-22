@@ -17,9 +17,13 @@ export class UserService {
   private readonly api =
     `${API_CONFIG.BASE_URL}/users`;
 
-  getUsers(): Observable<any> {
+  getUsers(page: number = 1, limit: number = 100): Observable<any> {
 
-    return this.http.get(this.api);
+    let httpParams = new HttpParams();
+    httpParams = httpParams.set('page', page.toString());
+    httpParams = httpParams.set('limit', limit.toString());
+
+    return this.http.get(this.api, { params: httpParams });
 
   }
 

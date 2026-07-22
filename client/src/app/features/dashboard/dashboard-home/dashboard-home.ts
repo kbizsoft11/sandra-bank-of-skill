@@ -5,11 +5,12 @@ import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { DashboardService, CompanyAbout, CompanyAssessments } from '../../../core/services/dashboard.service';
+import { AdminDashboardComponent } from '../../admin-dashboard/admin-dashboard';
 
 @Component({
   selector: 'app-dashboard-home',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, AdminDashboardComponent],
   templateUrl: './dashboard-home.html',
   styleUrl: './dashboard-home.scss',
 })

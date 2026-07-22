@@ -121,6 +121,12 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       roles: ['admin', 'company', 'employee'],
     },
     {
+      label: 'Admin Dashboard',
+      path: 'dashboard',
+      icon: 'bi bi-speedometer2',
+      roles: ['admin'],
+    },
+    {
       label: 'Companies',
       path: 'companies',
       icon: 'bi bi-building-fill',
@@ -133,17 +139,17 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       roles: ['admin'],
     },
     {
-      label: 'Users',
+      label: 'Employees',
       path: 'users',
       icon: 'bi bi-people-fill',
-      roles: ['admin', 'company'],
+      roles: ['company'],
     },
     {
       label: 'Roles',
       path: 'roles',
       icon: 'bi bi-briefcase',
       roles: ['company'],
-    },    
+    },
     {
       label: 'Global Search',
       path: 'employee-search',
@@ -204,46 +210,7 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       icon: 'bi bi-sliders',
       roles: ['admin'],
     },
-    // {
-    //   label: 'Opportunities',
-    //   path: 'opportunities',
-    //   icon: 'bi bi-briefcase-fill',
-    //   roles: ['employee', 'company'],
-    // },
-    // {
-    //   label: 'Talent Search',
-    //   path: 'talent-search',
-    //   icon: 'bi bi-search',
-    //   roles: ['admin', 'company'],
-    // },
-    // {
-    //   label: 'AI Insights',
-    //   path: 'ai-insights',
-    //   icon: 'bi bi-graph-up',
-    //   roles: ['admin', 'company', 'employee'],
-    // },
-    // {
-    //   label: 'Reports',
-    //   path: 'reports',
-    //   icon: 'bi bi-clipboard-fill',
-    //   roles: ['admin', 'company'],
-    // },
-    // {
-    //   label: 'Settings',
-    //   path: 'settings',
-    //   icon: 'bi bi-gear-fill',
-    //   roles: ['admin'],
-    // },
   ];
-
-  // Get the label for "Users" menu item based on role
-  getUsersMenuLabel(): string {
-    const userRole = this.auth.role();
-    if (userRole === 'company') {
-      return 'Employees';
-    }
-    return 'Users';
-  }
 
   // Computed property to get role-filtered menu items with correct URLs
   menuItems = computed(() => {
@@ -253,15 +220,13 @@ export class DashboardSidebar implements OnInit, OnDestroy {
     const rolePrefix = this.getRolePrefix();
     
     return this.allMenuItems
-      .filter(item => item.roles.includes(userRole))
+      .filter((item, index, self) => {
+        // Filter by role and remove duplicates
+        return item.roles.includes(userRole) && self.findIndex(i => i.path === item.path) === index;
+      })
       .map(item => {
-        // Dynamically change label for users item
-        let label = item.label;
-        if (item.path === 'users' && userRole === 'company') {
-          label = 'Employees';
-        }
         return {
-          label,
+          label: item.label,
           route: `/${rolePrefix}/${item.path}`,
           icon: item.icon,
         };

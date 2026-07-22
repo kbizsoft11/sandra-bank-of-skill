@@ -196,9 +196,32 @@ export class UserList implements OnInit {
       next: (response) => {
         const users = Array.isArray(response?.data) ? response.data : [];
 
-        this.users.set(users);
-      },
+        this.userService
+          .getUsers(1, 100)
+          .subscribe({
 
+            next: (response) => {
+
+              // Handle paginated response format
+              let users: any[] = [];
+
+              if (response?.data?.users && Array.isArray(response.data.users)) {
+                users = response.data.users;
+              } else if (Array.isArray(response?.data)) {
+                users = response.data;
+              }
+
+              this.users.set(users);
+
+            },
+
+            error: (err) => {
+              console.error(err);
+              this.alertService.error('Failed to load users');
+            }
+
+          });
+      },
       error: (err) => console.error(err),
     });
   }
@@ -447,7 +470,7 @@ export class UserList implements OnInit {
           error: (error) => {
             this.alertService.error(
               error.error?.message ||
-                `Failed to ${action.toLowerCase()} employee. Please try again.`,
+              `Failed to ${action.toLowerCase()} employee. Please try again.`,
             );
           },
         });

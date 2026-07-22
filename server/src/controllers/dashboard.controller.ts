@@ -4,6 +4,7 @@ import { Skill } from '../models/skill.model';
 import { SkillCategory } from '../models/skillCategory.model';
 import { QuestionnaireModel } from '../models/questionnaire.model';
 import { RoleModel } from '../models/role.model';
+import * as AdminDashboardService from '../services/admin-dashboard.service';
 
 /**
  * Get admin dashboard statistics
@@ -726,6 +727,210 @@ export const getCompanyAssessments = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Error fetching assessments data',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * GET /dashboard/admin/overview
+ * Get admin dashboard overview statistics
+ */
+export const getAdminOverview = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    if (!userId || userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+    }
+
+    const data = await AdminDashboardService.getOverviewStats();
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error: any) {
+    console.error('Error fetching admin overview:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching overview statistics',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * GET /dashboard/admin/charts
+ * Get admin dashboard chart data
+ */
+export const getAdminCharts = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    if (!userId || userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+    }
+
+    const month = req.query.month ? parseInt(String(req.query.month), 10) : undefined;
+    const year = req.query.year ? parseInt(String(req.query.year), 10) : undefined;
+
+    const data = await AdminDashboardService.getChartData(month, year);
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error: any) {
+    console.error('Error fetching admin charts:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching chart data',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * GET /dashboard/admin/notifications
+ * Get admin notifications with filtering
+ */
+export const getAdminNotifications = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    if (!userId || userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+    }
+
+    const filter = (req.query.filter as 'recent' | 'unread' | 'read') || 'recent';
+    const page = Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(String(req.query.limit || '10'), 10) || 10));
+
+    const data = await AdminDashboardService.getNotifications(userId, filter, page, limit);
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error: any) {
+    console.error('Error fetching admin notifications:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching notifications',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * PUT /dashboard/admin/notifications/:id/read
+ * Mark notification as read
+ */
+export const markNotificationAsRead = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+    const notificationId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    if (!userId || userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+    }
+
+    await AdminDashboardService.markNotificationAsRead(notificationId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Notification marked as read',
+    });
+  } catch (error: any) {
+    console.error('Error marking notification as read:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error marking notification as read',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * PUT /dashboard/admin/notifications/:id/unread
+ * Mark notification as unread
+ */
+export const markNotificationAsUnread = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+    const notificationId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    if (!userId || userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+    }
+
+    await AdminDashboardService.markNotificationAsUnread(notificationId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Notification marked as unread',
+    });
+  } catch (error: any) {
+    console.error('Error marking notification as unread:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error marking notification as unread',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * GET /dashboard/admin/recent-activities
+ * Get recent activities
+ */
+export const getAdminRecentActivities = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    if (!userId || userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+    }
+
+    const page = Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(String(req.query.limit || '10'), 10) || 10));
+
+    const data = await AdminDashboardService.getRecentActivities(page, limit);
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error: any) {
+    console.error('Error fetching recent activities:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching recent activities',
       error: error.message,
     });
   }

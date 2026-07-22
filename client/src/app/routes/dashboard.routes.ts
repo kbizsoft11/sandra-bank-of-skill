@@ -2,7 +2,8 @@ import { Routes } from '@angular/router';
 import { roleGuard } from '../core/guards/role.guard';
 
 export const dashboardRoutes: Routes = [
-    // Shared routes - all authenticated roles
+    // Dashboard - different behavior based on role
+    // Admin: shows admin dashboard, Company/Employee: shows regular dashboard
     {
         path: 'dashboard',
         loadComponent: () => import('../features/dashboard/dashboard-home/dashboard-home').then(c => c.DashboardHome)
@@ -11,28 +12,6 @@ export const dashboardRoutes: Routes = [
     {
         path: 'profile',
         loadComponent: () => import('../features/profile/profile').then(c => c.Profile)
-    },
-
-    // Admin routes - User management
-    {
-        path: 'users-admin',
-        canActivate: [roleGuard],
-        data: { roles: ['admin'] },
-        loadComponent: () => import('../features/admin-users/admin-users-list/admin-users-list').then(c => c.AdminUsersList)
-    },
-
-    {
-        path: 'users-admin/:id',
-        canActivate: [roleGuard],
-        data: { roles: ['admin'] },
-        loadComponent: () => import('../features/admin-users/view-user/view-user').then(c => c.ViewUserComponent)
-    },
-
-    {
-        path: 'users-admin/:id/edit',
-        canActivate: [roleGuard],
-        data: { roles: ['admin'] },
-        loadComponent: () => import('../features/admin-users/edit-user/edit-user').then(c => c.EditUserComponent)
     },
 
     // Admin routes - Company management
@@ -64,7 +43,29 @@ export const dashboardRoutes: Routes = [
         loadComponent: () => import('../features/admin-companies/employee-skills').then(c => c.EmployeeSkills)
     },
 
-    // Deprecated: Old Users routes kept for backward compatibility
+    // Admin routes - User management (ALL USERS - Admin only)
+    {
+        path: 'users-admin',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-users/admin-users-list/admin-users-list').then(c => c.AdminUsersList)
+    },
+
+    {
+        path: 'users-admin/:id',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-users/view-user/view-user').then(c => c.ViewUserComponent)
+    },
+
+    {
+        path: 'users-admin/:id/edit',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-users/edit-user/edit-user').then(c => c.EditUserComponent)
+    },
+
+    // Old Users routes - Company employees (kept for backward compatibility)
     {
         path: 'users',
         canActivate: [roleGuard],

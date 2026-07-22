@@ -24,32 +24,62 @@ export const getAllUsers = asyncHandler(
       sortOrder = 'asc'
     } = req.query;
 
-    // For admin users, return all users from all organizations
-    if (userRole !== 'admin') {
+    // For admin users - return all users from all organizations
+    if (userRole === 'admin') {
+      const users =
+        await userService.getAllUsersWithPagination({
+          page: Number(page),
+          limit: Number(limit),
+          search: search as string,
+          role: role as string,
+          status: status as string,
+          sortBy: sortBy as string,
+          sortOrder: (sortOrder as string) === 'desc' ? 'desc' : 'asc'
+        });
+
       return sendResponse(
         res,
-        403,
-        'Only admin users can access all users',
-        []
+        200,
+        'Users fetched successfully',
+        users
       );
     }
-    
-    const users =
-      await userService.getAllUsersWithPagination({
-        page: Number(page),
-        limit: Number(limit),
-        search: search as string,
-        role: role as string,
-        status: status as string,
-        sortBy: sortBy as string,
-        sortOrder: (sortOrder as string) === 'desc' ? 'desc' : 'asc'
-      });
+
+    // For company users - return only their employees
+    if (userRole === 'company') {
+      if (!userTenantId) {
+        return sendResponse(
+          res,
+          400,
+          'Tenant ID is required for company users',
+          []
+        );
+      }
+
+      const employees =
+        await userService.getCompanyEmployeesWithPagination(userTenantId, {
+          page: Number(page),
+          limit: Number(limit),
+          search: search as string,
+          role: role as string,
+          status: status as string,
+          sortBy: sortBy as string,
+          sortOrder: (sortOrder as string) === 'desc' ? 'desc' : 'asc'
+        });
+
+      return sendResponse(
+        res,
+        200,
+        'Employees fetched successfully',
+        employees
+      );
+    }
 
     return sendResponse(
       res,
-      200,
-      'Users fetched successfully',
-      users
+      403,
+      'Only admin and company users can access this resource',
+      []
     );
 
   }

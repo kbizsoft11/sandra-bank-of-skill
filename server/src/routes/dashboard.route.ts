@@ -62,4 +62,70 @@ router.get(
   dashboardController.getCompanyAssessments
 );
 
+/**
+ * GET /dashboard/admin/overview
+ * Get admin dashboard overview statistics
+ */
+router.get(
+  '/admin/overview',
+  authenticate,
+  allowRoles('admin'),
+  dashboardController.getAdminOverview
+);
+
+/**
+ * GET /dashboard/admin/charts
+ * Get admin dashboard chart data
+ */
+router.get(
+  '/admin/charts',
+  authenticate,
+  allowRoles('admin'),
+  dashboardController.getAdminCharts
+);
+
+/**
+ * GET /dashboard/admin/notifications
+ * Get admin notifications
+ */
+router.get(
+  '/admin/notifications',
+  authenticate,
+  allowRoles('admin'),
+  dashboardController.getAdminNotifications
+);
+
+/**
+ * PUT /dashboard/admin/notifications/:id/read
+ * Mark notification as read
+ */
+router.put(
+  '/admin/notifications/:id/read',
+  authenticate,
+  allowRoles('admin'),
+  dashboardController.markNotificationAsRead
+);
+
+/**
+ * PUT /dashboard/admin/notifications/:id/unread
+ * Mark notification as unread
+ */
+router.put(
+  '/admin/notifications/:id/unread',
+  authenticate,
+  allowRoles('admin'),
+  dashboardController.markNotificationAsUnread
+);
+
+/**
+ * GET /dashboard/admin/recent-activities
+ * Get recent activities
+ */
+router.get(
+  '/admin/recent-activities',
+  authenticate,
+  allowRoles('admin'),
+  dashboardController.getAdminRecentActivities
+);
+
 export default router;

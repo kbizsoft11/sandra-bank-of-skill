@@ -1,0 +1,395 @@
+<div class="admin-dashboard">
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="container-fluid">
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted mt-3">Loading dashboard...</p>
+      </div>
+    </div>
+  } @else {
+    <!-- Error State -->
+    @if (error()) {
+      <div class="container-fluid">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="bi bi-exclamation-circle me-2"></i>
+          {{ error() }}
+          <button type="button" class="btn-close" (click)="error.set(null)"></button>
+        </div>
+      </div>
+    }
+
+    <div class="container-fluid">
+      <!-- Statistics Cards Row 1 -->
+      <div class="row mb-4" *ngIf="stats()">
+        <!-- Total Companies -->
+        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+          <div class="card shadow-sm h-100 border-0">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <p class="text-muted small mb-2">Total Companies</p>
+                  <h4 class="fw-bold mb-2">{{ stats()!.totalCompanies }}</h4>
+                  <small class="text-success">
+                    <i class="bi bi-arrow-up"></i>
+                    {{ stats()!.companiesGrowthPercentage }}% this month
+                  </small>
+                </div>
+                <div class="text-primary fs-3">
+                  <i class="bi bi-building-fill"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Employees -->
+        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+          <div class="card shadow-sm h-100 border-0">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <p class="text-muted small mb-2">Total Employees</p>
+                  <h4 class="fw-bold mb-2">{{ stats()!.totalEmployees }}</h4>
+                  <small class="text-success">
+                    <i class="bi bi-arrow-up"></i>
+                    {{ stats()!.employeesGrowthPercentage }}% this month
+                  </small>
+                </div>
+                <div class="text-info fs-3">
+                  <i class="bi bi-people-fill"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Skills -->
+        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+          <div class="card shadow-sm h-100 border-0">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <p class="text-muted small mb-2">Total Skills</p>
+                  <h4 class="fw-bold mb-2">{{ stats()!.totalSkills }}</h4>
+                  <small class="text-muted">Active skills</small>
+                </div>
+                <div class="text-warning fs-3">
+                  <i class="bi bi-lightbulb-fill"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Categories -->
+        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+          <div class="card shadow-sm h-100 border-0">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <p class="text-muted small mb-2">Skill Categories</p>
+                  <h4 class="fw-bold mb-2">{{ stats()!.totalCategories }}</h4>
+                  <small class="text-muted">Categories</small>
+                </div>
+                <div class="text-danger fs-3">
+                  <i class="bi bi-diagram-3-fill"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Cards Row 2 -->
+      <div class="row mb-4" *ngIf="stats()">
+        <!-- Total Questionnaires -->
+        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+          <div class="card shadow-sm h-100 border-0">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <p class="text-muted small mb-2">Questionnaires</p>
+                  <h4 class="fw-bold mb-2">{{ stats()!.totalQuestionnaires }}</h4>
+                  <small class="text-muted">Total created</small>
+                </div>
+                <div class="text-success fs-3">
+                  <i class="bi bi-clipboard-check-fill"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Users -->
+        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+          <div class="card shadow-sm h-100 border-0">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <p class="text-muted small mb-2">Active Users</p>
+                  <h4 class="fw-bold mb-2">{{ stats()!.activeUsers }}</h4>
+                  <small class="text-muted">Last 30 days</small>
+                </div>
+                <div class="text-primary fs-3">
+                  <i class="bi bi-graph-up-arrow"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's New Companies -->
+        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+          <div class="card shadow-sm h-100 border-0">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <p class="text-muted small mb-2">New Companies</p>
+                  <h4 class="fw-bold mb-2">{{ stats()!.todayNewCompanies }}</h4>
+                  <small class="text-muted">Today</small>
+                </div>
+                <div class="text-info fs-3">
+                  <i class="bi bi-star-fill"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's New Employees -->
+        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+          <div class="card shadow-sm h-100 border-0">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <p class="text-muted small mb-2">New Employees</p>
+                  <h4 class="fw-bold mb-2">{{ stats()!.todayNewEmployees }}</h4>
+                  <small class="text-muted">Today</small>
+                </div>
+                <div class="text-warning fs-3">
+                  <i class="bi bi-person-check-fill"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      @if (chartData()) {
+        <div class="row mb-4">
+          <!-- Chart Controls -->
+          <div class="col-12 mb-3">
+            <div class="card shadow-sm border-0">
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-3">
+                    <label class="form-label fw-semibold">Month</label>
+                    <select class="form-select" [value]="selectedMonth()" (change)="onMonthChange($event)">
+                      @for (month of availableMonths(); track month.value) {
+                        <option [value]="month.value">{{ month.label }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label fw-semibold">Year</label>
+                    <select class="form-select" [value]="selectedYear()" (change)="onYearChange($event)">
+                      <option value="2023">2023</option>
+                      <option value="2024">2024</option>
+                      <option value="2025">2025</option>
+                      <option value="2026">2026</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold">&nbsp;</label>
+                    <div class="alert alert-info mb-0">
+                      <i class="bi bi-info-circle me-2"></i>
+                      Viewing data for <strong>{{ getCurrentMonthYear() }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Companies Growth Chart -->
+          <div class="col-lg-6 mb-3">
+            <div class="card shadow-sm h-100 border-0">
+              <div class="card-header bg-light border-bottom">
+                <h5 class="mb-0 fw-semibold">
+                  <i class="bi bi-graph-up me-2"></i>Companies Growth
+                </h5>
+              </div>
+              <div class="card-body">
+                <p class="text-muted small">Monthly companies created</p>
+                <canvas #companiesGrowthChart style="max-height: 300px;"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Employees Growth Chart -->
+          <div class="col-lg-6 mb-3">
+            <div class="card shadow-sm h-100 border-0">
+              <div class="card-header bg-light border-bottom">
+                <h5 class="mb-0 fw-semibold">
+                  <i class="bi bi-people-fill me-2"></i>Employees Growth
+                </h5>
+              </div>
+              <div class="card-body">
+                <p class="text-muted small">Monthly employees added</p>
+                <canvas #employeesGrowthChart style="max-height: 300px;"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Notifications & Activities Section -->
+      <div class="row mb-4">
+        <!-- Notifications -->
+        <div class="col-lg-6 mb-3">
+          <div class="card shadow-sm h-100 border-0">
+            <div class="card-header bg-light border-bottom">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-semibold">
+                  <i class="bi bi-bell-fill me-2"></i>Notifications
+                  @if (unreadNotificationsCount() > 0) {
+                    <span class="badge bg-danger ms-2">{{ unreadNotificationsCount() }}</span>
+                  }
+                </h5>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <!-- Notification Tabs -->
+              <div class="btn-group w-100" role="group">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  [class.active]="notificationFilter() === 'recent'"
+                  (click)="onNotificationFilterChange('recent')">
+                  Recent
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  [class.active]="notificationFilter() === 'unread'"
+                  (click)="onNotificationFilterChange('unread')">
+                  Unread
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  [class.active]="notificationFilter() === 'read'"
+                  (click)="onNotificationFilterChange('read')">
+                  Read
+                </button>
+              </div>
+
+              <!-- Notifications List -->
+              <div class="notification-list" style="max-height: 400px; overflow-y: auto;">
+                @if (notifications().length > 0) {
+                  @for (notification of notifications(); track notification._id) {
+                    <div
+                      class="notification-item p-3 border-bottom"
+                      [class.unread]="!notification.isRead"
+                      [class.bg-light]="!notification.isRead">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex gap-2 flex-grow-1">
+                          <span [ngClass]="getNotificationBadgeClass(notification.type)" class="rounded-circle p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi" [ngClass]="getNotificationIcon(notification.type)" style="color: white;"></i>
+                          </span>
+                          <div class="flex-grow-1">
+                            <p class="fw-semibold mb-1">{{ notification.title }}</p>
+                            <p class="small text-muted mb-2">{{ notification.message }}</p>
+                            <small class="text-muted">
+                              {{ formatDate(notification.createdAt) }} at {{ formatTime(notification.createdAt) }}
+                            </small>
+                          </div>
+                        </div>
+                        <div class="dropdown">
+                          <button
+                            class="btn btn-sm btn-light"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="bi bi-three-dots-vertical"></i>
+                          </button>
+                          <ul class="dropdown-menu">
+                            @if (!notification.isRead) {
+                              <li>
+                                <button
+                                  class="dropdown-item"
+                                  (click)="markNotificationAsRead(notification)">
+                                  <i class="bi bi-check-circle me-2"></i>Mark as Read
+                                </button>
+                              </li>
+                            } @else {
+                              <li>
+                                <button
+                                  class="dropdown-item"
+                                  (click)="markNotificationAsUnread(notification)">
+                                  <i class="bi bi-circle me-2"></i>Mark as Unread
+                                </button>
+                              </li>
+                            }
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <div class="p-4 text-center text-muted">
+                    <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
+                    <p class="mt-2">No notifications</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="col-lg-6 mb-3">
+          <div class="card shadow-sm h-100 border-0">
+            <div class="card-header bg-light border-bottom">
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-clock-history me-2"></i>Recent Activities
+              </h5>
+            </div>
+            <div class="card-body p-0">
+              <!-- Activities List -->
+              <div class="activity-list" style="max-height: 400px; overflow-y: auto;">
+                @if (activities().length > 0) {
+                  @for (activity of activities(); track activity._id) {
+                    <div class="activity-item p-3 border-bottom">
+                      <div class="d-flex justify-content-between">
+                        <div>
+                          <p class="fw-semibold small mb-1">{{ activity.activity }}</p>
+                          <p class="text-muted small mb-1">
+                            <strong>User:</strong> {{ activity.user }}
+                          </p>
+                          <small class="text-muted">
+                            {{ formatDate(activity.createdAt) }} at {{ formatTime(activity.createdAt) }}
+                          </small>
+                        </div>
+                        <span class="badge bg-secondary">{{ activity.type }}</span>
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <div class="p-4 text-center text-muted">
+                    <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
+                    <p class="mt-2">No recent activities</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

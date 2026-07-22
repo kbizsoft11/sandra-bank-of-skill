@@ -68,6 +68,43 @@ export const userService = {
     });
   },
 
+  /**
+   * Get company employees with pagination, search, filter, and sort
+   */
+  getCompanyEmployeesWithPagination: async (tenantId: string, params: {
+    page: number;
+    limit: number;
+    search?: string;
+    role?: string;
+    status?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) => {
+    if (!tenantId) {
+      throw new Error('Tenant ID is required');
+    }
+
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      role,
+      status,
+      sortBy = 'fullName',
+      sortOrder = 'asc'
+    } = params;
+
+    return await userRepository.getCompanyEmployeesWithPagination(tenantId, {
+      page,
+      limit,
+      search,
+      role,
+      status,
+      sortBy,
+      sortOrder
+    });
+  },
+
   getEmployeesByCompany: async (companyId: string) => {
     // Get company user to find tenantId
     const company = await userRepository.findById(companyId);
