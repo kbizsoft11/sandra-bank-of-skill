@@ -1,18 +1,66 @@
-.cursor-pointer {
-    cursor: pointer;
+.question-item {
+    background-color: #f8f9fa;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: #e9ecef;
+    }
 }
 
-.table > :not(caption) > * > * {
-    vertical-align: middle;
+.question-header {
+    .question-index {
+        width: 1.6rem;
+        height: 1.6rem;
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: #0d6efd;
+        color: #fff;
+        font-size: .8rem;
+        font-weight: 600;
+    }
 }
 
-.badge {
-    font-weight: 500;
-    padding: 0.35rem 0.65rem;
+.options-section {
+    margin-top: 1rem;
 }
 
-.text-truncate {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-group-sm > .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.card {
+    border-radius: 0.5rem;
+}
+
+// Action buttons — stacked full-width on mobile with the primary action on
+// top, side-by-side (right-aligned) once there's room for both to sit
+// comfortably next to each other.
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+
+    .btn {
+        width: 100%;
+    }
+}
+
+@media (min-width: 576px) {
+    .form-actions {
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+
+        .btn {
+            width: auto;
+        }
+    }
 }
