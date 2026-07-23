@@ -186,4 +186,11 @@ router.post(
     questionnaireController.submitQuestionnaireResponse
 );
 
+router.get(
+    '/:id/responses',
+    authenticate,
+    allowRoles('company'),
+    questionnaireController.getQuestionnaireResponses
+);
+
 export default router;
