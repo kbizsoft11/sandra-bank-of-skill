@@ -481,14 +481,20 @@ export const authService = {
     const updatedUser = await userRepository.update(user._id.toString(), updateData);
 
     // Auto-assign onboarding questionnaires to employees
-    if (user.role === 'employee' && user.tenantId && user.organisationId) {
+    if (user.role === 'employee' && (user.tenantId || user.organisationId)) {
+      const tenantId = user.tenantId || user.organisationId;
+      const orgId = user.organisationId || user.tenantId;
       const { assignOnboardingQuestionnaires } = require('./onboarding.service');
-      await assignOnboardingQuestionnaires(
-        user._id.toString(),
-        user.tenantId,
-        user.organisationId,
-        user.organisationId // assignedBy - use org admin or the org itself
-      );
+      try {
+        await assignOnboardingQuestionnaires(
+          user._id.toString(),
+          tenantId,
+          orgId,
+          orgId
+        );
+      } catch (err) {
+        console.error('Failed to assign onboarding questionnaires during acceptInvite:', err);
+      }
     }
 
     const authToken = generateToken({
@@ -543,6 +549,24 @@ export const authService = {
     }
 
     await userRepository.update(user._id.toString(), updatePayload);
+
+    // Auto-assign onboarding questionnaires to employee on login if pending
+    if (user.role === 'employee' && user.tenantId && !user.hasCompletedOnboarding) {
+      const orgId = user.organisationId || user.tenantId;
+      if (orgId) {
+        try {
+          const { assignOnboardingQuestionnaires } = require('./onboarding.service');
+          await assignOnboardingQuestionnaires(
+            user._id.toString(),
+            user.tenantId,
+            orgId,
+            orgId
+          );
+        } catch (err) {
+          console.error('Failed to assign onboarding questionnaires during login:', err);
+        }
+      }
+    }
 
     await AdminDashboardService.createActivity(
       user._id.toString(),

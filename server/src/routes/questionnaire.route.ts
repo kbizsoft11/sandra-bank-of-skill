@@ -75,14 +75,25 @@ router.post(
 );
 
 /**
- * GET /questionnaires/:id/responses
- * Get all responses for a questionnaire
+ * PATCH /questionnaires/:id/toggle-status
+ * Toggle status of a questionnaire (active / inactive)
  */
-router.get(
-    '/:id/responses',
+router.patch(
+    '/:id/toggle-status',
     authenticate,
     allowRoles('company'),
-    questionnaireController.getQuestionnaireResponses
+    questionnaireController.toggleQuestionnaireStatus
+);
+
+/**
+ * POST /questionnaires/:id/duplicate
+ * Duplicate an existing questionnaire
+ */
+router.post(
+    '/:id/duplicate',
+    authenticate,
+    allowRoles('company'),
+    questionnaireController.duplicateQuestionnaire
 );
 
 // ==================== EMPLOYEE ROLE ROUTES ====================

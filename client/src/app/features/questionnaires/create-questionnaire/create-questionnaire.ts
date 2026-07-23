@@ -16,6 +16,9 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { QuestionnaireService } from '../../../core/services/questionnaire.service';
+import { SkillCategoryService } from '../../../core/services/skill-category.service';
+import { SkillService } from '../../../core/services/skill.service';
+import { RoleService } from '../../../core/services/role.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { QuestionType, QuestionnaireStatus } from '../../../core/models/questionnaire.model';
@@ -35,10 +38,16 @@ export class CreateQuestionnaire {
     private readonly fb = inject(FormBuilder);
     private readonly router = inject(Router);
     private readonly questionnaireService = inject(QuestionnaireService);
+    private readonly skillCategoryService = inject(SkillCategoryService);
+    private readonly skillService = inject(SkillService);
+    private readonly roleService = inject(RoleService);
     private readonly auth = inject(AuthService);
     private readonly alertService = inject(AlertService);
 
     readonly isSubmitting = signal<boolean>(false);
+    readonly skillCategories = signal<any[]>([]);
+    readonly skills = signal<any[]>([]);
+    readonly roles = signal<any[]>([]);
 
     readonly questionTypes: { value: QuestionType; label: string }[] = [
         { value: 'text', label: 'Short Text' },
@@ -47,22 +56,17 @@ export class CreateQuestionnaire {
         { value: 'checkbox', label: 'Multiple Choice' },
         { value: 'rating', label: 'Rating (1-5)' },
         { value: 'date', label: 'Date' },
+        { value: 'skill', label: 'Skill Question' },
     ];
 
     readonly form = this.fb.nonNullable.group({
-        title: [
-            '',
-            [Validators.required, Validators.minLength(3)]
-        ],
-        description: [
-            '',
-            [Validators.required, Validators.minLength(10)]
-        ],
         status: [
             'draft' as QuestionnaireStatus,
             Validators.required
         ],
-        questions: this.fb.array([])
+        skillCategoryId: ['', Validators.required],
+        targetDesignationId: [''],
+        questions: this.fb.array([], Validators.required)
     });
 
     get questions(): FormArray {
@@ -70,27 +74,91 @@ export class CreateQuestionnaire {
     }
 
     ngOnInit(): void {
-        // Add one question by default
-        this.addQuestion();
+        this.loadSkillCategories();
+        this.loadRoles();
     }
 
-    createQuestionFormGroup(): FormGroup {
+    loadSkillCategories(): void {
+        this.skillCategoryService.getAll().subscribe({
+            next: (response) => {
+                this.skillCategories.set(response.data || []);
+            },
+            error: (err) => {
+                console.error(err);
+                this.alertService.error('Unable to load skill categories');
+            }
+        });
+    }
+
+    loadSkills(categoryId?: string): void {
+        if (!categoryId) {
+            this.skills.set([]);
+            this.questions.clear();
+            return;
+        }
+
+        this.skillService.getSkills({ cat_id: categoryId }).subscribe({
+            next: (response) => {
+                const skills = response.data.skills || [];
+                this.skills.set(skills);
+                this.setQuestionsForSkills(skills);
+            },
+            error: (err) => {
+                console.error(err);
+                this.alertService.error('Unable to load skills for selected category');
+            }
+        });
+    }
+
+    loadRoles(): void {
+        this.roleService.getRoles(true).subscribe({
+            next: (response) => {
+                this.roles.set(response.data || []);
+            },
+            error: (err) => {
+                console.error(err);
+                this.alertService.error('Unable to load employee roles');
+            }
+        });
+    }
+
+    onSkillCategoryChange(): void {
+        const categoryId = this.form.get('skillCategoryId')?.value;
+        this.loadSkills(categoryId);
+    }
+
+    createQuestionFormGroup(skill?: any): FormGroup {
         return this.fb.nonNullable.group({
+            questionId: [''],
+            skillId: [skill?._id || ''],
+            skillName: [skill?.skill_name || ''],
             questionText: [
-                '',
+                 '',
                 [Validators.required, Validators.minLength(5)]
             ],
             questionType: [
-                'text' as QuestionType,
+                'skill' as QuestionType,
                 Validators.required
             ],
+            skillDescription: [''],
             options: this.fb.array([]),
             required: [true]
         });
     }
 
-    addQuestion(): void {
-        this.questions.push(this.createQuestionFormGroup());
+    setQuestionsForSkills(skills: any[]): void {
+        const questionsArray = this.questions;
+        while (questionsArray.length) {
+            questionsArray.removeAt(0);
+        }
+
+        skills.forEach((skill, index) => {
+            const questionGroup = this.createQuestionFormGroup(skill);
+            questionGroup.patchValue({
+                questionId: `${skill._id}-${Date.now()}-${index}`,
+            });
+            questionsArray.push(questionGroup);
+        });
     }
 
     removeQuestion(index: number): void {
@@ -183,13 +251,16 @@ export class CreateQuestionnaire {
         
         // Transform questions to match backend format
         const payload = {
-            title: formValue.title,
-            description: formValue.description,
             status: formValue.status,
+            skillCategoryId: formValue.skillCategoryId || undefined,
+            targetDesignationId: formValue.targetDesignationId || undefined,
             questions: formValue.questions.map((q: any, index: number) => ({
+                questionId: q.questionId || undefined,
+                skillId: q.skillId,
+                skillName: q.skillName,
                 questionText: q.questionText,
                 questionType: q.questionType,
-                options: q.options || [],
+                skillDescription: q.skillDescription,
                 required: q.required,
                 order: index
             }))

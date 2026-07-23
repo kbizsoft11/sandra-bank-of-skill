@@ -1052,19 +1052,60 @@ export const userService = {
       }
     }
 
-    const total = await ActivityModel.countDocuments(filter);
+    let activities = [] as any[];
+    let total = 0;
 
-    const activities = await ActivityModel.find(filter)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
+    if (userRole === 'company') {
+      const lookupPipeline: any[] = [
+        { $match: filter },
+        {
+          $lookup: {
+            from: 'users',
+            let: { activityUserId: '$userId' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: [{ $toString: '$_id' }, '$$activityUserId'] },
+                      { $eq: ['$role', 'employee'] },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: 'user',
+          },
+        },
+        { $unwind: '$user' },
+      ];
+
+      const countResult = await ActivityModel.aggregate([
+        ...lookupPipeline,
+        { $count: 'count' },
+      ]);
+      total = countResult[0]?.count || 0;
+
+      activities = await ActivityModel.aggregate([
+        ...lookupPipeline,
+        { $sort: { createdAt: -1 } },
+        { $skip: (page - 1) * limit },
+        { $limit: limit },
+      ]);
+    } else {
+      total = await ActivityModel.countDocuments(filter);
+      activities = await ActivityModel.find(filter)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean();
+    }
 
     return {
       activities: activities.map(activity => ({
         _id: activity._id,
         employeeId: activity.userId,
-        employeeName: activity.user,
+        employeeName: activity.user?.fullName || activity.user || 'Employee',
         activityType: activity.type,
         description: activity.activity,
         status: activity.status || activity.details?.status || 'completed',

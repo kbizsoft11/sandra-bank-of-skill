@@ -1,0 +1,243 @@
+<div class="company-dashboard">
+  @if (loading()) {
+    <div class="loading-state"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>
+  } @else if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  } @else {
+    <header class="dashboard-heading">
+      <div>
+        <p class="eyebrow">Company workspace</p>
+        <h1>{{ companyName }}</h1>
+        <p class="subtitle">A live view of your people, skills, and assessments.</p>
+      </div>
+      <a class="btn btn-primary" [routerLink]="['/company', 'users']"><i class="bi bi-people-fill me-2"></i>Manage employees</a>
+    </header>
+
+    <nav class="dashboard-tabs" aria-label="Company dashboard sections" role="tablist">
+      @for (tab of ['summary', 'skills', 'trends', 'assessments', 'about']; track tab) {
+        <button type="button" role="tab" [attr.aria-selected]="activeTab() === tab" [class.active]="activeTab() === tab" (click)="selectTab($any(tab))">{{ tab | titlecase }}</button>
+      }
+    </nav>
+
+    @if (activeTab() === 'summary') {
+      <section class="metric-grid">
+        <article class="metric-card"><span class="metric-icon blue"><i class="bi bi-people-fill"></i></span><span class="metric-label">Employees</span><strong>{{ stats()?.totalEmployees || 0 }}</strong><small>{{ stats()?.activeEmployees || 0 }} active recently</small></article>
+        <article class="metric-card"><span class="metric-icon green"><i class="bi bi-lightbulb-fill"></i></span><span class="metric-label">Employee skills</span><strong>{{ stats()?.totalSkills || 0 }}</strong><small>{{ stats()?.topSkills?.length || 0 }} tracked top skills</small></article>
+        <article class="metric-card"><span class="metric-icon orange"><i class="bi bi-clipboard-check-fill"></i></span><span class="metric-label">Questionnaires</span><strong>{{ stats()?.totalQuestionnaires || 0 }}</strong><small>Created for your company</small></article>
+        <article class="metric-card"><span class="metric-icon purple"><i class="bi bi-envelope-paper-fill"></i></span><span class="metric-label">Pending invites</span><strong>{{ stats()?.invitedEmployees || 0 }}</strong><small>Awaiting employee access</small></article>
+      </section>
+
+      <section class="insight-grid">
+        <article class="insight-card blue">
+          <span class="insight-label">Engagement</span>
+          <strong>{{ getActiveRateLabel() }}</strong>
+          <p>{{ stats()?.activeEmployees || 0 }} of {{ stats()?.totalEmployees || 0 }} employees are active.</p>
+        </article>
+        <article class="insight-card green">
+          <span class="insight-label">Skill coverage</span>
+          <strong>{{ getAverageSkillsPerEmployee() }}</strong>
+          <p>Average skills recorded per employee.</p>
+        </article>
+        <article class="insight-card orange">
+          <span class="insight-label">Top demand</span>
+          <strong>{{ getTopSkillName() }}</strong>
+          <p>{{ getTopSkillCount() }} employees currently aligned with this skill.</p>
+        </article>
+        <article class="insight-card purple">
+          <span class="insight-label">Follow-up</span>
+          <strong>{{ stats()?.invitedEmployees || 0 }}</strong>
+          <p>Pending invites need activation to deepen adoption.</p>
+        </article>
+      </section>
+
+      <section class="visual-grid">
+        <article class="panel chart-panel">
+          <div class="panel-heading"><h2>Employee mix</h2><span>{{ stats()?.totalEmployees || 0 }} total</span></div>
+          @if ((stats()?.totalEmployees || 0) > 0) {
+            <div class="chart-canvas">
+              <canvas #employeeStatusChart></canvas>
+            </div>
+          } @else {
+            <p class="empty-state">No workforce data yet.</p>
+          }
+        </article>
+
+        <article class="panel chart-panel">
+          <div class="panel-heading"><h2>Skill demand</h2><span>Top skills</span></div>
+          @if ((stats()?.topSkills?.length || 0) > 0) {
+            <div class="chart-canvas">
+              <canvas #topSkillsChart></canvas>
+            </div>
+          } @else {
+            <p class="empty-state">No skill data is available yet.</p>
+          }
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="panel">
+          <div class="panel-heading"><h2>Top skills</h2><button type="button" class="text-button" (click)="selectTab('skills')">View all</button></div>
+          @if (stats()?.topSkills?.length) {
+            @for (skill of stats()?.topSkills; track skill.skillName) {
+              <div class="rank-row"><span class="rank">{{ $index + 1 }}</span><span>{{ skill.skillName }}</span><strong>{{ skill.employeeCount }}</strong></div>
+            }
+          } @else {
+            <p class="empty-state">No company skills have been recorded yet.</p>
+          }
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading"><h2>Top employees</h2><a class="text-button" [routerLink]="['/company', 'users']">View all</a></div>
+          @if (stats()?.topEmployees?.length) {
+            @for (employee of stats()?.topEmployees; track employee._id) {
+              <div class="rank-row"><span class="avatar">{{ getInitials(employee.fullName) }}</span><span>{{ employee.fullName }}</span><strong>{{ employee.skillCount }}</strong></div>
+            }
+          } @else {
+            <p class="empty-state">No employee skill data is available yet.</p>
+          }
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading"><h2>Recent employees</h2><a class="text-button" [routerLink]="['/company', 'users']">Manage</a></div>
+          @if (stats()?.recentEmployees?.length) {
+            @for (employee of stats()?.recentEmployees; track employee._id) {
+              <div class="rank-row"><span class="avatar">{{ getInitials(employee.fullName) }}</span><span>{{ employee.fullName }}</span><small class="status">{{ employee.accountStatus || 'active' }}</small></div>
+            }
+          } @else {
+            <p class="empty-state">No employees have joined yet.</p>
+          }
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading"><h2>Recent activities</h2><button type="button" class="text-button" [routerLink]="['/employee-activity']">View all</button></div>
+          @if (stats()?.recentActivities?.length) {
+            <div class="activity-list">
+              @for (activity of stats()?.recentActivities; track activity._id || $index) {
+                <div class="activity-item">
+                  <div class="activity-main">
+                    <strong>{{ activity.employeeName || 'Employee' }}</strong>
+                    <span>{{ activity.activity || 'Updated records' }}</span>
+                  </div>
+                  <small>{{ formatDateTime(activity.timestamp) }}</small>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="empty-state">No recent employee activity is available yet.</p>
+          }
+        </article>
+      </section>
+    }
+
+    @if (activeTab() === 'skills') {
+      <section class="panel full-panel">
+        <div class="panel-heading">
+          <div><h2>Skills across your company</h2><p>Ranked from the latest employee skill records.</p></div>
+          <span class="panel-count">{{ stats()?.totalSkills || 0 }} total</span>
+        </div>
+        @if (stats()?.topSkills?.length) {
+          <div class="skill-list">
+            @for (skill of stats()?.topSkills; track skill.skillName) {
+              <div class="skill-row"><span>{{ skill.skillName }}</span><div class="skill-track"><span [style.width.%]="stats()?.totalEmployees ? (skill.employeeCount / stats()!.totalEmployees) * 100 : 0"></span></div><strong>{{ skill.employeeCount }}</strong></div>
+            }
+          </div>
+        } @else {
+          <p class="empty-state">No skill records are available for this company.</p>
+        }
+      </section>
+    }
+
+    @if (activeTab() === 'trends') {
+      <section class="panel full-panel">
+        <div class="panel-heading"><div><h2>Current skill momentum</h2><p>Snapshot of the skills your workforce is building right now.</p></div><span>{{ stats()?.totalSkills || 0 }} skill records</span></div>
+        @if ((stats()?.topSkills?.length || 0) > 0) {
+          <div class="skill-list">
+            @for (skill of stats()?.topSkills; track skill.skillName) {
+              <div class="skill-row"><span>{{ skill.skillName }}</span><div class="skill-track"><span [style.width.%]="stats()?.totalEmployees ? (skill.employeeCount / stats()!.totalEmployees) * 100 : 0"></span></div><strong>{{ skill.employeeCount }}</strong></div>
+            }
+          </div>
+        } @else {
+          <p class="empty-state">There is no skill trend data to display yet.</p>
+        }
+      </section>
+    }
+
+    @if (activeTab() === 'assessments') {
+      <section class="panel full-panel">
+        @if (tabLoading()) {
+          <div class="loading-state"><div class="spinner-border text-primary" role="status"></div></div>
+        } @else {
+          <div class="assessment-summary">
+            <div><span>Self assessment</span><strong>{{ formatDate(assessments()?.selfAssessment?.lastCompletedAt) }}</strong></div>
+            <div><span>Supervisor assessment</span><strong>{{ formatDate(assessments()?.supervisorAssessment?.lastCompletedAt) }}</strong></div>
+          </div>
+
+          <div class="panel-heading history-heading"><h2>Assessment history</h2><span>{{ getPaginationLabel() }}</span></div>
+
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead>
+                <tr><th>Completion date</th><th>Type</th><th>Skill set</th><th>Categories</th><th>Skills</th><th>Completed by</th></tr>
+              </thead>
+              <tbody>
+                @for (record of assessments()?.history; track record.completionDate) {
+                  <tr>
+                    <td data-label="Completion date">{{ formatDate(record.completionDate) }}</td>
+                    <td data-label="Type">{{ record.type }}</td>
+                    <td data-label="Skill set">{{ record.skillSet }}</td>
+                    <td data-label="Categories">{{ record.categories }}</td>
+                    <td data-label="Skills">{{ record.skills }}</td>
+                    <td data-label="Completed by">{{ record.completedBy }}</td>
+                  </tr>
+                } @empty {
+                  <tr class="empty-row"><td colspan="6" class="text-center text-muted py-4">No assessment history available.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination-row">
+            <select [value]="assessmentsPerPage()" (change)="onAssessmentsPerPageChange($event)">
+              <option value="10">10 per page</option>
+              <option value="25">25 per page</option>
+              <option value="50">50 per page</option>
+            </select>
+
+            <div class="pagination-controls">
+              <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="assessmentsPage() <= 1" (click)="goToAssessmentsPage(assessmentsPage() - 1)">Previous</button>
+              <span class="page-indicator">Page {{ assessmentsPage() }} of {{ assessments()?.pagination?.totalPages || 1 }}</span>
+              <span class="page-numbers">
+                @for (page of pages; track page) {
+                  <button type="button" class="btn btn-sm" [class.btn-primary]="assessmentsPage() === page" [class.btn-outline-secondary]="assessmentsPage() !== page" (click)="goToAssessmentsPage(page)">{{ page }}</button>
+                }
+              </span>
+              <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="assessmentsPage() >= (assessments()?.pagination?.totalPages || 1)" (click)="goToAssessmentsPage(assessmentsPage() + 1)">Next</button>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    @if (activeTab() === 'about') {
+      <section class="panel full-panel">
+        @if (tabLoading()) {
+          <div class="loading-state"><div class="spinner-border text-primary" role="status"></div></div>
+        } @else if (about()) {
+          <div class="profile-grid">
+            <div class="profile-avatar">{{ initials }}</div>
+            <div><h2>{{ about()?.fullName }}</h2><p>{{ about()?.email }}</p></div>
+          </div>
+          <dl class="about-list">
+            <dt>Role</dt><dd>{{ about()?.role || 'Not provided' }}</dd>
+            <dt>Skill set</dt><dd>{{ about()?.skillSet || 'Not provided' }}</dd>
+            <dt>Security group</dt><dd>{{ about()?.securityGroup || 'Not provided' }}</dd>
+            <dt>Last login</dt><dd>{{ formatDate(about()?.lastLoginAt) }}</dd>
+            <dt>Created</dt><dd>{{ formatDate(about()?.createdAt) }}</dd>
+          </dl>
+        } @else {
+          <p class="empty-state">Unable to load company profile data.</p>
+        }
+      </section>
+    }
+  }
+</div>

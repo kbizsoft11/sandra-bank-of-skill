@@ -17,6 +17,9 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { QuestionnaireService } from '../../../core/services/questionnaire.service';
+import { SkillCategoryService } from '../../../core/services/skill-category.service';
+import { SkillService } from '../../../core/services/skill.service';
+import { RoleService } from '../../../core/services/role.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { QuestionType, Questionnaire, QuestionnaireStatus } from '../../../core/models/questionnaire.model';
@@ -37,12 +40,18 @@ export class EditQuestionnaire implements OnInit {
     private readonly router = inject(Router);
     private readonly route = inject(ActivatedRoute);
     private readonly questionnaireService = inject(QuestionnaireService);
+    private readonly skillCategoryService = inject(SkillCategoryService);
+    private readonly skillService = inject(SkillService);
+    private readonly roleService = inject(RoleService);
     private readonly auth = inject(AuthService);
     private readonly alertService = inject(AlertService);
 
     readonly isLoading = signal<boolean>(true);
     readonly isSubmitting = signal<boolean>(false);
     readonly questionnaireId = signal<string>('');
+    readonly skillCategories = signal<any[]>([]);
+    readonly skills = signal<any[]>([]);
+    readonly roles = signal<any[]>([]);
 
     readonly questionTypes: { value: QuestionType; label: string }[] = [
         { value: 'text', label: 'Short Text' },
@@ -51,21 +60,16 @@ export class EditQuestionnaire implements OnInit {
         { value: 'checkbox', label: 'Multiple Choice' },
         { value: 'rating', label: 'Rating (1-5)' },
         { value: 'date', label: 'Date' },
+        { value: 'skill', label: 'Skill Question' },
     ];
 
     readonly form = this.fb.nonNullable.group({
-        title: [
-            '',
-            [Validators.required, Validators.minLength(3)]
-        ],
-        description: [
-            '',
-            [Validators.required, Validators.minLength(10)]
-        ],
         status: [
             'draft' as QuestionnaireStatus,
             Validators.required
         ],
+        skillCategoryId: ['', Validators.required],
+        targetDesignationId: [''],
         questions: this.fb.array([])
     });
 
@@ -74,6 +78,9 @@ export class EditQuestionnaire implements OnInit {
     }
 
     ngOnInit(): void {
+        this.loadSkillCategories();
+        this.loadRoles();
+
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.questionnaireId.set(id);
@@ -82,6 +89,83 @@ export class EditQuestionnaire implements OnInit {
             this.alertService.error('Invalid questionnaire ID');
             this.cancel();
         }
+    }
+
+    loadSkillCategories(): void {
+        this.skillCategoryService.getAll().subscribe({
+            next: (response) => {
+                this.skillCategories.set(response.data || []);
+            },
+            error: (err) => {
+                console.error(err);
+                this.alertService.error('Unable to load skill categories');
+            }
+        });
+    }
+
+    loadSkills(categoryId?: string, initializeQuestions = false): void {
+        if (!categoryId) {
+            this.skills.set([]);
+            if (initializeQuestions) {
+                this.questions.clear();
+            }
+            return;
+        }
+
+        this.skillService.getSkills({ cat_id: categoryId }).subscribe({
+            next: (response) => {
+                const skills = response.data.skills || [];
+                this.skills.set(skills);
+                if (initializeQuestions) {
+                    this.setQuestionsForSkills(skills);
+                }
+            },
+            error: (err) => {
+                console.error(err);
+                this.alertService.error('Unable to load skills for selected category');
+            }
+        });
+    }
+
+    loadRoles(): void {
+        this.roleService.getRoles(true).subscribe({
+            next: (response) => {
+                this.roles.set(response.data || []);
+            },
+            error: (err) => {
+                console.error(err);
+                this.alertService.error('Unable to load employee roles');
+            }
+        });
+    }
+
+    onSkillCategoryChange(): void {
+        const categoryId = this.form.get('skillCategoryId')?.value;
+        this.loadSkills(categoryId, true);
+    }
+
+    setQuestionsForSkills(skills: any[]): void {
+        const questionsArray = this.questions;
+        while (questionsArray.length) {
+            questionsArray.removeAt(0);
+        }
+
+        skills.forEach((skill, index) => {
+            const questionGroup = this.fb.nonNullable.group({
+                questionId: [`${skill._id}-${Date.now()}-${index}`],
+                skillId: [skill._id],
+                skillName: [skill.skill_name],
+                questionText: [
+                    `How would you rate ${skill.skill_name}?`,
+                    [Validators.required, Validators.minLength(5)]
+                ],
+                questionType: ['skill' as QuestionType, Validators.required],
+                skillDescription: [''],
+                options: this.fb.array([]),
+                required: [true]
+            });
+            questionsArray.push(questionGroup);
+        });
     }
 
     loadQuestionnaire(id: string): void {
@@ -105,10 +189,14 @@ export class EditQuestionnaire implements OnInit {
     populateForm(questionnaire: Questionnaire): void {
         // Set basic fields
         this.form.patchValue({
-            title: questionnaire.title,
-            description: questionnaire.description,
-            status: questionnaire.status
+            status: questionnaire.status,
+            skillCategoryId: questionnaire.skillCategoryId || '',
+            targetDesignationId: questionnaire.targetDesignationId || ''
         });
+
+        if (questionnaire.skillCategoryId) {
+            this.loadSkills(questionnaire.skillCategoryId, false);
+        }
 
         // Clear existing questions
         while (this.questions.length) {
@@ -119,6 +207,8 @@ export class EditQuestionnaire implements OnInit {
         questionnaire.questions.forEach(question => {
             const questionGroup = this.fb.nonNullable.group({
                 questionId: [question.questionId],
+                skillId: [question.skillId || ''],
+                skillName: [question.skillName || ''],
                 questionText: [
                     question.questionText,
                     [Validators.required, Validators.minLength(5)]
@@ -127,6 +217,7 @@ export class EditQuestionnaire implements OnInit {
                     question.questionType,
                     Validators.required
                 ],
+                skillDescription: [question.skillDescription || ''],
                 options: this.fb.array([]),
                 required: [question.required]
             });
@@ -143,17 +234,17 @@ export class EditQuestionnaire implements OnInit {
         });
     }
 
-    createQuestionFormGroup(): FormGroup {
+    createQuestionFormGroup(skill?: any): FormGroup {
         return this.fb.nonNullable.group({
             questionId: [''],
+            skillId: [skill?._id || ''],
+            skillName: [skill?.skill_name || ''],
             questionText: [
-                '',
+                skill ? `How would you rate ${skill.skill_name}?` : '',
                 [Validators.required, Validators.minLength(5)]
             ],
-            questionType: [
-                'text' as QuestionType,
-                Validators.required
-            ],
+            questionType: ['skill' as QuestionType, Validators.required],
+            skillDescription: [''],
             options: this.fb.array([]),
             required: [true]
         });
@@ -253,13 +344,16 @@ export class EditQuestionnaire implements OnInit {
         
         // Transform questions to match backend format
         const payload = {
-            title: formValue.title,
-            description: formValue.description,
             status: formValue.status,
+            skillCategoryId: formValue.skillCategoryId || undefined,
+            targetDesignationId: formValue.targetDesignationId || undefined,
             questions: formValue.questions.map((q: any, index: number) => ({
                 questionId: q.questionId || undefined, // Preserve existing IDs
+                skillId: q.skillId || undefined,
+                skillName: q.skillName || undefined,
                 questionText: q.questionText,
                 questionType: q.questionType,
+                skillDescription: q.skillDescription,
                 options: q.options || [],
                 required: q.required,
                 order: index

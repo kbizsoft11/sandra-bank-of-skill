@@ -81,12 +81,17 @@ export const ensureDefaultOnboardingQuestionnaire = async (
     organisationId: string,
     createdBy: string
 ): Promise<string> => {
-    // Check if default onboarding questionnaire already exists
+    // Check if default un-targeted onboarding questionnaire already exists
     const existing = await QuestionnaireModel.findOne({
         tenantId,
         organisationId,
         isOnboardingQuestionnaire: true,
         status: 'active',
+        $or: [
+            { targetDesignationId: { $exists: false } },
+            { targetDesignationId: null },
+            { targetDesignationId: '' },
+        ],
     });
 
     if (existing) {
@@ -122,13 +127,22 @@ export const assignQuestionnaireToCompanyEmployees = async (
 ): Promise<void> => {
     const { initializeQuestionAnswers } = require('./question-answer.service');
     
-    const targetEmployeeIds = employeeIds?.length
-        ? employeeIds
-        : (await UserModel.find({
+    let targetEmployeeIds: string[] = [];
+    if (employeeIds?.length) {
+        targetEmployeeIds = employeeIds;
+    } else {
+        const questionnaire = await QuestionnaireModel.findById(questionnaireId).lean();
+        const employeeFilter: any = {
             tenantId,
             organisationId,
             role: 'employee',
-        }).select('_id')).map((user) => user._id.toString());
+        };
+        if (questionnaire?.targetDesignationId) {
+            employeeFilter.designationId = questionnaire.targetDesignationId;
+        }
+        const employees = await UserModel.find(employeeFilter).select('_id').lean();
+        targetEmployeeIds = employees.map((user) => user._id.toString());
+    }
 
     if (targetEmployeeIds.length === 0) {
         return;
@@ -183,13 +197,30 @@ export const assignOnboardingQuestionnaires = async (
     // First, ensure the default onboarding questionnaire exists
     await ensureDefaultOnboardingQuestionnaire(tenantId, organisationId, assignedBy);
 
+    // Get employee details to check designationId for role-based matching
+    const employee = await UserModel.findById(employeeId).lean();
+    const employeeDesignationId = employee?.designationId ? employee.designationId.toString() : null;
+
     // Now find all active onboarding questionnaires for this organization
-    const onboardingQuestionnaires = await QuestionnaireModel.find({
+    const allOnboardingQuestionnaires = await QuestionnaireModel.find({
         tenantId,
         organisationId,
         status: 'active',
         isOnboardingQuestionnaire: true,
+    }).lean();
+
+    // Filter questionnaires according to the employee's role/designation
+    let onboardingQuestionnaires = allOnboardingQuestionnaires.filter((q) => {
+        // If questionnaire has no specific target designation, it applies to all roles
+        if (!q.targetDesignationId) return true;
+        // If questionnaire specifies a target designation, it must match employee's designationId
+        return employeeDesignationId && q.targetDesignationId.toString() === employeeDesignationId;
     });
+
+    // Fallback: If no role-specific or general onboarding questionnaire matched, use all active onboarding questionnaires
+    if (onboardingQuestionnaires.length === 0 && allOnboardingQuestionnaires.length > 0) {
+        onboardingQuestionnaires = allOnboardingQuestionnaires;
+    }
 
     if (onboardingQuestionnaires.length === 0) {
         console.warn('?? No onboarding questionnaires found after ensuring default');

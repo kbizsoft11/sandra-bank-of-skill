@@ -105,7 +105,10 @@ export class CreateSkill implements OnInit {
   getBackRoute(): string {
     const role = this.auth.role();
     const rolePrefix = role || 'admin';
-    if (role === 'employee' || role === 'company') {
+    if (role === 'company') {
+      return `/${rolePrefix}/company-skills`;
+    }
+    if (role === 'employee') {
       return `/${rolePrefix}/my-skills`;
     }
     return `/${rolePrefix}/skills`;

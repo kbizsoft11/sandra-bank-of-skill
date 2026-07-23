@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { QuestionnaireModel } from '../models/questionnaire.model';
 import { QuestionnaireResponseModel } from '../models/questionnaire-response.model';
+import { UserModel } from '../models/user.model';
+import { SkillCategory } from '../models/skillCategory.model';
 import { sendResponse } from '../utils/api-response';
 import { asyncHandler } from '../utils/async-handler';
 import {
@@ -18,9 +20,33 @@ export const getAssignedQuestionnaires = asyncHandler(
     async (req: Request, res: Response) => {
         const user = (req as any).user;
 
-        const responses = await QuestionnaireResponseModel.find({
+        let responses = await QuestionnaireResponseModel.find({
             employeeId: user.userId,
         }).sort({ assignedAt: -1 }).lean();
+
+        if (responses.length === 0 && user.role === 'employee') {
+            const dbUser = await UserModel.findById(user.userId).lean();
+            const tenantId = user.tenantId || dbUser?.tenantId;
+            const organisationId = user.organisationId || dbUser?.organisationId || tenantId;
+
+            if (tenantId && organisationId) {
+                try {
+                    const { assignOnboardingQuestionnaires } = require('../services/onboarding.service');
+                    await assignOnboardingQuestionnaires(
+                        user.userId,
+                        tenantId,
+                        organisationId,
+                        organisationId
+                    );
+
+                    responses = await QuestionnaireResponseModel.find({
+                        employeeId: user.userId,
+                    }).sort({ assignedAt: -1 }).lean();
+                } catch (err) {
+                    console.error('Error auto-assigning onboarding questionnaires in getAssignedQuestionnaires:', err);
+                }
+            }
+        }
 
         if (responses.length === 0) {
             return sendResponse(
@@ -37,6 +63,20 @@ export const getAssignedQuestionnaires = asyncHandler(
             _id: { $in: questionnaireIds },
         }).lean();
 
+        const categoryIds = Array.from(
+            new Set(
+                questionnaires
+                    .filter(q => q.skillCategoryId)
+                    .map(q => q.skillCategoryId as string)
+            )
+        );
+
+        const categories = categoryIds.length > 0
+            ? await SkillCategory.find({ _id: { $in: categoryIds } }).lean()
+            : [];
+
+        const categoryMap = new Map(categories.map(cat => [cat._id.toString(), cat.cat_name]));
+
         const questionnaireMap = new Map(
             questionnaires.map(q => [q._id.toString(), q])
         );
@@ -47,6 +87,10 @@ export const getAssignedQuestionnaires = asyncHandler(
                 
                 if (!questionnaire) {
                     return null;
+                }
+
+                if (questionnaire.skillCategoryId) {
+                    questionnaire.title = categoryMap.get(questionnaire.skillCategoryId as string) || questionnaire.title;
                 }
 
                 // Get progress
@@ -104,7 +148,7 @@ export const startQuestionnaire = asyncHandler(
             );
         }
 
-        const questionnaire = await QuestionnaireModel.findById(response.questionnaireId);
+        let questionnaire = await QuestionnaireModel.findById(response.questionnaireId);
 
         if (!questionnaire) {
             return sendResponse(
@@ -113,6 +157,13 @@ export const startQuestionnaire = asyncHandler(
                 'Questionnaire not found',
                 null
             );
+        }
+
+        if (questionnaire.skillCategoryId) {
+            const category = await SkillCategory.findById(questionnaire.skillCategoryId).lean();
+            if (category?.cat_name) {
+                questionnaire.title = category.cat_name;
+            }
         }
 
         // Initialize question answers if not already done

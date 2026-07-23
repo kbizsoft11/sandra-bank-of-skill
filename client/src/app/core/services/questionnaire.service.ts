@@ -79,6 +79,20 @@ export class QuestionnaireService {
         return this.http.get<any>(`${this.api}/${id}/responses`);
     }
 
+    /**
+     * Toggle status (activate/deactivate) of a questionnaire
+     */
+    toggleStatus(id: string): Observable<any> {
+        return this.http.patch(`${this.api}/${id}/toggle-status`, {});
+    }
+
+    /**
+     * Duplicate a questionnaire
+     */
+    duplicateQuestionnaire(id: string): Observable<any> {
+        return this.http.post(`${this.api}/${id}/duplicate`, {});
+    }
+
     // ==================== EMPLOYEE ROLE METHODS (NEW IMPROVED API) ====================
 
     /**

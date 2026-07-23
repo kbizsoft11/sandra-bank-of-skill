@@ -145,6 +145,32 @@ export class QuestionnaireList implements OnInit {
         });
     }
 
+    toggleStatus(questionnaire: Questionnaire): void {
+        this.questionnaireService.toggleStatus(questionnaire._id).subscribe({
+            next: (res) => {
+                this.alertService.toast(res.message || 'Status updated successfully', 'success');
+                this.loadQuestionnaires();
+            },
+            error: (err) => {
+                console.error(err);
+                this.alertService.error(err.error?.message || 'Failed to update status');
+            }
+        });
+    }
+
+    duplicateQuestionnaire(questionnaire: Questionnaire): void {
+        this.questionnaireService.duplicateQuestionnaire(questionnaire._id).subscribe({
+            next: (res) => {
+                this.alertService.toast('Questionnaire duplicated successfully', 'success');
+                this.loadQuestionnaires();
+            },
+            error: (err) => {
+                console.error(err);
+                this.alertService.error(err.error?.message || 'Failed to duplicate questionnaire');
+            }
+        });
+    }
+
     formatDate(dateString: string): string {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {

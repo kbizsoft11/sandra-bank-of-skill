@@ -4,6 +4,7 @@ import { Skill } from '../models/skill.model';
 import { SkillCategory } from '../models/skillCategory.model';
 import { QuestionnaireModel } from '../models/questionnaire.model';
 import { RoleModel } from '../models/role.model';
+import { ActivityModel } from '../models/activity.model';
 import * as AdminDashboardService from '../services/admin-dashboard.service';
 
 /**
@@ -160,6 +161,40 @@ export const getCompanyStats = async (req: Request, res: Response) => {
       accountStatus: 'invited' as any,
     });
 
+    // Get recent employee activities for this company only.
+    // `Activity.userId` may be stored as a string, so we convert user _id to string during lookup.
+    const recentActivities = await ActivityModel.aggregate([
+      { $match: { organisationId } },
+      {
+        $lookup: {
+          from: 'users',
+          let: { activityUserId: '$userId' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: [{ $toString: '$_id' }, '$$activityUserId'],
+                },
+              },
+            },
+          ],
+          as: 'user',
+        },
+      },
+      { $unwind: '$user' },
+      { $match: { 'user.role': 'employee' } },
+      { $sort: { createdAt: -1 } },
+      { $limit: 5 },
+      {
+        $project: {
+          _id: 1,
+          user: 1,
+          activity: 1,
+          createdAt: 1,
+        },
+      },
+    ]);
+
     // Get top employees by skill count
     const topEmployees = await Skill.aggregate([
       {
@@ -254,6 +289,12 @@ export const getCompanyStats = async (req: Request, res: Response) => {
         totalSkills,
         invitedEmployees,
         recentEmployees,
+        recentActivities: recentActivities.map(activity => ({
+          _id: activity._id?.toString?.() || undefined,
+          employeeName: activity.user?.fullName || activity.user || 'Employee',
+          activity: activity.activity || 'Updated records',
+          timestamp: activity.createdAt?.toISOString?.() || '',
+        })),
         topEmployees,
         topSkills,
       },

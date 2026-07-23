@@ -8,6 +8,7 @@ import {
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
 
 import { UserService } from '../../core/services/user.service';
 import { AlertService } from '../../core/services/alert.service';
@@ -19,6 +20,8 @@ interface CompanySkill {
     cat_name: string;
   };
   employeeCount: number;
+  averageScore: number;
+  representativeSkillId?: string;
   employees: Array<{
     _id: string;
     fullName: string;
@@ -30,8 +33,14 @@ interface CompanySkill {
   }>;
 }
 
+function getDecimal(value: number): number {
+  return Number(value.toFixed(1));
+}
+
 interface SkillEmployee {
   _id: string;
+  skillId?: string;
+  createdAt?: string;
   fullName: string;
   email: string;
   department?: string;
@@ -52,12 +61,14 @@ interface SkillEmployee {
   imports: [
     CommonModule,
     FormsModule,
+    RouterModule,
   ],
   templateUrl: './company-skills.html',
   styleUrl: './company-skills.scss',
 })
 export class CompanySkills implements OnInit {
 
+  private readonly router = inject(Router);
   private readonly userService = inject(UserService);
   private readonly alertService = inject(AlertService);
 
@@ -92,6 +103,31 @@ export class CompanySkills implements OnInit {
 
   readonly totalPages = computed(() => {
     return Math.ceil(this.filteredSkills().length / this.pageSize());
+  });
+
+  readonly totalSkills = computed(() => {
+    return this.skills().length;
+  });
+
+  readonly totalSkillAssignments = computed(() => {
+    return this.skills().reduce((sum, skill) => sum + skill.employeeCount, 0);
+  });
+
+  readonly averageSkillScore = computed(() => {
+    const skills = this.skills();
+    const totalAssignments = skills.reduce((sum, skill) => sum + skill.employeeCount, 0);
+    if (!totalAssignments) return 0;
+    const weightedScore = skills.reduce((sum, skill) => sum + (skill.averageScore * skill.employeeCount), 0);
+    return getDecimal(weightedScore / totalAssignments);
+  });
+
+  readonly topCategory = computed(() => {
+    const counts: Record<string, number> = {};
+    this.skills().forEach((skill) => {
+      counts[skill.category.cat_name] = (counts[skill.category.cat_name] || 0) + skill.employeeCount;
+    });
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    return top ? top[0] : 'N/A';
   });
 
   readonly hasSkills = computed(() => {
@@ -151,7 +187,7 @@ export class CompanySkills implements OnInit {
     filtered.sort((a, b) => {
       let aVal: any, bVal: any;
 
-      if (column === 'skill_name') {
+        if (column === 'skill_name') {
         aVal = a.skill_name.toLowerCase();
         bVal = b.skill_name.toLowerCase();
       } else if (column === 'category') {
@@ -160,6 +196,9 @@ export class CompanySkills implements OnInit {
       } else if (column === 'employeeCount') {
         aVal = a.employeeCount;
         bVal = b.employeeCount;
+      } else if (column === 'averageScore') {
+        aVal = a.averageScore;
+        bVal = b.averageScore;
       }
 
       if (aVal < bVal) return direction === 'asc' ? -1 : 1;
@@ -175,11 +214,15 @@ export class CompanySkills implements OnInit {
       // Toggle direction
       this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
     } else {
-      // New column, default to descending for counts, ascending for text
+      // New column, default to descending for numeric metrics and ascending for text
       this.sortColumn.set(column);
-      this.sortDirection.set(column === 'employeeCount' ? 'desc' : 'asc');
+      this.sortDirection.set(column === 'skill_name' || column === 'category' ? 'asc' : 'desc');
     }
     this.applyFiltersAndSort();
+  }
+
+  getSkillId(skill: CompanySkill): string {
+    return skill.representativeSkillId || skill.category._id || '';
   }
 
   getSortIcon(column: string): string {
@@ -228,6 +271,29 @@ export class CompanySkills implements OnInit {
         this.alertService.error('Failed to load employees for this skill.');
       },
     });
+  }
+
+  editEmployeeSkill(skillId?: string): void {
+    if (!skillId) {
+      return;
+    }
+    this.router.navigate([`/company/company-skills/${skillId}/edit`]);
+  }
+
+  getVerificationStatus(score: number): string {
+    if (score >= 85) {
+      return 'Verified';
+    }
+    if (score >= 65) {
+      return 'Pending review';
+    }
+    return 'Needs improvement';
+  }
+
+  getVerificationBadgeClass(score: number): string {
+    if (score >= 85) return 'bg-success text-white';
+    if (score >= 65) return 'bg-warning text-dark';
+    return 'bg-danger text-white';
   }
 
   closeModal(): void {

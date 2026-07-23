@@ -14,7 +14,7 @@ const QuestionSchema = new Schema<IQuestion>(
         },
         questionType: {
             type: String,
-            enum: ['text', 'textarea', 'radio', 'checkbox', 'rating', 'date'],
+            enum: ['text', 'textarea', 'radio', 'checkbox', 'rating', 'date', 'skill'],
             required: true,
         },
         options: {
@@ -29,6 +29,21 @@ const QuestionSchema = new Schema<IQuestion>(
             type: Number,
             required: true,
         },
+        skillDescription: {
+            type: String,
+            required: false,
+            trim: true,
+        },
+        skillId: {
+            type: String,
+            required: false,
+            index: true,
+        },
+        skillName: {
+            type: String,
+            required: false,
+            trim: true,
+        },
     },
     { _id: false }
 );
@@ -37,18 +52,36 @@ const QuestionnaireSchema = new Schema<IQuestionnaire>(
     {
         title: {
             type: String,
-            required: true,
+            required: false,
             trim: true,
         },
         description: {
             type: String,
-            required: true,
+            required: false,
             trim: true,
         },
         createdBy: {
             type: String,
             required: true,
             ref: 'User',
+        },
+        skillCategoryId: {
+            type: String,
+            required: false,
+            ref: 'SkillCategory',
+            index: true,
+        },
+        skillId: {
+            type: String,
+            required: false,
+            ref: 'Skill',
+            index: true,
+        },
+        targetDesignationId: {
+            type: String,
+            required: false,
+            ref: 'Role',
+            index: true,
         },
         tenantId: {
             type: String,

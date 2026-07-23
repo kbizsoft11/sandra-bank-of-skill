@@ -154,6 +154,24 @@
                     }
 
                     <button 
+                      (click)="toggleStatus(questionnaire)" 
+                      class="btn btn-sm"
+                      [class.btn-outline-warning]="questionnaire.status === 'active'"
+                      [class.btn-outline-success]="questionnaire.status !== 'active'"
+                      [title]="questionnaire.status === 'active' ? 'Deactivate Questionnaire' : 'Activate Questionnaire'">
+                      <i [class]="questionnaire.status === 'active' ? 'bi bi-pause-circle' : 'bi bi-play-circle'"></i>
+                      <span class="d-none d-md-inline">{{ questionnaire.status === 'active' ? 'Deactivate' : 'Activate' }}</span>
+                    </button>
+
+                    <button 
+                      (click)="duplicateQuestionnaire(questionnaire)" 
+                      class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1"
+                      title="Duplicate Questionnaire">
+                      <i class="bi bi-copy"></i>
+                      <span class="d-none d-md-inline">Duplicate</span>
+                    </button>
+
+                    <button 
                       (click)="viewQuestionnaire(questionnaire)" 
                       class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
                       title="View Responses">

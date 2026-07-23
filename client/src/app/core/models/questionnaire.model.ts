@@ -4,7 +4,8 @@ export type QuestionType =
     | 'radio'
     | 'checkbox'
     | 'rating'
-    | 'date';
+    | 'date'
+    | 'skill';
 
 export type QuestionnaireStatus = 
     | 'draft'
@@ -23,6 +24,9 @@ export interface Question {
     options?: string[];
     required: boolean;
     order: number;
+    skillDescription?: string;
+    skillId?: string;
+    skillName?: string;
 }
 
 export interface Questionnaire {
@@ -32,6 +36,9 @@ export interface Questionnaire {
     createdBy: string;
     tenantId: string;
     organisationId: string;
+    skillCategoryId?: string;
+    skillId?: string;
+    targetDesignationId?: string;
     questions: Question[];
     status: QuestionnaireStatus;
     createdAt: string;
@@ -78,8 +85,11 @@ export interface QuestionnaireResponseWithEmployee extends QuestionnaireResponse
 }
 
 export interface CreateQuestionnaireDto {
-    title: string;
-    description: string;
+    title?: string;
+    description?: string;
+    skillCategoryId?: string;
+    skillId?: string;
+    targetDesignationId?: string;
     questions: Omit<Question, 'questionId'>[];
     status?: QuestionnaireStatus;
 }
@@ -87,6 +97,9 @@ export interface CreateQuestionnaireDto {
 export interface UpdateQuestionnaireDto {
     title?: string;
     description?: string;
+    skillCategoryId?: string;
+    skillId?: string;
+    targetDesignationId?: string;
     questions?: Question[];
     status?: QuestionnaireStatus;
 }

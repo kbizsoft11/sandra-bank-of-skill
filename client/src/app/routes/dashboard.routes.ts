@@ -174,6 +174,20 @@ export const dashboardRoutes: Routes = [
         loadComponent: () => import('../features/company-skills/company-skills').then(c => c.CompanySkills)
     },
 
+    {
+        path: 'company-skills/create',
+        canActivate: [roleGuard],
+        data: { roles: ['company'] },
+        loadComponent: () => import('../features/skills/create-skill/create-skill').then(c => c.CreateSkill)
+    },
+
+    {
+        path: 'company-skills/:id/edit',
+        canActivate: [roleGuard],
+        data: { roles: ['company'] },
+        loadComponent: () => import('../features/skills/edit-skill/edit-skill').then(c => c.EditSkill)
+    },
+
     // Skills Routes (Admin only - for viewing all skills)
     {
         path: 'skills',

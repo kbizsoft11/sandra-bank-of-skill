@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { QuestionnaireModel } from '../models/questionnaire.model';
 import { QuestionnaireResponseModel } from '../models/questionnaire-response.model';
 import { UserModel } from '../models/user.model';
+import { SkillCategory } from '../models/skillCategory.model';
 import { sendResponse } from '../utils/api-response';
 import { asyncHandler } from '../utils/async-handler';
 import { v4 as uuidv4 } from 'uuid';
@@ -25,11 +26,30 @@ export const getAllQuestionnaires = asyncHandler(
         .sort({ createdAt: -1 })
         .lean();
 
+        // Populate category title for any questionnaire with skillCategoryId
+        const categoryIds = Array.from(
+            new Set(questionnaires.filter(q => q.skillCategoryId).map(q => q.skillCategoryId as string))
+        );
+        const categories = categoryIds.length > 0
+            ? await SkillCategory.find({ _id: { $in: categoryIds } }).lean()
+            : [];
+        const categoryMap = new Map(categories.map(c => [c._id.toString(), c.cat_name]));
+
+        const updatedQuestionnaires = questionnaires.map(q => {
+            if (q.skillCategoryId && categoryMap.has(q.skillCategoryId.toString())) {
+                return {
+                    ...q,
+                    title: categoryMap.get(q.skillCategoryId.toString()) || q.title,
+                };
+            }
+            return q;
+        });
+
         return sendResponse(
             res,
             200,
             'Questionnaires fetched successfully',
-            questionnaires
+            updatedQuestionnaires
         );
     }
 );
@@ -46,7 +66,7 @@ export const getQuestionnaireById = asyncHandler(
             _id: id,
             tenantId: user.tenantId,
             organisationId: user.organisationId,
-        });
+        }).lean();
 
         if (!questionnaire) {
             return sendResponse(
@@ -55,6 +75,13 @@ export const getQuestionnaireById = asyncHandler(
                 'Questionnaire not found',
                 null
             );
+        }
+
+        if (questionnaire.skillCategoryId) {
+            const category = await SkillCategory.findById(questionnaire.skillCategoryId).lean();
+            if (category?.cat_name) {
+                (questionnaire as any).title = category.cat_name;
+            }
         }
 
         return sendResponse(
@@ -91,7 +118,7 @@ const buildStaticOnboardingQuestions = () => [
 export const createQuestionnaire = asyncHandler(
     async (req: Request, res: Response) => {
         const user = (req as any).user;
-        const { title, description, questions, status, isOnboardingQuestionnaire } = req.body;
+        const { title, description, questions, status, isOnboardingQuestionnaire, skillCategoryId, skillId, targetDesignationId } = req.body;
 
         // Validate user has required fields
         if (!user.userId) {
@@ -157,14 +184,28 @@ export const createQuestionnaire = asyncHandler(
             options: q.options || [],
             required: q.required !== undefined ? q.required : true,
             order: index,
+            skillDescription: q.skillDescription || undefined,
+            skillId: q.skillId || undefined,
+            skillName: q.skillName || undefined,
         }));
 
+        let categoryTitle: string | undefined;
+        if (skillCategoryId) {
+            const category = await SkillCategory.findById(skillCategoryId).lean();
+            categoryTitle = category?.cat_name;
+        }
+
         const questionnaire = await QuestionnaireModel.create({
-            title: title || 'Employee onboarding questionnaire',
-            description: description || 'This questionnaire is automatically assigned to every employee joining your company.',
+            title: categoryTitle || title || (shouldBeOnboarding ? 'Employee onboarding questionnaire' : undefined),
+            description: shouldBeOnboarding
+                ? description || 'This questionnaire is automatically assigned to every employee joining your company.'
+                : description || undefined,
             createdBy: user.userId,
             tenantId: tenantId,
             organisationId: organisationId,
+            skillCategoryId: skillCategoryId || undefined,
+            skillId: skillId || undefined,
+            targetDesignationId: targetDesignationId || undefined,
             questions: questionsWithIds,
             status: status || 'active',
             isOnboardingQuestionnaire: shouldBeOnboarding,
@@ -195,7 +236,7 @@ export const updateQuestionnaire = asyncHandler(
     async (req: Request, res: Response) => {
         const user = (req as any).user;
         const { id } = req.params;
-        const { title, description, questions, status, isOnboardingQuestionnaire } = req.body;
+        const { title, description, questions, status, isOnboardingQuestionnaire, skillCategoryId, skillId, targetDesignationId } = req.body;
 
         const questionnaire = await QuestionnaireModel.findOne({
             _id: id,
@@ -216,6 +257,18 @@ export const updateQuestionnaire = asyncHandler(
         if (title) questionnaire.title = title;
         if (description) questionnaire.description = description;
         if (status) questionnaire.status = status;
+        if (skillCategoryId !== undefined) {
+            questionnaire.skillCategoryId = skillCategoryId || undefined;
+
+            if (skillCategoryId) {
+                const category = await SkillCategory.findById(skillCategoryId).lean();
+                if (category?.cat_name) {
+                    questionnaire.title = category.cat_name;
+                }
+            }
+        }
+        if (skillId !== undefined) questionnaire.skillId = skillId || undefined;
+        if (targetDesignationId !== undefined) questionnaire.targetDesignationId = targetDesignationId || undefined;
         if (isOnboardingQuestionnaire !== undefined) {
             questionnaire.isOnboardingQuestionnaire = isOnboardingQuestionnaire;
         }
@@ -229,6 +282,9 @@ export const updateQuestionnaire = asyncHandler(
                 options: q.options || [],
                 required: q.required !== undefined ? q.required : true,
                 order: index,
+                skillDescription: q.skillDescription || undefined,
+                skillId: q.skillId || undefined,
+                skillName: q.skillName || undefined,
             }));
             questionnaire.questions = questionsWithIds;
         }
@@ -293,27 +349,6 @@ export const assignQuestionnaire = asyncHandler(
         // Import the question answer service
         const { initializeQuestionAnswers } = require('../services/question-answer.service');
 
-        // If no employee IDs are provided, assign to all employees in the organization
-        if (!employeeIds || !Array.isArray(employeeIds) || employeeIds.length === 0) {
-            const allEmployees = await UserModel.find({
-                tenantId: user.tenantId,
-                organisationId: user.organisationId,
-                role: 'employee',
-            }).select('_id');
-
-            employeeIds = allEmployees.map(emp => emp._id.toString());
-        }
-
-        if (!employeeIds || employeeIds.length === 0) {
-            return sendResponse(
-                res,
-                400,
-                'No employees found to assign this questionnaire',
-                null
-            );
-        }
-
-        // Verify questionnaire exists and belongs to user's organization
         const questionnaire = await QuestionnaireModel.findOne({
             _id: id,
             tenantId: user.tenantId,
@@ -326,6 +361,31 @@ export const assignQuestionnaire = asyncHandler(
                 res,
                 404,
                 'Questionnaire not found or not active',
+                null
+            );
+        }
+
+        // If no employee IDs are provided, assign to all employees in the organization
+        if (!employeeIds || !Array.isArray(employeeIds) || employeeIds.length === 0) {
+            const employeeFilter: any = {
+                tenantId: user.tenantId,
+                organisationId: user.organisationId,
+                role: 'employee',
+            };
+
+            if (questionnaire.targetDesignationId) {
+                employeeFilter.designationId = questionnaire.targetDesignationId;
+            }
+
+            const allEmployees = await UserModel.find(employeeFilter).select('_id');
+            employeeIds = allEmployees.map(emp => emp._id.toString());
+        }
+
+        if (!employeeIds || employeeIds.length === 0) {
+            return sendResponse(
+                res,
+                400,
+                'No employees found to assign this questionnaire',
                 null
             );
         }
@@ -707,6 +767,97 @@ export const getPendingOnboarding = asyncHandler(
                 questionnaire: result.questionnaire,
                 response: result.response,
             }
+        );
+    }
+);
+
+/**
+ * Toggle questionnaire status (Activate / Deactivate)
+ */
+export const toggleQuestionnaireStatus = asyncHandler(
+    async (req: Request, res: Response) => {
+        const user = (req as any).user;
+        const { id } = req.params;
+
+        const questionnaire = await QuestionnaireModel.findOne({
+            _id: id,
+            tenantId: user.tenantId,
+            organisationId: user.organisationId,
+        });
+
+        if (!questionnaire) {
+            return sendResponse(res, 404, 'Questionnaire not found', null);
+        }
+
+        questionnaire.status = questionnaire.status === 'active' ? 'draft' : 'active';
+        await questionnaire.save();
+
+        return sendResponse(
+            res,
+            200,
+            `Questionnaire ${questionnaire.status === 'active' ? 'activated' : 'deactivated'} successfully`,
+            questionnaire
+        );
+    }
+);
+
+/**
+ * Duplicate an existing questionnaire
+ */
+export const duplicateQuestionnaire = asyncHandler(
+    async (req: Request, res: Response) => {
+        const user = (req as any).user;
+        const { id } = req.params;
+
+        const original = await QuestionnaireModel.findOne({
+            _id: id,
+            tenantId: user.tenantId,
+            organisationId: user.organisationId,
+        }).lean();
+
+        if (!original) {
+            return sendResponse(res, 404, 'Questionnaire not found', null);
+        }
+
+        const clonedQuestions = (original.questions || []).map((q: any, index: number) => ({
+            questionId: uuidv4(),
+            questionText: q.questionText,
+            questionType: q.questionType,
+            options: q.options || [],
+            required: q.required !== undefined ? q.required : true,
+            order: index,
+            skillDescription: q.skillDescription || undefined,
+            skillId: q.skillId || undefined,
+            skillName: q.skillName || undefined,
+        }));
+
+        let titleToUse = original.title ? `${original.title} (Copy)` : 'Duplicated Questionnaire';
+        if (original.skillCategoryId) {
+            const category = await SkillCategory.findById(original.skillCategoryId).lean();
+            if (category?.cat_name) {
+                titleToUse = `${category.cat_name} (Copy)`;
+            }
+        }
+
+        const duplicate = await QuestionnaireModel.create({
+            title: titleToUse,
+            description: original.description,
+            createdBy: user.userId,
+            tenantId: user.tenantId,
+            organisationId: user.organisationId,
+            skillCategoryId: original.skillCategoryId || undefined,
+            skillId: original.skillId || undefined,
+            targetDesignationId: original.targetDesignationId || undefined,
+            questions: clonedQuestions,
+            status: 'draft',
+            isOnboardingQuestionnaire: false,
+        });
+
+        return sendResponse(
+            res,
+            201,
+            'Questionnaire duplicated successfully',
+            duplicate
         );
     }
 );

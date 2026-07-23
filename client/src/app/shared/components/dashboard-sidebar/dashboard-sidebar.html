@@ -45,7 +45,7 @@
       <i class="bi bi-chevron-down" style="color: #9aa3af;"></i>
 
       <div class="sidebar-user-menu" *ngIf="showUserMenu" (click)="$event.stopPropagation()">
-        <a class="sidebar-user-item" routerLink="/admin/profile">View Profile</a>
+        <a class="sidebar-user-item" [routerLink]="getProfileRoute()">View Profile</a>
         <button class="sidebar-user-item btn-logout" type="button" (click)="logout()">Logout</button>
       </div>
     </div>

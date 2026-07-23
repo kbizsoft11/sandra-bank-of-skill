@@ -316,6 +316,8 @@ export const userRepository = {
           cat_name: '$category.cat_name',
         },
         employeeCount: { $sum: 1 },
+        averageScore: { $avg: '$skill_score' },
+        representativeSkillId: { $first: '$_id' },
         employees: {
           $push: {
             _id: '$user._id',
@@ -340,15 +342,13 @@ export const userRepository = {
           cat_name: '$_id.cat_name',
         },
         employeeCount: 1,
+        averageScore: 1,
+        representativeSkillId: 1,
         employees: 1,
       },
     });
 
-    // Sort by employee count descending
-    pipeline.push({ $sort: { employeeCount: -1, skill_name: 1 } });
-
     const skills = await Skill.aggregate(pipeline);
-
     return skills;
   },
 
@@ -400,12 +400,14 @@ export const userRepository = {
     pipeline.push({
       $project: {
         _id: '$user._id',
+        skillId: '$_id',
+        title: '$user.title',
+        profileImage: '$user.profileImage',
         fullName: '$user.fullName',
         email: '$user.email',
         department: '$user.department',
         location: '$user.location',
-        title: '$user.title',
-        profileImage: '$user.profileImage',
+        createdAt: '$created_at',
         skill_level: '$skill_level',
         skill_score: '$skill_score',
         category: {

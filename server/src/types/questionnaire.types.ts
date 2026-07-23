@@ -26,15 +26,20 @@ export interface IQuestion {
     options?: string[];        // For radio/checkbox types
     required: boolean;
     order: number;             // Display order
-    skillDescription?: string; // For skill type questions - detailed description
+    skillDescription?: string; // For skill questions: detailed description
+    skillId?: string;
+    skillName?: string;
 }
 
 export interface IQuestionnaire extends Document {
-    title: string;
-    description: string;
+    title?: string;
+    description?: string;
     createdBy: string;         // User ID of creator (company role)
     tenantId: string;          // Organization tenant ID
     organisationId: string;    // Organisation ID
+    skillCategoryId?: string;
+    skillId?: string;
+    targetDesignationId?: string;
     questions: IQuestion[];
     status: QuestionnaireStatus;
     isOnboardingQuestionnaire: boolean; // Auto-assign to new employees

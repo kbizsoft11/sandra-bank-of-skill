@@ -35,6 +35,12 @@ export interface CompanyStats {
     skillName: string;
     employeeCount: number;
   }>;
+  recentActivities: Array<{
+    _id?: string;
+    employeeName: string;
+    activity: string;
+    timestamp: string;
+  }>;
 }
 
 export interface EmployeeStats {

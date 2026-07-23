@@ -182,11 +182,13 @@ export class UserList implements OnInit {
     });
   }
 
+  readonly defaultInviteMessage = 'Hello! You are invited to join our team on Bank of Skill. Please click the invitation link to set up your password and complete your profile setup and skill questionnaires: {{INVITE_LINK}}';
+
   private initializeInviteForm(): void {
     this.inviteForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       designationId: ['', [Validators.required]],
-      message: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(1000)]],
+      message: [this.defaultInviteMessage, [Validators.required, Validators.minLength(10), Validators.maxLength(1000)]],
     });
   }
 
@@ -452,7 +454,7 @@ export class UserList implements OnInit {
    */
   openInviteModal(): void {
     this.showInviteModal = true;
-    this.inviteForm.reset();
+    this.inviteForm.reset({ message: this.defaultInviteMessage });
     this.inviteError = '';
     this.inviteSuccess = '';
     // Reload roles to get the latest
@@ -466,7 +468,7 @@ export class UserList implements OnInit {
    */
   closeInviteModal(): void {
     this.showInviteModal = false;
-    this.inviteForm.reset();
+    this.inviteForm.reset({ message: this.defaultInviteMessage });
     this.inviteError = '';
     this.inviteSuccess = '';
   }

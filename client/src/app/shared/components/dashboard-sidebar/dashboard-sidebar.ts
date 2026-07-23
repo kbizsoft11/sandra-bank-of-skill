@@ -193,7 +193,7 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       roles: ['employee'],
     },
     {
-      label: 'Company Skills',
+      label: 'Skill Management',
       path: 'company-skills',
       icon: 'bi bi-star-fill',
       roles: ['company'],
