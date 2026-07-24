@@ -159,6 +159,15 @@ export class UserService {
     );
   }
 
+  impersonateCompanyUser(
+    companyUserId: string
+  ): Observable<any> {
+    return this.http.post(
+      `${this.api}/${companyUserId}/impersonate-as-company`,
+      {}
+    );
+  }
+
   getEmployeesByCompany(
     companyId: string
   ): Observable<any> {

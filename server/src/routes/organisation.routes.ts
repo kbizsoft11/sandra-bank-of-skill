@@ -12,6 +12,15 @@ import {
   getCompanyDetails,
   getOrganisationEmployees,
   getEmployeeSkills,
+  getEmployeeDetails,
+  getEmployeeAssessments,
+  getEmployeeActivity,
+  exportEmployeesToExcel,
+  exportEmployeesToCSV,
+  exportCompanyDataExcel,
+  exportCompanyDataCSV,
+  createEmployeeForOrganisation,
+  updateEmployeeForOrganisation,
   updateCompanyStatus,
   createCompany,
   updateCompany,
@@ -56,6 +65,25 @@ const statusUpdateSchema = z.object({
   isActive: z.boolean(),
 });
 
+const createEmployeeSchema = z.object({
+  fullName: z.string().min(2, 'Full name must be at least 2 characters').max(100),
+  email: z.string().email('Invalid email format'),
+  phone: z.string().optional(),
+  department: z.string().optional(),
+  designationId: z.string().optional(),
+  password: z.string().min(6, 'Password must be at least 6 characters').optional(),
+  isActive: z.boolean().optional(),
+});
+
+const updateEmployeeSchema = z.object({
+  fullName: z.string().min(2).max(100).optional(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  department: z.string().optional(),
+  designationId: z.string().optional(),
+  isActive: z.boolean().optional(),
+});
+
 /**
  * Admin-only routes for managing companies
  */
@@ -97,6 +125,73 @@ router.get(
   getEmployeeSkills
 );
 
+// GET /admin/employees/:employeeId - Get employee details
+router.get(
+  '/admin/employees/:employeeId',
+  authenticate,
+  allowRoles('admin'),
+  validateParams(employeeIdParamSchema),
+  getEmployeeDetails
+);
+
+// GET /admin/employees/:employeeId/assessments - Get employee assessments
+router.get(
+  '/admin/employees/:employeeId/assessments',
+  authenticate,
+  allowRoles('admin'),
+  validateParams(employeeIdParamSchema),
+  getEmployeeAssessments
+);
+
+// GET /admin/employees/:employeeId/activity - Get employee activity
+router.get(
+  '/admin/employees/:employeeId/activity',
+  authenticate,
+  allowRoles('admin'),
+  validateParams(employeeIdParamSchema),
+  getEmployeeActivity
+);
+
+// GET /admin/organisations/:organisationId/employees/export/excel - Export to Excel
+router.get(
+  '/admin/organisations/:organisationId/employees/export/excel',
+  authenticate,
+  allowRoles('admin'),
+  validateParams(orgIdParamSchema),
+  validateQuery(listQuerySchema),
+  exportEmployeesToExcel
+);
+
+// GET /admin/organisations/:organisationId/employees/export/csv - Export to CSV
+router.get(
+  '/admin/organisations/:organisationId/employees/export/csv',
+  authenticate,
+  allowRoles('admin'),
+  validateParams(orgIdParamSchema),
+  validateQuery(listQuerySchema),
+  exportEmployeesToCSV
+);
+
+// POST /admin/organisations/:organisationId/employees - Create employee
+router.post(
+  '/admin/organisations/:organisationId/employees',
+  authenticate,
+  allowRoles('admin'),
+  validateParams(orgIdParamSchema),
+  validate(createEmployeeSchema),
+  createEmployeeForOrganisation
+);
+
+// PUT /admin/organisations/:organisationId/employees/:employeeId - Update employee
+router.put(
+  '/admin/organisations/:organisationId/employees/:employeeId',
+  authenticate,
+  allowRoles('admin'),
+  validateParams(orgIdParamSchema),
+  validate(updateEmployeeSchema),
+  updateEmployeeForOrganisation
+);
+
 // PUT /admin/companies/:companyId/status - Update company status
 router.put(
   '/admin/companies/:companyId/status',
@@ -122,6 +217,24 @@ router.put(
   allowRoles('admin'),
   validateParams(idParamSchema),
   updateCompany
+);
+
+// GET /admin/companies/:companyId/export/excel - Export company data to Excel
+router.get(
+  '/admin/companies/:companyId/export/excel',
+  authenticate,
+  allowRoles('admin'),
+  validateParams(idParamSchema),
+  exportCompanyDataExcel
+);
+
+// GET /admin/companies/:companyId/export/csv - Export company data to CSV
+router.get(
+  '/admin/companies/:companyId/export/csv',
+  authenticate,
+  allowRoles('admin'),
+  validateParams(idParamSchema),
+  exportCompanyDataCSV
 );
 
 export default router;

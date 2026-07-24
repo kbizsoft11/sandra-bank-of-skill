@@ -13,8 +13,8 @@ import {
 
 const router = Router();
 
-// All role routes require authentication and company role
-router.use(authenticate, allowRoles('company'));
+// All role routes require authentication and company or admin role
+router.use(authenticate, allowRoles('company', 'admin'));
 
 // Get all roles for the company
 router.get(

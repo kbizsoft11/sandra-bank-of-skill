@@ -78,6 +78,27 @@ export const dashboardRoutes: Routes = [
         (c) => c.AdminUsersList,
       ),
   },
+    {
+        path: 'organisation/:organisationId/employee/:employeeId/skills',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-companies/employee-skills').then(c => c.EmployeeSkills)
+    },
+
+    {
+        path: 'organisation/:organisationId/employee/:employeeId/profile',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-companies/employee-profile/employee-profile').then(c => c.EmployeeProfile)
+    },
+
+    // Admin routes - User management (ALL USERS - Admin only)
+    {
+        path: 'users-admin',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () => import('../features/admin-users/admin-users-list/admin-users-list').then(c => c.AdminUsersList)
+    },
 
   {
     path: 'users-admin/:id',

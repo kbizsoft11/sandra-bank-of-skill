@@ -30,6 +30,8 @@ export class CompanyDetails implements OnInit {
   readonly company = signal<any | null>(null);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly exportingExcel = signal(false);
+  readonly exportingCSV = signal(false);
 
   ngOnInit(): void {
     this.loadCompanyDetails();
@@ -90,5 +92,66 @@ export class CompanyDetails implements OnInit {
 
   getStatusText(status: boolean): string {
     return status ? 'Active' : 'Inactive';
+  }
+
+  exportDataAsExcel(): void {
+    const companyId = this.company()?._id;
+    if (!companyId) {
+      this.alertService.error('Company ID not found');
+      return;
+    }
+
+    if (this.exportingExcel()) {
+      return; // Prevent multiple clicks
+    }
+
+    this.exportingExcel.set(true);
+    this.companyService.exportCompanyDataExcel(companyId).subscribe({
+      next: (blob) => {
+        this.downloadFile(blob, `company-data-${this.company()?.fullName || 'export'}.xlsx`);
+        this.alertService.success('Company data exported successfully');
+        this.exportingExcel.set(false);
+      },
+      error: (err) => {
+        console.error('Error exporting company data:', err);
+        this.alertService.error('Failed to export company data');
+        this.exportingExcel.set(false);
+      },
+    });
+  }
+
+  exportDataAsCSV(): void {
+    const companyId = this.company()?._id;
+    if (!companyId) {
+      this.alertService.error('Company ID not found');
+      return;
+    }
+
+    if (this.exportingCSV()) {
+      return; // Prevent multiple clicks
+    }
+
+    this.exportingCSV.set(true);
+    this.companyService.exportCompanyDataCSV(companyId).subscribe({
+      next: (blob) => {
+        this.downloadFile(blob, `company-data-${this.company()?.fullName || 'export'}.csv`);
+        this.alertService.success('Company data exported successfully');
+        this.exportingCSV.set(false);
+      },
+      error: (err) => {
+        console.error('Error exporting company data:', err);
+        this.alertService.error('Failed to export company data');
+        this.exportingCSV.set(false);
+      },
+    });
+  }
+
+  private downloadFile(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 }

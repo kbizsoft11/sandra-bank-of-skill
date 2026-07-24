@@ -4,12 +4,19 @@
   <div class="d-flex align-items-center gap-3 mb-4">
     <button (click)="goBack()" class="btn btn-light d-inline-flex align-items-center gap-2">
       <i class="bi bi-arrow-left"></i>
-      Back to Companies
+      Back
     </button>
-    <div>
+    <div class="flex-grow-1">
       <h1 class="h3 fw-semibold mb-1">Organisation Employees</h1>
       <p class="text-secondary mb-0">Manage employees of this organization</p>
     </div>
+    <button 
+      type="button" 
+      class="btn btn-success d-flex align-items-center gap-2"
+      (click)="openCreateEmployeeModal()">
+      <i class="bi bi-plus-circle"></i>
+      Add Employee
+    </button>
   </div>
 
   <!-- Search and Filters -->
@@ -56,6 +63,47 @@
           </div>
         </div>
       </div>
+
+      <!-- Export Buttons -->
+      <div class="row g-3 mt-3">
+        <div class="col-12">
+          <div class="btn-group" role="group">
+            <button 
+              type="button" 
+              class="btn btn-outline-success d-flex align-items-center gap-2"
+              (click)="exportEmployees('excel')"
+              [disabled]="employees().length === 0 || isExporting()">
+              <i class="bi bi-file-earmark-excel"></i>
+              Export Excel
+              @if (isExporting()) {
+                <span class="spinner-border spinner-border-sm" role="status">
+                  <span class="visually-hidden">Exporting...</span>
+                </span>
+              }
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-outline-primary d-flex align-items-center gap-2"
+              (click)="exportEmployees('csv')"
+              [disabled]="employees().length === 0 || isExporting()">
+              <i class="bi bi-file-earmark-csv"></i>
+              Export CSV
+              @if (isExporting()) {
+                <span class="spinner-border spinner-border-sm" role="status">
+                  <span class="visually-hidden">Exporting...</span>
+                </span>
+              }
+            </button>
+          </div>
+          <small class="text-secondary d-block mt-2">
+            @if (employees().length > 0) {
+              Exporting {{ totalEmployees() }} records with current filters
+            } @else {
+              No employees to export
+            }
+          </small>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -92,7 +140,7 @@
           <thead class="table-light">
             <tr>
               <th class="px-2 px-md-4 py-3">Employee</th>
-              <th class="px-2 px-md-4 py-3 d-none d-md-table-cell">Department</th>
+              <th class="px-2 px-md-4 py-3 d-none d-md-table-cell">Designation</th>
               <th class="px-2 px-md-4 py-3 text-center">Skills</th>
               <th class="px-2 px-md-4 py-3">Status</th>
               <th class="px-2 px-md-4 py-3 text-center">Actions</th>
@@ -114,9 +162,9 @@
                   </div>
                 </td>
 
-                <!-- Department (hidden on mobile) -->
+                <!-- Designation -->
                 <td class="px-2 px-md-4 py-3 d-none d-md-table-cell">
-                  <small class="text-secondary">{{ employee.department || 'N/A' }}</small>
+                  <small class="text-secondary">{{ getDesignationName(employee.designationId, employee.designationName) }}</small>
                 </td>
 
                 <!-- Skills Count -->
@@ -137,13 +185,27 @@
 
                 <!-- Actions -->
                 <td class="px-2 px-md-4 py-3 text-center">
-                  <a 
-                    [routerLink]="['/admin/employee', employee._id, 'skills']"
-                    class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1 text-nowrap">
-                    <i class="bi bi-lightbulb-fill d-none d-md-inline"></i>
-                    <span class="d-md-none">Skills</span>
-                    <span class="d-none d-md-inline">View Skills</span>
-                  </a>
+                  <div class="d-flex gap-2 justify-content-center flex-wrap">
+                    <a 
+                      [routerLink]="['/admin/organisation', organisationId(), 'employee', employee._id, 'profile']"
+                      class="btn btn-sm btn-outline-primary"
+                      title="View Profile">
+                      <i class="bi bi-person-fill"></i>
+                    </a>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-warning"
+                      (click)="openEditEmployeeModal(employee)"
+                      title="Edit Employee">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <a 
+                      [routerLink]="['/admin/organisation', organisationId(), 'employee', employee._id, 'skills']"
+                      class="btn btn-sm btn-outline-info"
+                      title="View Skills">
+                      <i class="bi bi-lightbulb-fill"></i>
+                    </a>
+                  </div>
                 </td>
               </tr>
             }
@@ -178,3 +240,42 @@
   }
 
 </div>
+
+<!-- Create/Edit Employee Modal -->
+@if (showEmployeeModal()) {
+  <div class="modal-overlay d-block" (click)="closeEmployeeModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="modal-header-custom">
+        <div class="header-content">
+          <h5 class="modal-title">
+            <i class="bi" [ngClass]="isEditingEmployee() ? 'bi-pencil-square' : 'bi-plus-circle'"></i>
+            {{ isEditingEmployee() ? 'Edit Employee' : 'Create New Employee' }}
+          </h5>
+          <p class="subtitle">
+            {{ isEditingEmployee() ? 'Update employee information' : 'Add a new employee to your organization' }}
+          </p>
+        </div>
+        <button 
+          type="button" 
+          class="btn-close-modal" 
+          (click)="closeEmployeeModal()"
+          [disabled]="isSubmittingEmployee()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body-custom">
+        <app-employee-form
+          [employeeData]="selectedEmployee()"
+          [isEditing]="isEditingEmployee()"
+          [isSubmitting]="isSubmittingEmployee()"
+          [organisationId]="organisationId()"
+          (submitForm)="onEmployeeFormSubmit($event)"
+          (cancelForm)="closeEmployeeModal()">
+        </app-employee-form>
+      </div>
+    </div>
+  </div>
+}

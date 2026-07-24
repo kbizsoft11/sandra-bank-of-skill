@@ -379,6 +379,26 @@ export const impersonateUser = asyncHandler(
   }
 );
 
+export const impersonateCompanyUser = asyncHandler(
+  async (req: Request, res: Response) => {
+
+    const userRole = (req as any).user?.role;
+    const companyUserId = req.params.id as string;
+
+    const result = await userService.impersonateCompanyUser(companyUserId, {
+      role: userRole,
+    });
+
+    return sendResponse(
+      res,
+      200,
+      'Company user impersonation token generated successfully',
+      result
+    );
+
+  }
+);
+
 export const getMyProfile = asyncHandler(
   async (req: Request, res: Response) => {
 

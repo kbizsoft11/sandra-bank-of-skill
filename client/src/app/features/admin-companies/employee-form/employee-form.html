@@ -1,0 +1,154 @@
+<form [formGroup]="form()!" (ngSubmit)="onSubmit()" class="employee-form">
+  <div class="row g-3">
+    <!-- Full Name -->
+    <div class="col-md-6">
+      <label for="fullName" class="form-label">
+        Full Name <span class="text-danger">*</span>
+      </label>
+      <input
+        type="text"
+        id="fullName"
+        class="form-control"
+        formControlName="fullName"
+        placeholder="Enter full name"
+        [class.is-invalid]="hasError('fullName')">
+      @if (hasError('fullName')) {
+        <div class="invalid-feedback d-block">
+          {{ getErrorMessage('fullName') }}
+        </div>
+      }
+    </div>
+
+    <!-- Email -->
+    <div class="col-md-6">
+      <label for="email" class="form-label">
+        Email <span class="text-danger">*</span>
+      </label>
+      <input
+        type="email"
+        id="email"
+        class="form-control"
+        formControlName="email"
+        placeholder="Enter email address"
+        [class.is-invalid]="hasError('email')">
+      @if (hasError('email')) {
+        <div class="invalid-feedback d-block">
+          {{ getErrorMessage('email') }}
+        </div>
+      }
+    </div>
+
+    <!-- Phone -->
+    <div class="col-md-6">
+      <label for="phone" class="form-label">Phone</label>
+      <input
+        type="tel"
+        id="phone"
+        class="form-control"
+        formControlName="phone"
+        placeholder="Enter phone number">
+    </div>
+
+    <!-- Password (only in create mode) -->
+    @if (!isEditing()) {
+      <div class="col-md-6">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-group">
+          <input
+            [type]="showPassword() ? 'text' : 'password'"
+            id="password"
+            class="form-control"
+            formControlName="password"
+            placeholder="Enter password (min. 6 characters)"
+            [class.is-invalid]="hasError('password')">
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            (click)="togglePasswordVisibility()"
+            title="Toggle password visibility">
+            <i class="bi" [ngClass]="showPassword() ? 'bi-eye-slash' : 'bi-eye'"></i>
+          </button>
+        </div>
+        @if (hasError('password')) {
+          <div class="invalid-feedback d-block">
+            {{ getErrorMessage('password') }}
+          </div>
+        }
+        <small class="text-muted d-block mt-1">
+          Leave empty for auto-generated password
+        </small>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="col-md-6">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <div class="input-group">
+          <input
+            [type]="showConfirmPassword() ? 'text' : 'password'"
+            id="confirmPassword"
+            class="form-control"
+            formControlName="confirmPassword"
+            placeholder="Confirm password"
+            [class.is-invalid]="hasError('confirmPassword')">
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            (click)="toggleConfirmPasswordVisibility()"
+            title="Toggle password visibility">
+            <i class="bi" [ngClass]="showConfirmPassword() ? 'bi-eye-slash' : 'bi-eye'"></i>
+          </button>
+        </div>
+        @if (hasError('confirmPassword')) {
+          <div class="invalid-feedback d-block">
+            {{ getErrorMessage('confirmPassword') }}
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Status Badge Toggle -->
+    <div class="col-12">
+      <label class="form-label d-block">Status</label>
+      <div class="status-badge-container">
+        <input
+          type="checkbox"
+          id="isActive"
+          class="status-checkbox"
+          formControlName="isActive">
+        <label for="isActive" class="status-badge-wrapper">
+          <span class="status-badge" [class.active]="form()?.get('isActive')?.value">
+            {{ form()?.get('isActive')?.value ? 'Active' : 'Inactive' }}
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Actions -->
+  <div class="row g-2 mt-4">
+    <div class="col-12">
+      <div class="d-flex gap-2 justify-content-end">
+        <button
+          type="button"
+          class="btn btn-light border"
+          (click)="onCancel()"
+          [disabled]="isSubmitting()">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary d-flex align-items-center gap-2"
+          [disabled]="!form()?.valid || isSubmitting()">
+          @if (isSubmitting()) {
+            <span class="spinner-border spinner-border-sm" role="status">
+              <span class="visually-hidden">Saving...</span>
+            </span>
+          } @else {
+            <i class="bi bi-save"></i>
+          }
+          {{ isEditing() ? 'Update Employee' : 'Create Employee' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
