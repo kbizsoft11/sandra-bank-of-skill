@@ -44,6 +44,22 @@ export interface CompanyStats {
 }
 
 export interface EmployeeStats {
+  employeeProfile?: {
+    fullName: string;
+    title: string;
+    department: string;
+    location: string;
+    profileCompletion: number;
+  };
+  summary?: {
+    totalSkills: number;
+    verifiedSkills: number;
+    skillsInProgress: number;
+    profileCompletion: number;
+    averageSkillLevel: number;
+    averageInterestLevel: number;
+    skillPoints: number;
+  };
   totalSkills: number;
   skillsByCategory: Array<{ _id: string; count: number }>;
   recentSkills: any[];
@@ -62,7 +78,11 @@ export interface EmployeeStats {
   topSkills?: Array<{
     _id: string;
     skillName: string;
-    skillLevel: number;
+    currentLevel: string;
+    targetLevel: string;
+    progress: number;
+    verificationStatus: string;
+    skillScore: number;
   }>;
   topInterests?: Array<{
     _id: string;
@@ -78,6 +98,51 @@ export interface EmployeeStats {
     _id: string;
     skillName: string;
   }>;
+  mySkills?: Array<{
+    _id: string;
+    skillName: string;
+    currentLevel: string;
+    targetLevel: string;
+    progress: number;
+    verificationStatus: string;
+    skillScore: number;
+  }>;
+  skillGaps?: Array<{
+    _id: string;
+    skillName: string;
+    currentLevel: string;
+    targetLevel: string;
+    progress: number;
+  }>;
+  pendingActions?: Array<{
+    title: string;
+    description: string;
+    status: string;
+    dueDate?: string;
+    actionLabel: string;
+  }>;
+  recentActivities?: Array<{
+    type: string;
+    title: string;
+    description: string;
+    time: string;
+    icon: string;
+  }>;
+  learningRecommendations?: Array<{
+    title: string;
+    relatedSkill: string;
+    duration: string;
+    type: string;
+  }>;
+  careerGrowth?: {
+    currentRole: string;
+    potentialNextRole: string;
+    readiness: number;
+    requiredSkills: Array<{
+      name: string;
+      status: string;
+    }>;
+  };
 }
 
 export interface EmployeeNotification {

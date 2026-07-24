@@ -27,6 +27,7 @@ import { SkillService } from '../../../core/services/skill.service';
 import { UserService } from '../../../core/services/user.service';
 import { SkillCategoryService } from '../../../core/services/skill-category.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { AlertService } from '../../../core/services/alert.service';
 
 @Component({
   selector: 'app-edit-skill',
@@ -54,6 +55,8 @@ export class EditSkill implements OnInit {
 
   private readonly auth = inject(AuthService);
 
+  private readonly alertService = inject(AlertService);
+
   users: User[] = [];
 
   categories: SkillCategory[] = [];
@@ -77,6 +80,15 @@ export class EditSkill implements OnInit {
   });
 
   ngOnInit(): void {
+
+    const role = this.auth.role();
+
+    // Prevent employees from editing skills manually
+    if (role === 'employee') {
+      this.alertService.error('Employees cannot manually edit skills. Skills are managed through questionnaires.');
+      this.router.navigate([`/${role}/my-skills`]);
+      return;
+    }
 
     this.skillId =
       this.route.snapshot.params['id'];

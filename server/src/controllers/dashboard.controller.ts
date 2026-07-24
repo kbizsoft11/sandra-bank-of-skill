@@ -5,6 +5,7 @@ import { SkillCategory } from '../models/skillCategory.model';
 import { QuestionnaireModel } from '../models/questionnaire.model';
 import { RoleModel } from '../models/role.model';
 import { ActivityModel } from '../models/activity.model';
+import { QuestionnaireResponseModel } from '../models/questionnaire-response.model';
 import * as AdminDashboardService from '../services/admin-dashboard.service';
 
 /**
@@ -326,10 +327,12 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       });
     }
 
-    // Get employee's skills count
-    const totalSkills = await Skill.countDocuments({ user_id: userId });
+    const employee = await UserModel.findById(userId).select('fullName title department location profileImage role designationId');
+    const roleLabel = employee?.title || employee?.department || 'Employee';
 
-    // Get skills by category for this employee
+    const skills = await Skill.find({ user_id: userId }).sort({ created_at: -1 });
+    const totalSkills = skills.length;
+
     const skillsByCategory = await Skill.aggregate([
       {
         $match: { user_id: userId },
@@ -359,62 +362,86 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       },
     ]);
 
-    // Get recent skills
     const recentSkills = await Skill.find({ user_id: userId })
-      .select('skill_name skill_level created_at')
+      .select('skill_name skill_level skill_score created_at')
       .sort({ created_at: -1 })
       .limit(5);
 
-    // Get assigned questionnaires count
-    // Note: This requires questionnaire-response model which might not exist yet
-    // For now, we'll return 0 and implement this when questionnaire responses are reviewed
-    const assignedQuestionnaires = 0;
-    const completedQuestionnaires = 0;
-    const neverCompleted = 0;
+    const questionnaireResponses = await QuestionnaireResponseModel.find({ employeeId: userId.toString() })
+      .sort({ createdAt: -1 })
+      .limit(10);
 
-    // Calculate average skill level (1-5 scale)
-    const skillLevels = await Skill.aggregate([
-      {
-        $match: { user_id: userId },
-      },
-      {
-        $group: {
-          _id: null,
-          averageLevel: { $avg: '$skill_level' },
-        },
-      },
-    ]);
-    const averageSkillLevel = skillLevels.length > 0 ? skillLevels[0].averageLevel : 3.05;
+    const assignedQuestionnaires = questionnaireResponses.length;
+    const completedQuestionnaires = questionnaireResponses.filter((response) => response.status === 'completed').length;
+    const neverCompleted = Math.max(0, assignedQuestionnaires - completedQuestionnaires);
+
+    const levelValues: Record<string, number> = {
+      beginner: 1,
+      novice: 1,
+      intermediate: 2,
+      developing: 2,
+      advanced: 3,
+      proficient: 3,
+      expert: 4,
+      mastery: 4,
+    };
+
+    const levelLabels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
+
+    const getLevelValue = (value?: string) => {
+      if (!value) return 0;
+      const normalized = value.toLowerCase();
+      return levelValues[normalized] || 0;
+    };
+
+    const getLevelLabel = (value?: string) => {
+      const levelValue = getLevelValue(value);
+      return levelLabels[Math.max(0, Math.min(levelValue - 1, levelLabels.length - 1))] || 'Beginner';
+    };
+
+    const getTargetLevel = (value?: string) => {
+      const currentValue = getLevelValue(value);
+      const targetValue = Math.min(4, currentValue + 1);
+      return levelLabels[Math.max(0, Math.min(targetValue - 1, levelLabels.length - 1))] || 'Intermediate';
+    };
+
+    const getProgressPercent = (skill: any) => {
+      if (typeof skill.skill_score === 'number' && skill.skill_score >= 0) {
+        return Math.min(100, Math.max(0, Math.round(skill.skill_score)));
+      }
+      const current = getLevelValue(skill.skill_level);
+      return Math.min(100, current * 25);
+    };
+
+    // Calculate averages using actual numeric values from skill_score (which is set as level * 20)
+    // If skill_score represents level * 20, then: level = skill_score / 20
+    // But we also need to handle old skills that don't have skill_score
+    const skillLevels = skills.map(skill => {
+      // For new questionnaire-based skills, use skill_score to derive level
+      if (skill.skill_score && skill.skill_score > 0) {
+        return Math.min(5, Math.max(1, Math.round(skill.skill_score / 20)));
+      }
+      // For old skills, use the string-based level
+      return getLevelValue(skill.skill_level);
+    }).filter(level => level > 0);
+
+    const averageSkillLevel = skillLevels.length > 0
+      ? skillLevels.reduce((total, level) => total + level, 0) / skillLevels.length
+      : 0;
 
     // Calculate average interest level (1-5 scale)
-    const interestLevels = await Skill.aggregate([
-      {
-        $match: { user_id: userId },
-      },
-      {
-        $group: {
-          _id: null,
-          averageInterest: { $avg: '$interest_level' },
-        },
-      },
-    ]);
-    const averageInterestLevel = interestLevels.length > 0 ? interestLevels[0].averageInterest : 2.90;
+    const interestLevels = skills
+      .map(skill => skill.interest_level || 0)
+      .filter(level => level > 0);
 
-    // Calculate skill points (sum of all skill levels)
-    const skillPointsData = await Skill.aggregate([
-      {
-        $match: { user_id: userId },
-      },
-      {
-        $group: {
-          _id: null,
-          totalPoints: { $sum: '$skill_level' },
-        },
-      },
-    ]);
-    const skillPoints = skillPointsData.length > 0 ? skillPointsData[0].totalPoints : 186;
+    const averageInterestLevel = interestLevels.length > 0
+      ? interestLevels.reduce((total, level) => total + level, 0) / interestLevels.length
+      : 0;
 
-    // Get top skill categories with level distribution
+    // Calculate total skill points (sum of all skill levels)
+    const skillPoints = skillLevels.reduce((total, level) => total + level, 0);
+
+    // Get top categories by average skill level
     const topCategories = await Skill.aggregate([
       {
         $match: { user_id: userId },
@@ -434,69 +461,190 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
         },
       },
       {
-        $group: {
-          _id: '$category.cat_name',
-          count: { $sum: 1 },
-          averageLevel: { $avg: '$skill_level' },
-          levels: {
-            $push: '$skill_level',
+        $addFields: {
+          // Convert skill_score (0-100) to level (1-5) for aggregation
+          // skill_score = level * 20, so level = skill_score / 20
+          skillLevelNumeric: {
+            $cond: {
+              if: { $and: [{ $gt: ['$skill_score', 0] }, { $lte: ['$skill_score', 100] }] },
+              then: { $divide: ['$skill_score', 20] },
+              else: '$skill_level', // Fallback to string level (will be converted)
+            },
           },
         },
       },
       {
-        $project: {
-          _id: 1,
-          count: 1,
-          averageLevel: 1,
-          levels: {
-            $arrayToObject: {
-              $map: {
-                input: '$levels',
-                as: 'level',
-                in: {
-                  k: { $toString: '$$level' },
-                  v: 1,
-                },
-              },
-            },
-          },
+        $group: {
+          _id: '$category.cat_name',
+          count: { $sum: 1 },
+          averageLevel: { $avg: '$skillLevelNumeric' },
+          totalPoints: { $sum: '$skillLevelNumeric' },
         },
       },
       {
         $sort: { averageLevel: -1 },
       },
       {
-        $limit: 3,
+        $limit: 5,
       },
     ]);
 
-    // Get top skills by skill level
+    // Get top skills by skill level (sorted highest to lowest)
     const topSkills = await Skill.find({ user_id: userId })
-      .select('skill_name skill_level')
-      .sort({ skill_level: -1, skill_name: 1 })
+      .select('skill_name skill_level skill_score interest_level')
+      .sort({ skill_score: -1, interest_level: -1 })
       .limit(10)
-      .then((skills) =>
-        skills.map((skill) => ({
-          _id: skill._id,
-          skillName: skill.skill_name,
-          skillLevel: skill.skill_level,
-        }))
+      .lean()
+      .then((skillsList) =>
+        skillsList.map((skill) => {
+          // Calculate level from skill_score
+          const levelFromScore = skill.skill_score && skill.skill_score > 0
+            ? Math.min(5, Math.max(1, Math.round(skill.skill_score / 20)))
+            : getLevelValue(skill.skill_level);
+          
+          return {
+            _id: skill._id,
+            skillName: skill.skill_name,
+            skillLevel: levelFromScore,
+            skillLevelLabel: getLevelLabel(skill.skill_level),
+            interestLevel: skill.interest_level || 0,
+          };
+        })
       );
 
     // Get top interests (skills with highest interest level)
-    const topInterests = await Skill.find({ user_id: userId })
-      .select('skill_name interest_level')
-      .sort({ interest_level: -1, skill_name: 1 })
+    const topInterests = await Skill.find({ 
+      user_id: userId,
+      interest_level: { $gte: 1 }
+    })
+      .select('skill_name interest_level skill_level skill_score')
+      .sort({ interest_level: -1, skill_score: -1 })
       .limit(10)
-      .then((skills) =>
-        skills.map((skill) => ({
-          _id: skill._id,
-          skillName: skill.skill_name,
-          interestLevel: skill.interest_level || 5.0,
-        }))
+      .lean()
+      .then((skillsList) =>
+        skillsList.map((skill) => {
+          const levelFromScore = skill.skill_score && skill.skill_score > 0
+            ? Math.min(5, Math.max(1, Math.round(skill.skill_score / 20)))
+            : getLevelValue(skill.skill_level);
+          
+          return {
+            _id: skill._id,
+            skillName: skill.skill_name,
+            interestLevel: skill.interest_level || 0,
+            skillLevel: levelFromScore,
+            skillLevelLabel: getLevelLabel(skill.skill_level),
+          };
+        })
       );
 
-    // Get people with similar skills in the same organization
+    const mySkills = skills.slice(0, 6).map((skill) => ({
+      _id: skill._id,
+      skillName: skill.skill_name,
+      currentLevel: getLevelLabel(skill.skill_level),
+      targetLevel: getTargetLevel(skill.skill_level),
+      progress: getProgressPercent(skill),
+      verificationStatus: (skill.skill_score ?? 0) >= 80 ? 'Verified' : 'Pending Verification',
+      skillScore: skill.skill_score ?? 0,
+    }));
+
+    const skillGaps = skills
+      .filter((skill) => {
+        const currentValue = getLevelValue(skill.skill_level);
+        return currentValue < 4 && (skill.skill_score ?? 0) < 80;
+      })
+      .slice(0, 4)
+      .map((skill) => ({
+        _id: skill._id,
+        skillName: skill.skill_name,
+        currentLevel: getLevelLabel(skill.skill_level),
+        targetLevel: getTargetLevel(skill.skill_level),
+        progress: getProgressPercent(skill),
+      }));
+
+    const pendingActions = [] as Array<{ title: string; description: string; status: string; dueDate?: string; actionLabel: string }>;
+    const profileCompletionFields = [Boolean(employee?.fullName), Boolean(employee?.title), Boolean(employee?.department), Boolean(employee?.location), totalSkills > 0];
+    const profileCompletionPercent = Math.min(100, Math.round((profileCompletionFields.filter(Boolean).length / profileCompletionFields.length) * 100));
+
+    if (profileCompletionPercent < 100) {
+      pendingActions.push({
+        title: 'Complete your profile basics',
+        description: 'Add your title, department, and location so your profile is easier to understand.',
+        status: 'Pending',
+        actionLabel: 'Update profile',
+      });
+    }
+
+    if (questionnaireResponses.some((response) => response.status !== 'completed')) {
+      pendingActions.push({
+        title: 'Complete your assessment',
+        description: 'You have outstanding questionnaire work that still needs attention.',
+        status: 'In progress',
+        actionLabel: 'Open assessment',
+      });
+    }
+
+    if (skills.some((skill) => (skill.skill_score ?? 0) < 80)) {
+      pendingActions.push({
+        title: 'Add evidence for your skills',
+        description: 'Strengthen your current skills with more evidence or updated assessments.',
+        status: 'Needs review',
+        actionLabel: 'Add evidence',
+      });
+    }
+
+    if (!pendingActions.length) {
+      pendingActions.push({
+        title: 'You are all caught up',
+        description: 'No immediate actions are waiting for your review right now.',
+        status: 'Complete',
+        actionLabel: 'View skills',
+      });
+    }
+
+    const recentActivities = [
+      ...skills.slice(0, 4).map((skill) => ({
+        type: 'skill',
+        title: `${skill.skill_name} updated`,
+        description: `Current level ${getLevelLabel(skill.skill_level)} with ${skill.skill_score ?? 0}% confidence.`,
+        time: skill.created_at || new Date().toISOString(),
+        icon: 'bi-lightbulb-fill',
+      })),
+      ...questionnaireResponses.slice(0, 4).map((response) => ({
+        type: response.status === 'completed' ? 'assessment' : 'questionnaire',
+        title: response.status === 'completed' ? 'Assessment completed' : 'Assessment in progress',
+        description: `Questionnaire response status: ${response.status}.`,
+        time: response.completedAt || response.startedAt || response.createdAt || new Date().toISOString(),
+        icon: response.status === 'completed' ? 'bi-clipboard-check' : 'bi-clipboard2-plus',
+      })),
+    ]
+      .sort((left, right) => new Date(right.time).getTime() - new Date(left.time).getTime())
+      .slice(0, 6);
+
+    const learningRecommendations = skillGaps.length
+      ? skillGaps.slice(0, 3).map((skill) => ({
+          title: `Advance ${skill.skillName}`,
+          relatedSkill: skill.skillName,
+          duration: skill.targetLevel === 'Expert' ? '6 hours' : '4 hours',
+          type: skill.targetLevel === 'Expert' ? 'Specialist path' : 'Development plan',
+        }))
+      : skills.slice(0, 3).map((skill) => ({
+          title: `Develop ${skill.skill_name}`,
+          relatedSkill: skill.skill_name,
+          duration: '4 hours',
+          type: 'Recommended learning',
+        }));
+
+    const readinessScore = Math.min(100, Math.max(0, Math.round((averageSkillLevel / 4) * 100)));
+    const careerGrowth = {
+      currentRole: roleLabel,
+      potentialNextRole: roleLabel ? `Senior ${roleLabel}` : 'Senior Specialist',
+      readiness: readinessScore,
+      requiredSkills: mySkills.slice(0, 4).map((skill) => ({
+        name: skill.skillName,
+        status: skill.progress >= 80 ? 'completed' : skill.progress >= 50 ? 'in_progress' : 'missing',
+      })),
+    };
+
     const mySkillNames = await Skill.find({ user_id: userId }).distinct('skill_name');
 
     const similarPeople = await Skill.aggregate([
@@ -538,44 +686,77 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       },
     ]);
 
-    // Get skills the employee wants to improve (skills with lower skill level but high interest)
-    const improveSkills = await Skill.find({
+    // Keen to improve: High interest (4-5) but lower skill level (1-3)
+    const keenToImprove = await Skill.find({
       user_id: userId,
       interest_level: { $gte: 4 },
     })
-      .select('skill_name skill_level interest_level')
-      .sort({ interest_level: -1, skill_level: 1 })
+      .select('skill_name skill_level skill_score interest_level')
+      .sort({ interest_level: -1, skill_score: 1 })
       .limit(20)
-      .then((skills) =>
-        skills
+      .lean()
+      .then((skillsList) =>
+        skillsList
           .filter((skill) => {
-            const level = parseInt(skill.skill_level, 10);
-            return !Number.isNaN(level) && level < 4;
+            const levelFromScore = skill.skill_score && skill.skill_score > 0
+              ? Math.round(skill.skill_score / 20)
+              : getLevelValue(skill.skill_level);
+            return levelFromScore <= 3; // Only skills at level 3 or below
           })
-          .slice(0, 4)
-          .map((skill) => ({
-            _id: skill._id,
-            skillName: skill.skill_name,
-          }))
+          .slice(0, 10)
+          .map((skill) => {
+            const levelFromScore = skill.skill_score && skill.skill_score > 0
+              ? Math.min(5, Math.max(1, Math.round(skill.skill_score / 20)))
+              : getLevelValue(skill.skill_level);
+            
+            return {
+              _id: skill._id,
+              skillName: skill.skill_name,
+              interestLevel: skill.interest_level || 0,
+              skillLevel: levelFromScore,
+              skillLevelLabel: getLevelLabel(skill.skill_level),
+            };
+          })
       );
 
     return res.status(200).json({
       success: true,
       data: {
-        totalSkills,
+        employeeProfile: {
+          fullName: employee?.fullName || 'Employee',
+          title: employee?.title || roleLabel,
+          department: employee?.department || 'General',
+          location: employee?.location || 'Not provided',
+          profileCompletion: profileCompletionPercent,
+        },
+        summary: {
+          totalSkills,
+          verifiedSkills: skills.filter((skill) => (skill.skill_score ?? 0) >= 80).length,
+          skillsInProgress: skills.filter((skill) => (skill.skill_score ?? 0) < 80).length,
+          profileCompletion: profileCompletionPercent,
+          averageSkillLevel: parseFloat(averageSkillLevel.toFixed(2)),
+          averageInterestLevel: parseFloat(averageInterestLevel.toFixed(2)),
+          skillPoints,
+        },
         skillsByCategory,
         recentSkills,
         assignedQuestionnaires,
         completedQuestionnaires,
         neverCompleted,
-        averageSkillLevel,
-        averageInterestLevel,
+        averageSkillLevel: parseFloat(averageSkillLevel.toFixed(2)),
+        averageInterestLevel: parseFloat(averageInterestLevel.toFixed(2)),
         skillPoints,
         topCategories,
         topSkills,
         topInterests,
+        keenToImprove,
         similarPeople,
-        improveSkills,
+        mySkills,
+        skillGaps,
+        pendingActions,
+        recentActivities,
+        learningRecommendations,
+        careerGrowth,
       },
     });
   } catch (error: any) {

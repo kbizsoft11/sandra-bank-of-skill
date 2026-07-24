@@ -1,0 +1,397 @@
+Implement Employee Dashboard Homepage
+
+I am building a Skill Management / Workforce Skills platform inspired by Skills Base. I already have an existing application, so do not rebuild the project from scratch. First inspect the existing codebase, architecture, routing, authentication, reusable components, styling system, and API services. Then implement the Employee Dashboard homepage using the existing project conventions.
+
+Objective
+
+Create a modern, professional, responsive Employee Dashboard homepage that helps an employee quickly understand:
+
+Their current skills
+Their skill profile completion
+Their skill gaps and development areas
+Pending actions they need to complete
+Their recent skill-related activity
+Recommended learning or development opportunities
+Their career growth / role readiness
+
+The dashboard should feel like a real enterprise SaaS product, not a generic admin dashboard.
+
+Dashboard Layout
+1. Welcome Header
+
+At the top of the dashboard, display:
+
+Employee profile/avatar
+Employee name
+Job title
+Department or team
+A personalized greeting such as:
+"Good morning, [Employee Name] 👋"
+Supporting text:
+"Here's an overview of your skills, development, and career growth."
+Notification icon
+Profile shortcut
+
+Use the currently authenticated employee's data wherever available. Do not hardcode employee information.
+
+2. Skills Summary Cards
+
+Create a responsive row of summary cards.
+
+Display:
+
+Total Skills
+
+Number of skills associated with the employee.
+
+Verified Skills
+
+Number of skills that have been verified.
+
+Skills In Progress
+
+Number of skills currently being assessed or developed.
+
+Profile Completion
+
+Percentage of the employee's skill profile that is complete.
+
+Example:
+
+Total Skills: 24
+Verified Skills: 18
+In Progress: 4
+Profile Completion: 75%
+
+The cards should be visually consistent and reusable.
+
+If the backend API is not yet available, create a clean service/data abstraction so real API data can be connected later. Do not scatter hardcoded values throughout components.
+
+3. My Skills Section
+
+Create a "My Skills" dashboard section showing the employee's most relevant or recently updated skills.
+
+Each skill should display:
+
+Skill name
+Current proficiency level
+Target proficiency level, if available
+Progress indicator
+Verification status
+
+Example:
+
+Angular
+Current Level: Advanced
+Target Level: Expert
+Progress: 80%
+Status: Verified
+
+Node.js
+Current Level: Intermediate
+Target Level: Advanced
+Progress: 60%
+Status: Verified
+
+MongoDB
+Current Level: Intermediate
+Target Level: Advanced
+Progress: 55%
+Status: Pending Verification
+
+Only show a limited number of skills on the homepage, such as 4–6.
+
+Add a "View All Skills" button that navigates to the employee's complete skills page.
+
+4. Skill Development / Skill Gaps
+
+Create a section called:
+
+"Skills to Develop"
+
+This section should identify skills where the employee's current proficiency is below the target proficiency.
+
+For each skill, show:
+
+Skill name
+Current level
+Target level
+Visual progress indicator
+Optional priority indicator
+
+Example:
+
+Communication
+Intermediate → Advanced
+
+Leadership
+Beginner → Intermediate
+
+Project Management
+Intermediate → Advanced
+
+Add a "View Development Plan" button.
+
+If the application already has a skill gap or development API, use it. Otherwise, create a clean placeholder service/model structure for future integration.
+
+5. Pending Actions
+
+Create a "Action Required" or "Pending Actions" section.
+
+Display tasks that require employee attention.
+
+Possible actions:
+
+Complete a skill assessment
+Update skill profile
+Add evidence to a skill
+Complete a learning activity
+Respond to a manager's skill verification request
+Complete an annual skills review
+
+Each item should show:
+
+Action title
+Short description
+Status
+Optional due date
+Action button
+
+Example:
+
+Complete JavaScript Skill Assessment
+"Your assessment is waiting for completion."
+[Start Assessment]
+
+Add Evidence for Project Management
+"Add projects or experience that demonstrate this skill."
+[Add Evidence]
+
+The section should have a clear visual hierarchy and make it easy for the employee to take action.
+
+6. Recent Activity
+
+Create a "Recent Activity" section.
+
+Display recent employee skill-related events such as:
+
+Skill added
+Skill updated
+Skill verified
+Assessment completed
+Evidence submitted
+Manager verification requested
+Learning activity completed
+
+Each activity should show:
+
+Activity icon
+Description
+Date/time
+
+Example:
+
+Angular skill verified by John Smith
+2 days ago
+
+AWS added to your skill profile
+5 days ago
+
+Node.js assessment completed
+1 week ago
+
+Use a reusable activity-list component if appropriate.
+
+7. Recommended Learning
+
+If the application already supports courses, learning resources, or development content, display a "Recommended for You" section.
+
+Each recommendation can show:
+
+Course/resource title
+Related skill
+Duration
+Type
+CTA button
+
+Example:
+
+Advanced Angular Development
+Related Skill: Angular
+Duration: 8 hours
+
+Leadership Fundamentals
+Related Skill: Leadership
+Duration: 4 hours
+
+The recommendations should ideally be based on the employee's skill gaps.
+
+If learning functionality does not yet exist, create the UI using a clean mock-data abstraction that can later be replaced by an API.
+
+8. Career Growth / Role Readiness
+
+Create a "Career Growth" section.
+
+Show:
+
+Current Role:
+Software Developer
+
+Potential Next Role:
+Senior Software Developer
+
+Readiness:
+72%
+
+Show a list of required skills for the next role.
+
+Example:
+
+Angular ✓
+Node.js ✓
+System Design ⚠
+Leadership ⚠
+AWS ✕
+
+Use clear visual states for:
+
+Completed
+In progress
+Missing
+
+Add a "View Career Path" button.
+
+If career-path functionality is not available in the backend, implement this as a UI component with a clear data model/service abstraction for future API integration.
+
+Responsive Layout
+
+The dashboard must be fully responsive.
+
+Desktop:
+
+Use a multi-column dashboard layout.
+Summary cards should appear in one row.
+Main content can use a 2-column layout where appropriate.
+
+Tablet:
+
+Adjust cards into 2 columns.
+Maintain readable spacing.
+
+Mobile:
+
+Stack all sections vertically.
+Summary cards should use 1 or 2 columns depending on available width.
+Ensure buttons and interactive elements are touch-friendly.
+Avoid horizontal scrolling.
+Design Requirements
+
+The design should be:
+
+Modern
+Clean
+Professional
+Enterprise SaaS quality
+Easy to scan
+Accessible
+Consistent with the existing application's design system
+
+Do not introduce a completely different visual style from the rest of the application.
+
+Reuse existing:
+
+Colors
+Typography
+Buttons
+Cards
+Icons
+Form components
+Spacing system
+Layout components
+Sidebar/header components
+
+If the project already has a design system or component library, use it instead of creating duplicate components.
+
+Avoid excessive gradients, unnecessary animations, and overly decorative UI.
+
+Use subtle hover states and transitions only where they improve usability.
+
+Data and Architecture
+
+Before implementation:
+
+Inspect the existing frontend structure.
+Identify the current employee authentication mechanism.
+Identify how the logged-in employee is retrieved.
+Inspect existing employee, skills, assessments, learning, and profile APIs.
+Reuse existing API services and models where available.
+Do not duplicate existing functionality.
+Follow the project's existing naming and folder conventions.
+
+Create reusable components where appropriate, for example:
+
+DashboardSummaryCard
+EmployeeSkillCard
+SkillGapCard
+PendingActionList
+RecentActivityList
+LearningRecommendationCard
+CareerReadinessCard
+
+Do not create unnecessary components if the existing architecture already provides equivalent reusable components.
+
+API Integration
+
+Use real backend APIs wherever they already exist.
+
+If an API does not exist:
+
+Do not modify unrelated backend functionality.
+Create a clean frontend service abstraction or mock data layer.
+Clearly structure the code so it can easily be replaced with a real API later.
+
+Handle:
+
+Loading states
+Empty states
+API errors
+Unauthorized access
+Missing employee data
+
+Do not show a broken dashboard if one API fails. Individual sections should fail gracefully.
+
+Navigation
+
+The dashboard should provide navigation to:
+
+My Skills
+Skill Assessments
+Development Plan
+Learning
+Career Path
+Employee Profile
+
+Use the application's existing routing system.
+
+Do not create duplicate routes if these routes already exist.
+
+Important Implementation Rules
+First inspect the existing codebase before modifying anything.
+Do not rewrite or restructure unrelated parts of the application.
+Do not break existing functionality.
+Reuse existing components and services whenever possible.
+Use real authenticated employee data where available.
+Do not hardcode user-specific data directly into the UI.
+Keep API calls and business logic out of presentation components when the existing architecture supports services/state management.
+Follow the existing project's coding style.
+Ensure the implementation works on desktop, tablet, and mobile.
+Add proper loading, error, and empty states.
+Ensure there are no console errors or TypeScript errors.
+Run the appropriate lint/build/test commands after implementation and fix any issues.
+Expected Result
+
+After implementation, the Employee Dashboard homepage should provide a clear employee-centric overview:
+
+Welcome → Skill Summary → My Skills → Skill Gaps → Pending Actions → Recent Activity → Recommended Learning → Career Growth
+
+The final result should feel like a polished employee skills-management dashboard suitable for a production SaaS platform.

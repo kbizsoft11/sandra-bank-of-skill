@@ -664,6 +664,18 @@ export const submitQuestionnaireResponse = asyncHandler(
                     organisationId: user.organisationId,
                 }
             );
+
+            // Process questionnaire to create employee skills
+            try {
+                const questionnaireSkillProcessorService = require('../services/questionnaire-skill-processor.service').default;
+                await questionnaireSkillProcessorService.processQuestionnaireResponse(
+                    response._id.toString()
+                );
+                console.log(`✅ Successfully processed skills from questionnaire response ${response._id}`);
+            } catch (error) {
+                console.error(`❌ Error processing skills from questionnaire response ${response._id}:`, error);
+                // Don't throw - we still want to return success to the employee
+            }
         }
 
         return sendResponse(

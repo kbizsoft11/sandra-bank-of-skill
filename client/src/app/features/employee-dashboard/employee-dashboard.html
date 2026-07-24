@@ -1,0 +1,203 @@
+<div class="employee-dashboard-shell">
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+    </div>
+  } @else {
+    <header class="dashboard-heading">
+      <div>
+        <p class="eyebrow">Employee workspace</p>
+        <h1>{{ getGreeting() }}, {{ getCurrentUserName() }} 👋</h1>
+        <p class="subtitle">{{ getEmployeeTitle() }} • {{ getEmployeeDepartment() }} — here's a clear view of your skills and next actions.</p>
+      </div>
+      <div class="header-actions">
+        <a [routerLink]="['/' + getRolePrefix(), 'my-skills']" class="btn btn-outline-primary"><i class="bi bi-lightbulb-fill me-2"></i>Manage skills</a>
+        <a [routerLink]="['/' + getRolePrefix(), 'my-questionnaires']" class="btn btn-primary"><i class="bi bi-clipboard-check me-2"></i>Open questionnaires</a>
+      </div>
+    </header>
+
+    <!-- Summary metrics -->
+    <section class="metric-grid">
+      <article class="metric-card">
+        <span class="metric-icon purple"><i class="bi bi-lightbulb-fill"></i></span>
+        <span class="metric-label">Total skills</span>
+        <strong>{{ employeeStats()?.summary?.totalSkills ?? employeeStats()?.totalSkills ?? 0 }}</strong>
+        <small>Recorded across your profile</small>
+      </article>
+      <article class="metric-card">
+        <span class="metric-icon green"><i class="bi bi-check-circle-fill"></i></span>
+        <span class="metric-label">Verified skills</span>
+        <strong>{{ employeeStats()?.summary?.verifiedSkills ?? 0 }}</strong>
+        <small>Confirmed by assessments</small>
+      </article>
+      <article class="metric-card">
+        <span class="metric-icon orange"><i class="bi bi-graph-up-arrow"></i></span>
+        <span class="metric-label">In progress</span>
+        <strong>{{ employeeStats()?.summary?.skillsInProgress ?? 0 }}</strong>
+        <small>Currently being developed</small>
+      </article>
+      <article class="metric-card">
+        <span class="metric-icon blue"><i class="bi bi-person-badge-fill"></i></span>
+        <span class="metric-label">Profile completion</span>
+        <strong>{{ employeeStats()?.summary?.profileCompletion ?? employeeStats()?.employeeProfile?.profileCompletion ?? 0 }}%</strong>
+        <small>Keep your profile up to date</small>
+      </article>
+    </section>
+
+    <!-- Insight tiles -->
+    <section class="insight-grid">
+      <article class="insight-card blue">
+        <span class="insight-label">Avg skill level</span>
+        <strong>{{ getAverageSkillLevel() }}/5</strong>
+        <p>Your average level across all recorded skills.</p>
+      </article>
+      <article class="insight-card orange">
+        <span class="insight-label">Avg interest</span>
+        <strong>{{ getAverageInterestLevel() }}/5</strong>
+        <p>How engaged you are with your current skill set.</p>
+      </article>
+      <article class="insight-card purple">
+        <span class="insight-label">Skill points</span>
+        <strong>{{ employeeStats()?.skillPoints ?? 0 }}</strong>
+        <p>Earned through verified skills and assessments.</p>
+      </article>
+      <article class="insight-card green">
+        <span class="insight-label">Top category</span>
+        <strong>{{ employeeStats()?.topCategories?.[0]?._id || 'Uncategorized' }}</strong>
+        <p>{{ employeeStats()?.topCategories?.[0]?.averageLevel ? employeeStats()!.topCategories[0].averageLevel.toFixed(1) : '0.0' }}/5 average level.</p>
+      </article>
+    </section>
+
+    <!-- Charts -->
+    <section class="visual-grid">
+      <article class="panel chart-panel">
+        <div class="panel-heading"><h2>Skill level distribution</h2><span>{{ employeeStats()?.summary?.totalSkills ?? 0 }} total skills</span></div>
+        @if ((employeeStats()?.topSkills?.length || 0) > 0) {
+          <div class="chart-canvas">
+            <canvas #skillDistributionChart></canvas>
+          </div>
+        } @else {
+          <p class="empty-state">Complete a questionnaire to add skills and see distribution.</p>
+        }
+      </article>
+
+      <article class="panel chart-panel">
+        <div class="panel-heading"><h2>Top skills performance</h2><span>Skill vs interest</span></div>
+        @if ((employeeStats()?.topSkills?.length || 0) > 0) {
+          <div class="chart-canvas">
+            <canvas #topSkillsChart></canvas>
+          </div>
+        } @else {
+          <p class="empty-state">No skills yet. Complete a questionnaire to add skills.</p>
+        }
+      </article>
+    </section>
+
+    <!-- Content panels -->
+    <section class="content-grid">
+      <article class="panel">
+        <div class="panel-heading"><h2>Keen to improve</h2><span>High interest, lower skill</span></div>
+        @if (getKeenToImproveSkills().length) {
+          <div class="skill-list">
+            @for (skill of getKeenToImproveSkills() | slice:0:6; track skill._id) {
+              <div class="improvement-card">
+                <div class="improvement-icon"><i class="bi bi-arrow-up-right"></i></div>
+                <div class="improvement-content">
+                  <div class="skill-name">{{ skill.skillName }}</div>
+                  <div class="improvement-stats">
+                    <span class="badge bg-warning-light text-warning">Interest: {{ skill.interestLevel }}/5</span>
+                    <span class="badge bg-info-light text-info">Level: {{ skill.skillLevel }}/5</span>
+                  </div>
+                </div>
+                <div class="gap-indicator">
+                  <div class="gap-value">{{ skill.interestLevel - skill.skillLevel }}</div>
+                  <div class="gap-label">gap</div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-state">No skills to improve at this time.</p>
+        }
+      </article>
+
+      <article class="panel">
+        <div class="panel-heading"><h2>Pending actions</h2><span>Action required</span></div>
+        @if (employeeStats()?.pendingActions?.length) {
+          <div class="action-list">
+            @for (action of employeeStats()?.pendingActions; track action.title) {
+              <div class="action-item">
+                <div class="action-body">
+                  <div class="action-title">{{ action.title }}</div>
+                  <div class="action-description">{{ action.description }}</div>
+                </div>
+                <div class="action-meta">
+                  <span class="action-status" [class]="getActionStatusClass(action.status)">{{ action.status }}</span>
+                  <a [routerLink]="['/' + getRolePrefix(), 'profile']" class="btn btn-sm btn-outline-primary">{{ action.actionLabel }}</a>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-state">No pending actions.</p>
+        }
+      </article>
+
+      <article class="panel">
+        <div class="panel-heading"><h2>Recent activity</h2><a [routerLink]="['/' + getRolePrefix(), 'my-notifications']" class="text-button">View all</a></div>
+        @if (recentActivities().length) {
+          <div class="activity-list">
+            @for (activity of recentActivities(); track activity.title + activity.time) {
+              <div class="activity-item">
+                <div class="activity-main">
+                  <strong><i [class]="activity.icon"></i> {{ activity.title }}</strong>
+                  <span>{{ activity.description }}</span>
+                </div>
+                <small>{{ formatNotificationDate(activity.time) }}</small>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-state">No recent activity yet.</p>
+        }
+      </article>
+
+      <article class="panel">
+        <div class="panel-heading"><h2>Recommended for you</h2><span>Learning</span></div>
+        @if (employeeStats()?.learningRecommendations?.length) {
+          <div class="skill-list">
+            @for (item of employeeStats()?.learningRecommendations; track item.title) {
+              <div class="rank-row">
+                <span>{{ item.title }}<br><small class="text-muted">{{ item.relatedSkill }} • {{ item.duration }} • {{ item.type }}</small></span>
+                <a [routerLink]="['/' + getRolePrefix(), 'my-skills']" class="btn btn-sm btn-outline-primary">Explore</a>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-state">No recommendations available.</p>
+        }
+      </article>
+
+      <article class="panel">
+        <div class="panel-heading"><h2>Career growth</h2><a [routerLink]="['/employee/profile']" class="text-button">View career path</a></div>
+        @if (employeeStats()?.careerGrowth) {
+          <div class="assessment-summary">
+            <div><span>Current role</span><strong>{{ employeeStats()?.careerGrowth?.currentRole }}</strong></div>
+            <div><span>Potential next role</span><strong>{{ employeeStats()?.careerGrowth?.potentialNextRole }}</strong></div>
+            <div><span>Readiness</span><strong>{{ employeeStats()?.careerGrowth?.readiness }}%</strong></div>
+          </div>
+          <div class="career-list">
+            @for (item of employeeStats()?.careerGrowth?.requiredSkills; track item.name) {
+              <div class="rank-row">
+                <span>{{ item.name }}</span>
+                <span class="career-pill" [class]="getCareerStatusClass(item.status)">{{ item.status }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-state">No career growth data available.</p>
+        }
+      </article>
+    </section>
+  }
+</div>

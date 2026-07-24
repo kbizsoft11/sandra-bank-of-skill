@@ -1,17 +1,17 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { take } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { DashboardService, EmployeeNotification } from '../../../core/services/dashboard.service';
 import { AdminDashboardComponent } from '../../admin-dashboard/admin-dashboard';
 import { CompanyDashboard } from '../../company-dashboard/company-dashboard';
+import { EmployeeDashboard } from '../../employee-dashboard/employee-dashboard';
 
 @Component({
   selector: 'app-dashboard-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, AdminDashboardComponent, CompanyDashboard],
+  imports: [CommonModule, AdminDashboardComponent, CompanyDashboard, EmployeeDashboard],
   templateUrl: './dashboard-home.html',
   styleUrl: './dashboard-home.scss',
 })
@@ -44,6 +44,37 @@ export class DashboardHome implements OnInit {
   isCompany = computed(() => this.authService.isCompany());
   isEmployee = computed(() => this.authService.isEmployee());
   readonly unreadNotificationsCount = computed(() => this.employeeNotifications().filter((notification) => !notification.isRead).length);
+  readonly skillProgressPercent = computed(() => {
+    const average = this.employeeStats()?.summary?.averageSkillLevel ?? this.employeeStats()?.averageSkillLevel ?? 0;
+    return Math.min(100, Math.max(0, Math.round((average / 4) * 100)));
+  });
+  readonly interestProgressPercent = computed(() => {
+    const average = this.employeeStats()?.summary?.averageInterestLevel ?? this.employeeStats()?.averageInterestLevel ?? 0;
+    return Math.min(100, Math.max(0, Math.round((average / 5) * 100)));
+  });
+  readonly questionnaireProgressPercent = computed(() => {
+    const assigned = this.employeeStats()?.assignedQuestionnaires ?? 0;
+    const completed = this.employeeStats()?.completedQuestionnaires ?? 0;
+    if (!assigned) return 0;
+    return Math.min(100, Math.max(0, Math.round((completed / assigned) * 100)));
+  });
+  readonly recentActivities = computed(() => {
+    const activities = [...(this.employeeStats()?.recentActivities || [])];
+
+    this.employeeNotifications().forEach((notification) => {
+      activities.push({
+        type: notification.isRead ? 'notification' : 'reminder',
+        title: notification.title,
+        description: notification.message,
+        time: notification.createdAt || new Date().toISOString(),
+        icon: notification.isRead ? 'bi-bell-fill' : 'bi-bell',
+      });
+    });
+
+    return activities
+      .sort((left, right) => new Date(right.time).getTime() - new Date(left.time).getTime())
+      .slice(0, 6);
+  });
 
   ngOnInit(): void {
     this.loadDashboardStats();
@@ -170,24 +201,53 @@ export class DashboardHome implements OnInit {
     return fullName.substring(0, 2).toUpperCase();
   }
 
+  getGreeting(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  getEmployeeTitle(): string {
+    return this.employeeStats()?.employeeProfile?.title || this.authService.user()?.fullName || 'Employee';
+  }
+
+  getEmployeeDepartment(): string {
+    return this.employeeStats()?.employeeProfile?.department || 'General';
+  }
+
   getAverageSkillLevel(): string {
-    const avg = this.employeeStats()?.averageSkillLevel;
+    const avg = this.employeeStats()?.summary?.averageSkillLevel ?? this.employeeStats()?.averageSkillLevel;
     return typeof avg === 'number' ? avg.toFixed(2) : '0.00';
   }
 
-  getSkillLevelPercentage(): number {
-    const avg = this.employeeStats()?.averageSkillLevel || 0;
-    return (avg / 5) * 100;
+getSkillLevelPercentage(): number {
+    const avg = this.employeeStats()?.summary?.averageSkillLevel ?? (this.employeeStats()?.averageSkillLevel ?? 0);
+    return (avg / 4) * 100;
   }
-
   getAverageInterestLevel(): string {
-    const avg = this.employeeStats()?.averageInterestLevel;
+    const avg = this.employeeStats()?.summary?.averageInterestLevel ?? this.employeeStats()?.averageInterestLevel;
     return typeof avg === 'number' ? avg.toFixed(2) : '0.00';
   }
 
   getInterestLevelPercentage(): number {
-    const avg = this.employeeStats()?.averageInterestLevel || 0;
+    const avg = this.employeeStats()?.summary?.averageInterestLevel ?? (this.employeeStats()?.averageInterestLevel ?? 0);
     return (avg / 5) * 100;
+  }
+
+  getActionStatusClass(status: string): string {
+    if (!status) return 'text-muted';
+    const normalized = status.toLowerCase();
+    if (normalized.includes('complete')) return 'text-success';
+    if (normalized.includes('progress') || normalized.includes('review')) return 'text-warning';
+    return 'text-primary';
+  }
+
+  getCareerStatusClass(status: string): string {
+    const normalized = status.toLowerCase();
+    if (normalized === 'completed') return 'text-success';
+    if (normalized === 'in_progress') return 'text-warning';
+    return 'text-muted';
   }
 
   getCategorySegment(category: any, level: string): number {

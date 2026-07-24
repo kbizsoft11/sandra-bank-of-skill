@@ -8,6 +8,8 @@ export interface ISkill extends Document {
   skill_level: string;
   skill_score: number;
   interest_level?: number;
+  isFromQuestionnaire?: boolean;
+  questionnaireResponseId?: Schema.Types.ObjectId;
   created_at: Date;
 }
 
@@ -57,6 +59,18 @@ const skillSchema = new Schema<ISkill>(
       min: 1,
       max: 5,
       required: false,
+    },
+
+    isFromQuestionnaire: {
+      type: Boolean,
+      default: false,
+    },
+
+    questionnaireResponseId: {
+      type: Schema.Types.ObjectId,
+      ref: "QuestionnaireResponse",
+      required: false,
+      index: true,
     },
   },
   {

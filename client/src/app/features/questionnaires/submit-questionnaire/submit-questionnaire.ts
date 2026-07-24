@@ -104,6 +104,21 @@ export class SubmitQuestionnaire implements OnInit {
                     existingAnswer?.answer || [],
                     validators
                 );
+            } else if (question.questionType === 'skill') {
+                // For skill questions, store both skillLevel and interestLevel
+                const answerValue = existingAnswer?.answer;
+                const skillAnswer = typeof answerValue === 'object' && answerValue !== null && !Array.isArray(answerValue)
+                    ? answerValue as { skillLevel?: string; interestLevel?: string }
+                    : undefined;
+
+                group[question.questionId + '_skill'] = this.fb.control(
+                    skillAnswer?.skillLevel || '',
+                    validators
+                );
+                group[question.questionId + '_interest'] = this.fb.control(
+                    skillAnswer?.interestLevel || '',
+                    validators
+                );
             } else {
                 group[question.questionId] = this.fb.control(
                     existingAnswer?.answer || '',
@@ -218,10 +233,22 @@ export class SubmitQuestionnaire implements OnInit {
         const questionnaire = this.questionnaire();
         if (!questionnaire) return [];
 
-        return questionnaire.questions.map(question => ({
-            questionId: question.questionId,
-            answer: this.form.get(question.questionId)?.value || ''
-        }));
+        return questionnaire.questions.map(question => {
+            if (question.questionType === 'skill') {
+                // For skill questions, combine skillLevel and interestLevel
+                return {
+                    questionId: question.questionId,
+                    answer: {
+                        skillLevel: parseInt(this.form.get(question.questionId + '_skill')?.value) || null,
+                        interestLevel: parseInt(this.form.get(question.questionId + '_interest')?.value) || null
+                    }
+                };
+            }
+            return {
+                questionId: question.questionId,
+                answer: this.form.get(question.questionId)?.value || ''
+            };
+        });
     }
 
     cancel(): void {
@@ -233,6 +260,36 @@ export class SubmitQuestionnaire implements OnInit {
         const questionnaire = this.questionnaire();
         if (!questionnaire) return 0;
         return questionnaire.questions.indexOf(question) + 1;
+    }
+
+    getSkillLevelArray(): number[] {
+        return [1, 2, 3, 4, 5];
+    }
+
+    getInterestLevelArray(): number[] {
+        return [1, 2, 3, 4, 5];
+    }
+
+    getSkillLevelLabel(level: number): string {
+        const labels: { [key: number]: string } = {
+            1: 'Beginner',
+            2: 'Intermediate',
+            3: 'Advanced',
+            4: 'Expert',
+            5: 'Master'
+        };
+        return labels[level] || 'Unknown';
+    }
+
+    getInterestLevelLabel(level: number): string {
+        const labels: { [key: number]: string } = {
+            1: 'Not Interested',
+            2: 'Somewhat',
+            3: 'Interested',
+            4: 'Very Interested',
+            5: 'Highly Interested'
+        };
+        return labels[level] || 'Unknown';
     }
 
     formatDate(dateString?: string): string {
