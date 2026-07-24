@@ -14,6 +14,7 @@ import waitlistRouter from './waitlist.route';
 import companySkillCategoryRoutes from './company-skill-category.route';
 import organisationRouter from './organisation.routes';
 import systemSettingsRouter from './system-settings.routes';
+import companyNotificationRoutes from './company-notification.route'
 
 const router = Router();
 
@@ -36,6 +37,7 @@ router.use('/admin/system-settings', authenticate, systemSettingsRouter);
 router.use("/skills", authenticate, skillRoutes);
 router.use("/questionnaires", authenticate, questionnaireRoutes);
 router.use("/roles", roleRoutes);
+router.use("/company-notifications", companyNotificationRoutes)
 // router.use("/skills", authenticate, allowRoles('admin'), skillRoutes);
 
 export default router;

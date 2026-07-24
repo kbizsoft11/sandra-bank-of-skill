@@ -18,6 +18,7 @@ import { SkillService } from '../../../core/services/skill.service';
 import { UserService } from '../../../core/services/user.service';
 import { SkillCategoryService } from '../../../core/services/skill-category.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { AlertService } from '../../../core/services/alert.service';
 import { forkJoin } from 'rxjs';
 import { User } from '../../../shared/interfaces/user.interface';
 import { SkillCategory } from '../../../shared/interfaces/skill-category.interface';
@@ -49,6 +50,9 @@ export class CreateSkill implements OnInit {
   private readonly auth =
     inject(AuthService);
 
+  private readonly alertService =
+    inject(AlertService);
+
   users = signal<User[]>([]);
 
   categories = signal<SkillCategory[]>([]);
@@ -73,10 +77,18 @@ export class CreateSkill implements OnInit {
   ngOnInit(): void {
 
     const role = this.auth.role();
+
+    // Prevent employees from creating skills manually
+    if (role === 'employee') {
+      this.alertService.error('Employees cannot manually add skills. Complete a questionnaire to add skills.');
+      this.router.navigate([`/${role}/my-skills`]);
+      return;
+    }
+
     const userId = this.auth.user()?._id;
 
-    // For employees, automatically set user_id to their own ID
-    if (role === 'employee' && userId) {
+    // For admins/company, allow user selection
+    if (userId) {
       this.form.patchValue({ user_id: userId });
     }
 

@@ -96,6 +96,17 @@ router.get(
 );
 
 /**
+ * GET /dashboard/employee/notifications
+ * Get employee notifications
+ */
+router.get(
+  '/employee/notifications',
+  authenticate,
+  allowRoles('employee'),
+  dashboardController.getEmployeeNotifications
+);
+
+/**
  * PUT /dashboard/admin/notifications/:id/read
  * Mark notification as read
  */
@@ -115,6 +126,28 @@ router.put(
   authenticate,
   allowRoles('admin'),
   dashboardController.markNotificationAsUnread
+);
+
+/**
+ * PUT /dashboard/employee/notifications/:id/read
+ * Mark employee notification as read
+ */
+router.put(
+  '/employee/notifications/:id/read',
+  authenticate,
+  allowRoles('employee'),
+  dashboardController.markEmployeeNotificationAsRead
+);
+
+/**
+ * PUT /dashboard/employee/notifications/:id/unread
+ * Mark employee notification as unread
+ */
+router.put(
+  '/employee/notifications/:id/unread',
+  authenticate,
+  allowRoles('employee'),
+  dashboardController.markEmployeeNotificationAsUnread
 );
 
 /**

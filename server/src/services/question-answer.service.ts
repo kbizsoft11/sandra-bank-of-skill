@@ -2,6 +2,7 @@ import { QuestionAnswerModel, IQuestionAnswer } from '../models/question-answer.
 import { QuestionnaireResponseModel } from '../models/questionnaire-response.model';
 import { QuestionnaireModel } from '../models/questionnaire.model';
 import { UserModel } from '../models/user.model';
+import questionnaireSkillProcessorService from './questionnaire-skill-processor.service';
 
 /**
  * Initialize question answers for a questionnaire response
@@ -155,8 +156,23 @@ export const updateQuestionnaireResponseStatus = async (
         response.status = 'completed';
         response.completedAt = new Date();
 
+        // Save the response first
+        await response.save();
+
+        // Process questionnaire to create employee skills
+        try {
+            await questionnaireSkillProcessorService.processQuestionnaireResponse(
+                questionnaireResponseId
+            );
+            console.log(`✅ Successfully processed skills from questionnaire response ${questionnaireResponseId}`);
+        } catch (error) {
+            console.error(`❌ Error processing skills from questionnaire response ${questionnaireResponseId}:`, error);
+            // Don't throw - we still want to mark the questionnaire as complete
+        }
+
         // Update employee profile completion status
         await updateEmployeeProfileCompletion(employeeId);
+        return;
     }
 
     await response.save();

@@ -70,7 +70,12 @@
         @if (skills().length === 0) {
           <tr>
             <td colspan="6" class="px-4 py-4 text-center text-secondary">
-              No skills found. Click "Add Skill" to create your first skill.
+              @if (auth.role() === 'employee') {
+                <p class="mb-0">No skills yet. Complete a questionnaire to add skills.</p>
+                <p class="small text-muted mb-0 mt-2">Skills are automatically generated from questionnaire responses.</p>
+              } @else {
+                <p class="mb-0">No skills found. Click "Add Skill" to create your first skill.</p>
+              }
             </td>
           </tr>
         } @else {

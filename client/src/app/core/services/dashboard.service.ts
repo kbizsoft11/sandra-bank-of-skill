@@ -44,6 +44,22 @@ export interface CompanyStats {
 }
 
 export interface EmployeeStats {
+  employeeProfile?: {
+    fullName: string;
+    title: string;
+    department: string;
+    location: string;
+    profileCompletion: number;
+  };
+  summary?: {
+    totalSkills: number;
+    verifiedSkills: number;
+    skillsInProgress: number;
+    profileCompletion: number;
+    averageSkillLevel: number;
+    averageInterestLevel: number;
+    skillPoints: number;
+  };
   totalSkills: number;
   skillsByCategory: Array<{ _id: string; count: number }>;
   recentSkills: any[];
@@ -62,7 +78,11 @@ export interface EmployeeStats {
   topSkills?: Array<{
     _id: string;
     skillName: string;
-    skillLevel: number;
+    currentLevel: string;
+    targetLevel: string;
+    progress: number;
+    verificationStatus: string;
+    skillScore: number;
   }>;
   topInterests?: Array<{
     _id: string;
@@ -78,6 +98,63 @@ export interface EmployeeStats {
     _id: string;
     skillName: string;
   }>;
+  mySkills?: Array<{
+    _id: string;
+    skillName: string;
+    currentLevel: string;
+    targetLevel: string;
+    progress: number;
+    verificationStatus: string;
+    skillScore: number;
+  }>;
+  skillGaps?: Array<{
+    _id: string;
+    skillName: string;
+    currentLevel: string;
+    targetLevel: string;
+    progress: number;
+  }>;
+  pendingActions?: Array<{
+    title: string;
+    description: string;
+    status: string;
+    dueDate?: string;
+    actionLabel: string;
+  }>;
+  recentActivities?: Array<{
+    type: string;
+    title: string;
+    description: string;
+    time: string;
+    icon: string;
+  }>;
+  learningRecommendations?: Array<{
+    title: string;
+    relatedSkill: string;
+    duration: string;
+    type: string;
+  }>;
+  careerGrowth?: {
+    currentRole: string;
+    potentialNextRole: string;
+    readiness: number;
+    requiredSkills: Array<{
+      name: string;
+      status: string;
+    }>;
+  };
+}
+
+export interface EmployeeNotification {
+  _id?: string;
+  title: string;
+  message: string;
+  type: 'success' | 'warning' | 'info' | 'error';
+  isRead: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  relatedTo?: string;
+  relatedId?: string;
 }
 
 export interface CompanyAbout {
@@ -152,6 +229,36 @@ export class DashboardService {
   getEmployeeStats(): Observable<ApiResponse<EmployeeStats>> {
     return this.http.get<ApiResponse<EmployeeStats>>(
       `${API_CONFIG.BASE_URL}/dashboard/employee/stats`
+    );
+  }
+
+  /**
+   * Get employee notifications
+   */
+  getEmployeeNotifications(filter: 'recent' | 'unread' | 'read' = 'recent', page = 1, limit = 5): Observable<ApiResponse<{ notifications: EmployeeNotification[]; pagination: any }>> {
+    return this.http.get<ApiResponse<{ notifications: EmployeeNotification[]; pagination: any }>>(
+      `${API_CONFIG.BASE_URL}/dashboard/employee/notifications`,
+      { params: { filter, page: page.toString(), limit: limit.toString() } }
+    );
+  }
+
+  /**
+   * Mark employee notification as read
+   */
+  markEmployeeNotificationAsRead(notificationId: string): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(
+      `${API_CONFIG.BASE_URL}/dashboard/employee/notifications/${notificationId}/read`,
+      {}
+    );
+  }
+
+  /**
+   * Mark employee notification as unread
+   */
+  markEmployeeNotificationAsUnread(notificationId: string): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(
+      `${API_CONFIG.BASE_URL}/dashboard/employee/notifications/${notificationId}/unread`,
+      {}
     );
   }
 

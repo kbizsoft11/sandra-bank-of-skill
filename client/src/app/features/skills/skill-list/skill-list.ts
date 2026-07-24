@@ -40,7 +40,7 @@ export class SkillList implements OnInit {
   private readonly route =
     inject(ActivatedRoute);
 
-  private readonly auth =
+  readonly auth =
     inject(AuthService);
 
   skills = signal<Skill[]>([]);
@@ -115,12 +115,19 @@ export class SkillList implements OnInit {
   }
 
   canModifySkills(): boolean {
-    // Only show add/edit/delete if not viewing employee skills and user is employee or admin
+    // For employees, disable all skill modifications since skills come from questionnaires
+    const role = this.auth.role();
+    
+    if (role === 'employee') {
+      return false; // Employees cannot manually create/edit/delete skills
+    }
+    
+    // Only show add/edit/delete if not viewing employee skills and user is admin/company
     if (this.isViewingEmployeeSkills()) {
       return false;
     }
-    const role = this.auth.role();
-    return role === 'employee' || role === 'admin';
+    
+    return role === 'admin' || role === 'company';
   }
 
   getBackRoute(): string {

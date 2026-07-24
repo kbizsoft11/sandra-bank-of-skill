@@ -276,6 +276,18 @@ export const getAdminNotifications = async (
   page: number = 1,
   limit: number = 10
 ) => {
+  return getUserNotifications(userId, filter, page, limit);
+};
+
+/**
+ * Get paginated notifications for any user
+ */
+export const getUserNotifications = async (
+  userId: string,
+  filter: 'recent' | 'unread' | 'read' = 'recent',
+  page: number = 1,
+  limit: number = 10
+) => {
   const skip = (page - 1) * limit;
   let query: any = { userId };
 
@@ -324,6 +336,20 @@ export const markNotificationAsUnread = async (notificationId: string) => {
     { isRead: false },
     { new: true }
   );
+};
+
+/**
+ * Mark notification as read for any user
+ */
+export const markUserNotificationAsRead = async (notificationId: string) => {
+  return markNotificationAsRead(notificationId);
+};
+
+/**
+ * Mark notification as unread for any user
+ */
+export const markUserNotificationAsUnread = async (notificationId: string) => {
+  return markNotificationAsUnread(notificationId);
 };
 
 /**
@@ -413,4 +439,11 @@ export const createActivity = async (
  */
 export const getUnreadNotificationCount = async (userId: string) => {
   return NotificationModel.countDocuments({ userId, isRead: false });
+};
+
+/**
+ * Get unread notification count for any user
+ */
+export const getUserUnreadNotificationCount = async (userId: string) => {
+  return getUnreadNotificationCount(userId);
 };

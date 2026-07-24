@@ -1,0 +1,272 @@
+<div class="notification-form-page">
+  <header class="dashboard-heading">
+    <div>
+      <p class="eyebrow">Company workspace</p>
+      <h1>Edit notification</h1>
+      <p class="subtitle">Update the content, audience, and delivery settings for an existing draft or scheduled message.</p>
+    </div>
+    <button type="button" (click)="goBack()" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+      <i class="bi bi-arrow-left"></i>
+      <span>Back to notifications</span>
+    </button>
+  </header>
+
+  @if (isLoading()) {
+    <section class="panel loading-card">
+      <div class="loading-state">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p>Loading notification details...</p>
+      </div>
+    </section>
+  } @else {
+    <section class="panel">
+      <div class="panel-heading">
+        <div>
+          <h2>Notification details</h2>
+          <p>Adjust the message content and delivery preferences before you publish.</p>
+        </div>
+      </div>
+
+      <form [formGroup]="notificationForm" (ngSubmit)="submitForm(false)">
+        <div class="form-grid">
+
+          <!-- Main form column -->
+          <div class="form-column">
+
+            <!-- Title -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark">
+                Notification title <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control form-control-lg"
+                formControlName="title"
+                [class.is-invalid]="notificationForm.get('title')?.invalid && notificationForm.get('title')?.touched">
+              @if (notificationForm.get('title')?.invalid && notificationForm.get('title')?.touched) {
+                <div class="invalid-feedback">Title is required (at least 3 characters).</div>
+              }
+            </div>
+
+            <!-- Notification type -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark mb-2">Notification type</label>
+              <div class="type-grid">
+
+                <div>
+                  <input type="radio" class="btn-check" name="type" id="edit-type-info" value="info" formControlName="type">
+                  <label class="btn btn-outline-info w-100 py-2 d-flex flex-column align-items-center gap-1 rounded-3" for="edit-type-info">
+                    <i class="bi bi-info-circle fs-4"></i>
+                    <span class="small fw-semibold">Info</span>
+                  </label>
+                </div>
+
+                <div>
+                  <input type="radio" class="btn-check" name="type" id="edit-type-announcement" value="announcement" formControlName="type">
+                  <label class="btn btn-outline-success w-100 py-2 d-flex flex-column align-items-center gap-1 rounded-3" for="edit-type-announcement">
+                    <i class="bi bi-megaphone fs-4"></i>
+                    <span class="small fw-semibold">Announcement</span>
+                  </label>
+                </div>
+
+                <div>
+                  <input type="radio" class="btn-check" name="type" id="edit-type-warning" value="warning" formControlName="type">
+                  <label class="btn btn-outline-warning w-100 py-2 d-flex flex-column align-items-center gap-1 rounded-3" for="edit-type-warning">
+                    <i class="bi bi-exclamation-triangle fs-4"></i>
+                    <span class="small fw-semibold">Warning</span>
+                  </label>
+                </div>
+
+                <div>
+                  <input type="radio" class="btn-check" name="type" id="edit-type-assessment" value="assessment" formControlName="type">
+                  <label class="btn btn-outline-purple w-100 py-2 d-flex flex-column align-items-center gap-1 rounded-3" for="edit-type-assessment">
+                    <i class="bi bi-clipboard-check fs-4"></i>
+                    <span class="small fw-semibold">Assessment</span>
+                  </label>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Message content -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark">
+                Message content <span class="text-danger">*</span>
+              </label>
+              <textarea
+                class="form-control"
+                rows="5"
+                formControlName="message"
+                [class.is-invalid]="notificationForm.get('message')?.invalid && notificationForm.get('message')?.touched"></textarea>
+              @if (notificationForm.get('message')?.invalid && notificationForm.get('message')?.touched) {
+                <div class="invalid-feedback">Message content is required (at least 5 characters).</div>
+              }
+            </div>
+
+            <!-- Target audience -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark mb-2">Target audience</label>
+              <div class="audience-stack">
+
+                <div
+                  class="audience-option-card"
+                  [class.selected]="notificationForm.get('targetAudience')?.value === 'all'"
+                  (click)="onTargetAudienceChange('all')">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="targetAudience" id="edit-aud-all" value="all" formControlName="targetAudience">
+                  </div>
+                  <div>
+                    <h6>All employees</h6>
+                    <p>Broadcast to every employee registered in your company.</p>
+                  </div>
+                </div>
+
+                <div
+                  class="audience-option-card"
+                  [class.selected]="notificationForm.get('targetAudience')?.value === 'role'"
+                  (click)="onTargetAudienceChange('role')">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="targetAudience" id="edit-aud-role" value="role" formControlName="targetAudience">
+                  </div>
+                  <div class="w-100">
+                    <h6>Specific job role / designation</h6>
+                    <p>Target employees with a designated job role.</p>
+                    @if (notificationForm.get('targetAudience')?.value === 'role') {
+                      <select
+                        class="form-select mt-2"
+                        formControlName="targetDesignationId"
+                        [class.is-invalid]="notificationForm.get('targetDesignationId')?.invalid && notificationForm.get('targetDesignationId')?.touched">
+                        <option value="">-- Select designation --</option>
+                        @for (role of availableRoles(); track role._id) {
+                          <option [value]="role._id">{{ role.designationName || role.roleName }}</option>
+                        }
+                      </select>
+                    }
+                  </div>
+                </div>
+
+                <div
+                  class="audience-option-card"
+                  [class.selected]="notificationForm.get('targetAudience')?.value === 'department'"
+                  (click)="onTargetAudienceChange('department')">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="targetAudience" id="edit-aud-dept" value="department" formControlName="targetAudience">
+                  </div>
+                  <div class="w-100">
+                    <h6>Specific department</h6>
+                    <p>Target employees in a particular department.</p>
+                    @if (notificationForm.get('targetAudience')?.value === 'department') {
+                      <input
+                        type="text"
+                        class="form-control mt-2"
+                        placeholder="e.g. Engineering, Sales, Human Resources"
+                        formControlName="targetDepartment"
+                        [class.is-invalid]="notificationForm.get('targetDepartment')?.invalid && notificationForm.get('targetDepartment')?.touched">
+                    }
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Delivery method -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold text-dark mb-2">Delivery method</label>
+              <div class="delivery-grid">
+
+                <div
+                  class="delivery-option-card"
+                  [class.selected]="notificationForm.get('deliveryMethod')?.value === 'now'"
+                  (click)="onDeliveryMethodChange('now')">
+                  <i class="bi bi-send-fill fs-3 text-success d-block mb-1"></i>
+                  <h6>Send immediately</h6>
+                  <p>Dispatches notification to recipients right away.</p>
+                </div>
+
+                <div
+                  class="delivery-option-card"
+                  [class.selected]="notificationForm.get('deliveryMethod')?.value === 'scheduled'"
+                  (click)="onDeliveryMethodChange('scheduled')">
+                  <i class="bi bi-clock-history fs-3 text-primary d-block mb-1"></i>
+                  <h6>Schedule for later</h6>
+                  <p>Delivers notification at your specified date and time.</p>
+                </div>
+
+              </div>
+
+              @if (notificationForm.get('deliveryMethod')?.value === 'scheduled') {
+                <div class="schedule-box">
+                  <label class="form-label fw-medium text-dark">
+                    Select delivery date & time <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-white text-secondary">
+                      <i class="bi bi-calendar-event"></i>
+                    </span>
+                    <input
+                      type="datetime-local"
+                      class="form-control"
+                      formControlName="scheduledAt"
+                      [class.is-invalid]="notificationForm.get('scheduledAt')?.invalid && notificationForm.get('scheduledAt')?.touched">
+                  </div>
+                  @if (notificationForm.get('scheduledAt')?.invalid && notificationForm.get('scheduledAt')?.touched) {
+                    <div class="invalid-feedback d-block mt-1">Please select a valid future date and time.</div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Actions -->
+            <div class="action-row">
+              <button type="button" class="btn btn-outline-secondary" (click)="goBack()">Cancel</button>
+              <div class="action-actions">
+                <button type="button" class="btn btn-light border" (click)="submitForm(true)" [disabled]="isSubmitting()">
+                  Save draft
+                </button>
+                <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2" [disabled]="isSubmitting()">
+                  @if (isSubmitting()) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                    <span>Saving...</span>
+                  } @else {
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Update notification</span>
+                  }
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Live preview column -->
+          <aside class="preview-column">
+            <div class="preview-card">
+              <div class="preview-card-header">
+                <div>
+                  <i class="bi bi-app-indicator"></i>
+                  <span>In-app notification</span>
+                </div>
+                <span class="badge bg-white text-primary rounded-pill small">Preview</span>
+              </div>
+              <div class="preview-card-body">
+                <div class="d-flex align-items-start gap-3">
+                  <i [class]="getTypeIcon(notificationForm.get('type')?.value) + ' fs-3'"></i>
+                  <div class="w-100">
+                    <h6>{{ notificationForm.get('title')?.value || 'Your notification title' }}</h6>
+                    <p>{{ notificationForm.get('message')?.value || 'Message content will be displayed here as it appears on employee devices and dashboard activity stream.' }}</p>
+                    <div class="preview-meta">
+                      <span>Audience: {{ notificationForm.get('targetAudience')?.value | titlecase }}</span>
+                      <span>Method: {{ notificationForm.get('deliveryMethod')?.value | titlecase }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+        </div>
+      </form>
+    </section>
+  }
+</div>

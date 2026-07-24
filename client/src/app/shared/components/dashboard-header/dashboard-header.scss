@@ -100,10 +100,35 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  border: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .header-icon:hover {
   color: #2b6cb0;
+}
+
+.notification-trigger {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #d14343;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0 4px;
 }
 
 .sidebar-toggle-btn {
@@ -136,9 +161,9 @@
   top: calc(100% + 8px);
   background: #fff;
   border: 1px solid #e2e5e9;
-  border-radius: 4px;
+  border-radius: 8px;
   min-width: 160px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
   z-index: 1100;
   display: none;
   padding: 4px 0;
@@ -172,6 +197,91 @@
 .dropdown-item:hover {
   background-color: #f5f6f8;
   color: #2b6cb0;
+}
+
+.notification-menu {
+  min-width: 320px;
+  max-width: 360px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.notification-menu-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem 0.6rem;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.notification-menu-header h6 {
+  margin: 0 0 0.2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.notification-menu-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.notification-menu .btn-link {
+  color: #2b6cb0;
+  font-weight: 600;
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem 0.75rem;
+}
+
+.notification-item {
+  border: 1px solid #eef2f7;
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  background: #fcfdff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.notification-item.unread {
+  border-color: #dbeafe;
+  background: #f8fbff;
+}
+
+.notification-item-title {
+  font-weight: 700;
+  color: #111827;
+  font-size: 0.88rem;
+}
+
+.notification-item p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.notification-time {
+  color: #94a3b8;
+  font-size: 0.74rem;
+}
+
+.notification-action {
+  align-self: flex-start;
+  color: #2b6cb0;
+}
+
+.notification-menu-empty {
+  padding: 1rem;
+  color: #64748b;
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 /* Responsive styles */
@@ -210,5 +320,10 @@
 
   .header-link {
     font-size: 12px;
+  }
+
+  .notification-menu {
+    min-width: min(90vw, 320px);
+    right: -1rem;
   }
 }

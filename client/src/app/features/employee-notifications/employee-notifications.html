@@ -1,0 +1,56 @@
+<div class="employee-notifications-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">Employee workspace</p>
+      <h1>My notifications</h1>
+      <p class="subtitle">Review important updates, announcements, and reminders from your company.</p>
+    </div>
+    <a [routerLink]="['/' + getRolePrefix(), 'dashboard']" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+      <i class="bi bi-arrow-left"></i>
+      <span>Back to dashboard</span>
+    </a>
+  </header>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <h2>Inbox</h2>
+        <p>{{ unreadCount() }} unread notifications</p>
+      </div>
+      <div class="filter-row">
+        <button type="button" class="btn btn-sm" [class.btn-primary]="filter() === 'recent'" [class.btn-outline-secondary]="filter() !== 'recent'" (click)="setFilter('recent')">Recent</button>
+        <button type="button" class="btn btn-sm" [class.btn-primary]="filter() === 'unread'" [class.btn-outline-secondary]="filter() !== 'unread'" (click)="setFilter('unread')">Unread</button>
+        <button type="button" class="btn btn-sm" [class.btn-primary]="filter() === 'read'" [class.btn-outline-secondary]="filter() !== 'read'" (click)="setFilter('read')">Read</button>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+        <p>Loading notifications...</p>
+      </div>
+    } @else if (error()) {
+      <div class="empty-state">{{ error() }}</div>
+    } @else if (notifications().length) {
+      <div class="notification-list">
+        @for (notification of notifications(); track notification._id) {
+          <article class="notification-card" [class.unread]="!notification.isRead">
+            <div class="notification-card-content">
+              <div class="notification-meta-row">
+                <span class="notification-pill">{{ notification.type | titlecase }}</span>
+                <span class="notification-time">{{ formatNotificationDate(notification.createdAt) }}</span>
+              </div>
+              <h3>{{ notification.title }}</h3>
+              <p>{{ notification.message }}</p>
+            </div>
+            @if (!notification.isRead) {
+              <button type="button" class="btn btn-outline-primary btn-sm" (click)="markNotificationAsRead(notification)">Mark read</button>
+            }
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">No notifications match your current filter.</div>
+    }
+  </section>
+</div>

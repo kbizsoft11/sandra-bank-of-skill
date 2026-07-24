@@ -1,12 +1,14 @@
-import { Component, EventEmitter, inject, Output, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Output, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { take } from 'rxjs';
 import { ThemeService } from '../../../core/services/theme.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { Router } from '@angular/router';
 import { API_CONFIG } from '../../../core/config/api.config';
+import { DashboardService, EmployeeNotification } from '../../../core/services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard-header',
@@ -20,18 +22,28 @@ export class DashboardHeader implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
   private readonly alertService = inject(AlertService);
+  private readonly dashboardService = inject(DashboardService);
   private readonly router = inject(Router);
   readonly auth = inject(AuthService);
-  
+
   showProfileMenu = false;
+  showNotificationsMenu = false;
   profileImage = signal<string | null>(null);
-  private docClickHandler = () => { this.showProfileMenu = false; };
+  readonly notifications = signal<EmployeeNotification[]>([]);
+  readonly notificationsLoading = signal(false);
+  readonly notificationsError = signal<string | null>(null);
+  readonly unreadNotificationsCount = computed(() => this.notifications().filter((notification) => !notification.isRead).length);
+  private docClickHandler = () => {
+    this.showProfileMenu = false;
+    this.showNotificationsMenu = false;
+  };
 
   @Output() toggleSidebar = new EventEmitter<void>();
 
   ngOnInit(): void {
     document.addEventListener('click', this.docClickHandler);
     this.loadUserProfile();
+    this.loadEmployeeNotifications();
   }
 
   ngOnDestroy(): void {
@@ -52,16 +64,51 @@ export class DashboardHeader implements OnInit, OnDestroy {
     });
   }
 
+  loadEmployeeNotifications(): void {
+    if (this.auth.role() !== 'employee') {
+      this.notifications.set([]);
+      this.notificationsLoading.set(false);
+      this.notificationsError.set(null);
+      return;
+    }
+
+    this.notificationsLoading.set(true);
+    this.notificationsError.set(null);
+
+    this.dashboardService.getEmployeeNotifications('recent', 1, 5)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          this.notifications.set(response.data?.notifications || []);
+          this.notificationsLoading.set(false);
+        },
+        error: (error) => {
+          console.error('Error loading employee notifications:', error);
+          this.notificationsError.set('Unable to load notifications right now.');
+          this.notificationsLoading.set(false);
+        }
+      });
+  }
+
   get profileLink(): string {
     const role = this.auth.role();
     const basePath = role === 'admin' ? '/admin' : `/${role}`;
     return `${basePath}/profile`;
   }
 
+  getNotificationsRoute(): string {
+    const role = this.auth.role();
+    if (role === 'employee') {
+      return '/employee/my-notifications';
+    }
+    if (role === 'company') {
+      return '/company/notifications';
+    }
+    return '/admin/dashboard';
+  }
+
   getUserId(): string {
     const user = this.auth.user();
-    // Return the user ID or a default value
-    // You can customize this to show a formatted ID or any other identifier
     return user?._id?.toString().slice(-5) || '42001';
   }
 
@@ -94,6 +141,61 @@ export class DashboardHeader implements OnInit, OnDestroy {
       event.stopPropagation();
     }
     this.showProfileMenu = !this.showProfileMenu;
+    this.showNotificationsMenu = false;
+  }
+
+  toggleNotificationsMenu(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.showNotificationsMenu = !this.showNotificationsMenu;
+    this.showProfileMenu = false;
+
+    if (this.showNotificationsMenu) {
+      this.loadEmployeeNotifications();
+    }
+  }
+
+  goToNotificationsPage(): void {
+    this.showNotificationsMenu = false;
+    this.router.navigate([this.getNotificationsRoute()]);
+  }
+
+  markNotificationAsRead(notification: EmployeeNotification, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if (!notification._id || notification.isRead) {
+      return;
+    }
+
+    this.dashboardService.markEmployeeNotificationAsRead(notification._id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.notifications.update((list) => list.map((item) => item._id === notification._id ? { ...item, isRead: true } : item));
+        },
+        error: (error) => {
+          console.error('Error marking notification as read:', error);
+        }
+      });
+  }
+
+  formatNotificationDate(value?: string | null): string {
+    if (!value) return 'Just now';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Just now';
+
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: false,
+    });
   }
 
   logout(): void {

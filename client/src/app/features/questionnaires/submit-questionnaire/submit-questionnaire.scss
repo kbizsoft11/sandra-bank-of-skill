@@ -58,6 +58,61 @@
     }
 }
 
+/* Skill Question Styles */
+.skill-question-section {
+    .btn-group {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .skill-level-btn,
+    .interest-level-btn {
+        min-width: 70px;
+        border-radius: 0.375rem !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+
+        .level-number {
+            font-size: 1.25rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .level-label {
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    }
+
+    .skill-level-btn {
+        .btn-check:checked + & {
+            background-color: #198754;
+            border-color: #198754;
+            color: white;
+        }
+    }
+
+    .interest-level-btn {
+        .btn-check:checked + & {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: white;
+        }
+    }
+}
+
 .sticky-footer {
     position: sticky;
     bottom: 0;

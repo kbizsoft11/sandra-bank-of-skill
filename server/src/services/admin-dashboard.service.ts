@@ -27,6 +27,18 @@ export const getNotifications = async (
 };
 
 /**
+ * Get employee notifications
+ */
+export const getEmployeeNotifications = async (
+  userId: string,
+  filter: 'recent' | 'unread' | 'read' = 'recent',
+  page: number = 1,
+  limit: number = 10
+) => {
+  return AdminDashboardRepository.getUserNotifications(userId, filter, page, limit);
+};
+
+/**
  * Mark notification as read
  */
 export const markNotificationAsRead = async (notificationId: string) => {
@@ -38,6 +50,20 @@ export const markNotificationAsRead = async (notificationId: string) => {
  */
 export const markNotificationAsUnread = async (notificationId: string) => {
   return AdminDashboardRepository.markNotificationAsUnread(notificationId);
+};
+
+/**
+ * Mark employee notification as read
+ */
+export const markEmployeeNotificationAsRead = async (notificationId: string) => {
+  return AdminDashboardRepository.markUserNotificationAsRead(notificationId);
+};
+
+/**
+ * Mark employee notification as unread
+ */
+export const markEmployeeNotificationAsUnread = async (notificationId: string) => {
+  return AdminDashboardRepository.markUserNotificationAsUnread(notificationId);
 };
 
 /**
@@ -79,4 +105,11 @@ export const createActivity = async (
  */
 export const getUnreadNotificationCount = async (userId: string) => {
   return AdminDashboardRepository.getUnreadNotificationCount(userId);
+};
+
+/**
+ * Get unread employee notification count
+ */
+export const getEmployeeUnreadNotificationCount = async (userId: string) => {
+  return AdminDashboardRepository.getUserUnreadNotificationCount(userId);
 };
