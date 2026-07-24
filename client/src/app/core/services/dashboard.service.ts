@@ -80,6 +80,18 @@ export interface EmployeeStats {
   }>;
 }
 
+export interface EmployeeNotification {
+  _id?: string;
+  title: string;
+  message: string;
+  type: 'success' | 'warning' | 'info' | 'error';
+  isRead: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  relatedTo?: string;
+  relatedId?: string;
+}
+
 export interface CompanyAbout {
   firstName: string;
   surname: string;
@@ -152,6 +164,36 @@ export class DashboardService {
   getEmployeeStats(): Observable<ApiResponse<EmployeeStats>> {
     return this.http.get<ApiResponse<EmployeeStats>>(
       `${API_CONFIG.BASE_URL}/dashboard/employee/stats`
+    );
+  }
+
+  /**
+   * Get employee notifications
+   */
+  getEmployeeNotifications(filter: 'recent' | 'unread' | 'read' = 'recent', page = 1, limit = 5): Observable<ApiResponse<{ notifications: EmployeeNotification[]; pagination: any }>> {
+    return this.http.get<ApiResponse<{ notifications: EmployeeNotification[]; pagination: any }>>(
+      `${API_CONFIG.BASE_URL}/dashboard/employee/notifications`,
+      { params: { filter, page: page.toString(), limit: limit.toString() } }
+    );
+  }
+
+  /**
+   * Mark employee notification as read
+   */
+  markEmployeeNotificationAsRead(notificationId: string): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(
+      `${API_CONFIG.BASE_URL}/dashboard/employee/notifications/${notificationId}/read`,
+      {}
+    );
+  }
+
+  /**
+   * Mark employee notification as unread
+   */
+  markEmployeeNotificationAsUnread(notificationId: string): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(
+      `${API_CONFIG.BASE_URL}/dashboard/employee/notifications/${notificationId}/unread`,
+      {}
     );
   }
 

@@ -217,6 +217,12 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       roles: ['employee'], // Only employees can manage their own skills
     },
     {
+      label: 'Notifications',
+      path: 'notifications',
+      icon: 'bi bi-bell-fill',
+      roles: ['company'],
+    },
+    {
       label: 'System Settings',
       path: 'system-settings',
       icon: 'bi bi-sliders',

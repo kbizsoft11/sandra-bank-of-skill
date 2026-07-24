@@ -1,92 +1,479 @@
-.notification-container {
-  max-width: 1200px;
-  margin: 0 auto;
+:host {
+  display: block;
 }
 
-/* Scrollable Status Pills for Mobile */
-.status-pills-wrapper {
+/* ============================================
+   Tokens — copied verbatim from
+   company-dashboard.scss, not re-approximated,
+   so this page and the dashboard are the same
+   product visually
+   ============================================ */
+.notification-layout {
+  --ink: #1f2937;
+  --muted: #718096;
+  --bg: #f6f8fb;
+  --line: #edf0f4;
+  --line-strong: #e3e8f0;
+  --accent: #4966c8;
+  --accent-strong: #3157c7;
+  --blue-bg: #e8efff;   --blue-fg: #3157c7;
+  --green-bg: #e4f6ed;  --green-fg: #16804f;
+  --orange-bg: #fff1df; --orange-fg: #bd6b0c;
+  --purple-bg: #f0eaff; --purple-fg: #7545c2;
+  --active: #20a36a;
+  --select-border: #d5dce6;
+
+  color: var(--ink);
+
+  * { box-sizing: border-box; }
+}
+
+/* ============================================
+   Header — same markup/classes as
+   .dashboard-heading in company-dashboard
+   ============================================ */
+.notification-layout .dashboard-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.notification-layout .eyebrow {
+  color: var(--accent);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin: 0 0 .35rem;
+}
+
+.notification-layout h1 { margin: 0; font-size: 1.5rem; line-height: 1.2; }
+
+.notification-layout .subtitle {
+  color: var(--muted);
+  margin: .35rem 0 0;
+  font-size: .9rem;
+  max-width: 640px;
+}
+
+.notification-layout .dashboard-heading .btn-primary {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ============================================
+   Panels — identical treatment to .panel /
+   .full-panel in company-dashboard
+   ============================================ */
+.notification-layout .panel {
+  background: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 4px 16px rgba(31, 41, 55, .04);
+}
+
+.notification-layout .full-panel { margin-top: .75rem; }
+.notification-layout .full-panel + .full-panel { margin-top: .75rem; }
+
+.notification-layout .panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.notification-layout .panel-heading h2 { font-size: .95rem; margin: 0; }
+.notification-layout .panel-heading p { color: var(--muted); margin: .3rem 0 0; font-size: .82rem; }
+.notification-layout .panel-count { color: var(--muted); font-size: .82rem; white-space: nowrap; }
+
+/* ============================================
+   Status pills — recolored onto the accent
+   token instead of a one-off blue
+   ============================================ */
+.notification-layout .status-pills-wrapper {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-
-  &::-webkit-scrollbar {
-    height: 4px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1;
-    border-radius: 4px;
-  }
 }
 
-.status-pills {
+.notification-layout .status-pills-wrapper::-webkit-scrollbar { display: none; }
+
+.notification-layout .status-pills {
+  display: flex;
+  gap: .5rem;
   min-width: max-content;
 }
 
-.status-pill-btn {
-  border: 1px solid #e2e8f0;
-  background-color: #ffffff;
-  color: #475569;
-  border-radius: 30px;
-  padding: 0.4rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
+.notification-layout .status-pill-btn {
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: .45rem .9rem;
+  font-size: .85rem;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
+  transition: all .15s ease;
 
-  &:hover {
-    background-color: #f1f5f9;
-    color: #1e293b;
-    border-color: #cbd5e1;
-  }
+  &:hover { background: var(--bg); color: var(--ink); }
 
   &.active {
-    background-color: #2563eb;
-    color: #ffffff;
-    border-color: #2563eb;
+    background: var(--accent-strong);
+    color: #fff;
+    border-color: var(--accent-strong);
+  }
 
-    .badge {
-      background-color: rgba(255, 255, 255, 0.2) !important;
-      color: #ffffff !important;
-    }
+  .badge {
+    font-size: .72rem;
   }
 }
 
-/* Mobile Card Styling */
-.mobile-notification-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* ============================================
+   Toolbar — search + type filter
+   ============================================ */
+.notification-layout .notification-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+.notification-layout .search-shell {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  border: 1px solid var(--select-border);
+  border-radius: 8px;
+  background: var(--bg);
+  padding: .6rem .85rem;
+  min-width: 0; // let it shrink instead of pushing the type filter off-panel
+
+  i { color: var(--muted); flex-shrink: 0; }
+
+  input {
+    border: 0;
+    outline: 0;
+    background: transparent;
+    width: 100%;
+    min-width: 0;
+    color: var(--ink);
+    font-size: .9rem;
+
+    &::placeholder { color: var(--muted); }
   }
 }
 
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+.notification-layout .form-select {
+  border: 1px solid var(--select-border);
+  border-radius: 8px;
+  font-size: .88rem;
+
+  &:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 .2rem rgba(73, 102, 200, .15);
+  }
+}
+
+/* ============================================
+   Loading / empty states — same class names +
+   behavior as company-dashboard's .loading-state
+   and equivalent .empty-state block, extended
+   here with an icon since this is a full-page
+   empty state rather than an inline panel note
+   ============================================ */
+.notification-layout .loading-state {
+  min-height: 12rem;
+  display: grid;
+  place-items: center;
+}
+
+.notification-layout .empty-state {
+  display: grid;
+  place-items: center;
+  gap: .6rem;
+  min-height: 14rem;
+  text-align: center;
+  color: var(--muted);
+  padding: 1.25rem 0;
+
+  h3 { margin: 0; color: var(--ink); font-size: 1.05rem; }
+  p { margin: 0; max-width: 380px; font-size: .88rem; }
+}
+
+.notification-layout .empty-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--blue-bg);
+  color: var(--blue-fg);
+  font-size: 1.25rem;
+}
+
+/* ============================================
+   Mobile cards — same border/shadow/radius
+   language as .metric-card / .panel, not a
+   separate "card" style
+   ============================================ */
+.notification-layout .mobile-notification-card {
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 1rem;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(31, 41, 55, .04);
+  margin-bottom: .75rem;
+
+  &:last-child { margin-bottom: 0; }
+}
+
+.notification-layout .notification-card-top,
+.notification-layout .notification-meta,
+.notification-layout .notification-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+}
+
+.notification-layout .notification-card-top {
+  justify-content: space-between;
+  margin-bottom: .75rem;
+}
+
+.notification-layout .mobile-notification-card h4 {
+  font-size: .95rem;
+  font-weight: 700;
+  margin: 0 0 .35rem;
+  color: var(--ink);
+}
+
+.notification-layout .mobile-notification-card p {
+  color: var(--muted);
+  margin: 0 0 .75rem;
+  font-size: .88rem;
+}
+
+.notification-layout .notification-meta {
+  color: var(--muted);
+  font-size: .8rem;
+  margin-bottom: .85rem;
+
+  i { margin-right: .3rem; }
+}
+
+.notification-layout .notification-actions { justify-content: flex-end; }
+
+/* ============================================
+   Desktop table — same stacked-card-to-table
+   pattern used in the assessments tab of
+   company-dashboard.scss (thead hidden + data
+   labels below md, real table above), so the
+   table language matches across both surfaces
+   ============================================ */
+.notification-layout .notification-table-shell {
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
   overflow: hidden;
 }
 
-.text-purple {
-  color: #7c3aed !important;
+.notification-layout .table {
+  margin-bottom: 0;
+  // Without this, the browser sizes each column to fit its
+  // longest unbroken content — since the message text has no
+  // width limit of its own, that made the "Notification" column
+  // (and the whole table) balloon far past the panel, pushing
+  // every other column off-screen and forcing a full-table
+  // horizontal scrollbar. Fixed layout makes columns respect the
+  // widths below instead, so overflow happens *inside* a cell
+  // (as an ellipsis) rather than expanding the table.
+  table-layout: fixed;
+  width: 100%;
 }
 
-.bg-purple-subtle {
-  background-color: #f3e8ff !important;
+.notification-layout .table thead {
+  background: var(--bg);
 }
 
-.text-purple-emphasis {
-  color: #6b21a8 !important;
+.notification-layout .table th {
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  border-bottom: 1px solid var(--line-strong);
 }
 
-.border-purple-subtle {
-  border-color: #d8b4fe !important;
+// Column widths — kept in one place so header/body stay aligned.
+// Adjust these percentages if columns feel cramped at your
+// actual data lengths; they should always sum to 100.
+.notification-layout .table th:nth-child(1),
+.notification-layout .table td:nth-child(1) { width: 34%; }
+.notification-layout .table th:nth-child(2),
+.notification-layout .table td:nth-child(2) { width: 18%; }
+.notification-layout .table th:nth-child(3),
+.notification-layout .table td:nth-child(3) { width: 12%; }
+.notification-layout .table th:nth-child(4),
+.notification-layout .table td:nth-child(4) { width: 16%; }
+.notification-layout .table th:nth-child(5),
+.notification-layout .table td:nth-child(5) { width: 20%; }
+
+.notification-layout .table td {
+  vertical-align: middle;
+  border-bottom: 1px solid var(--line);
+  font-size: .88rem;
+  // Fixed layout stops columns auto-sizing, but a cell's own
+  // flex/text children still need min-width: 0 or they'll keep
+  // trying to grow past the cell and get clipped without an
+  // ellipsis. This is the actual fix for the overflow.
+  overflow: hidden;
 }
 
-.type-icon-box {
-  width: 44px;
-  height: 44px;
+.notification-layout .table tr:last-child td { border-bottom: 0; }
+
+.notification-layout .table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .4rem;
+}
+
+.notification-layout .type-icon-box {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--blue-bg);
+  color: var(--blue-fg);
   flex-shrink: 0;
+}
+
+// The "Notification" cell wraps its icon + text in a flex row.
+// flex items default to min-width: auto (content-based), which
+// is what let the paragraph ignore .text-truncate and expand
+// the cell. min-width: 0 lets it actually shrink to the column.
+.notification-layout .table td:first-child > .d-flex {
+  min-width: 0;
+}
+
+.notification-layout .notification-title-cell {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.notification-layout .notification-title-cell p {
+  max-width: 100%;
+  // Reinforces Bootstrap's .text-truncate for this specific
+  // layout — belt-and-suspenders now that the cell has a real
+  // width to truncate against.
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notification-layout .notification-title-cell .d-flex {
+  min-width: 0;
+}
+
+/* ============================================
+   Type / status color helpers — mapped onto the
+   dashboard's exact blue/green/orange/purple
+   pairs, so a "Warning" badge here is the same
+   orange as the dashboard's "Top demand"
+   insight-card, not a one-off shade
+   ============================================ */
+.notification-layout .text-purple { color: var(--purple-fg) !important; }
+.notification-layout .bg-purple-subtle { background-color: var(--purple-bg) !important; }
+.notification-layout .text-purple-emphasis { color: var(--purple-fg) !important; }
+.notification-layout .border-purple-subtle { border-color: var(--purple-fg) !important; }
+
+.notification-layout .text-info-emphasis { color: var(--blue-fg) !important; }
+.notification-layout .bg-info-subtle { background-color: var(--blue-bg) !important; }
+.notification-layout .border-info-subtle { border-color: var(--blue-fg) !important; }
+
+.notification-layout .text-success-emphasis { color: var(--green-fg) !important; }
+.notification-layout .bg-success-subtle { background-color: var(--green-bg) !important; }
+.notification-layout .border-success-subtle { border-color: var(--green-fg) !important; }
+
+.notification-layout .text-warning-emphasis { color: var(--orange-fg) !important; }
+.notification-layout .bg-warning-subtle { background-color: var(--orange-bg) !important; }
+.notification-layout .border-warning-subtle { border-color: var(--orange-fg) !important; }
+
+.notification-layout .text-primary { color: var(--accent-strong) !important; }
+.notification-layout .text-success { color: var(--green-fg) !important; }
+
+/* ============================================
+   Schedule modal — same panel treatment, accent
+   token instead of stock Bootstrap primary
+   ============================================ */
+.notification-layout ~ .modal .modal-content,
+.modal-content {
+  border-radius: 14px;
+}
+
+.modal-content .btn-primary {
+  background-color: var(--accent-strong);
+  border-color: var(--accent-strong);
+
+  &:hover, &:focus {
+    background-color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  &:disabled {
+    background-color: var(--accent-strong);
+    border-color: var(--accent-strong);
+    opacity: .65;
+  }
+}
+
+.modal-content .modal-title i.text-primary {
+  color: var(--accent-strong) !important;
+}
+
+/* ============================================
+   Focus states — same outline treatment as
+   company-dashboard's tab/button focus rule
+   ============================================ */
+.notification-layout .status-pill-btn:focus-visible,
+.notification-layout .btn:focus-visible,
+.notification-layout .form-select:focus-visible,
+.notification-layout .search-shell input:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   Breakpoints — mobile-first, same stops as
+   company-dashboard.scss (640 / 900 / 1200)
+   ============================================ */
+@media (min-width: 640px) {
+  .notification-layout {
+    .dashboard-heading { flex-direction: row; align-items: center; justify-content: space-between; }
+    .dashboard-heading .btn-primary { width: auto; }
+
+    h1 { font-size: clamp(1.6rem, 2.4vw, 2.1rem); }
+
+    .panel { padding: 1.5rem; }
+
+    .notification-toolbar { flex-direction: row; align-items: center; }
+    .search-shell { flex: 1; min-width: 300px; }
+    .form-select { min-width: 200px;}
+  }
+}
+
+@media (min-width: 900px) {
+  .notification-layout .type-icon-box {
+    width: 2.9rem;
+    height: 2.9rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .notification-layout { padding: 0 .5rem; }
 }

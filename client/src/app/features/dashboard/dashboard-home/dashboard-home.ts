@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
-import { DashboardService } from '../../../core/services/dashboard.service';
+import { DashboardService, EmployeeNotification } from '../../../core/services/dashboard.service';
 import { AdminDashboardComponent } from '../../admin-dashboard/admin-dashboard';
 import { CompanyDashboard } from '../../company-dashboard/company-dashboard';
 
@@ -24,6 +24,10 @@ export class DashboardHome implements OnInit {
   
   // Employee stats
   readonly employeeStats = signal<any>(null);
+  readonly employeeNotifications = signal<EmployeeNotification[]>([]);
+  readonly notificationsLoading = signal(true);
+  readonly notificationsError = signal<string | null>(null);
+  readonly notificationFilter = signal<'recent' | 'unread' | 'read'>('recent');
   
   readonly loading = signal(true);
 
@@ -39,6 +43,7 @@ export class DashboardHome implements OnInit {
   isAdmin = computed(() => this.authService.isAdmin());
   isCompany = computed(() => this.authService.isCompany());
   isEmployee = computed(() => this.authService.isEmployee());
+  readonly unreadNotificationsCount = computed(() => this.employeeNotifications().filter((notification) => !notification.isRead).length);
 
   ngOnInit(): void {
     this.loadDashboardStats();
@@ -55,6 +60,7 @@ export class DashboardHome implements OnInit {
       this.loading.set(false);
     } else if (role === 'employee') {
       this.loadEmployeeStats();
+      this.loadEmployeeNotifications();
     } else {
       this.loading.set(false);
     }
@@ -88,6 +94,56 @@ export class DashboardHome implements OnInit {
           this.loading.set(false);
         }
       });
+  }
+
+  private loadEmployeeNotifications(): void {
+    this.notificationsLoading.set(true);
+    this.notificationsError.set(null);
+
+    this.dashboardService.getEmployeeNotifications(this.notificationFilter(), 1, 5)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          this.employeeNotifications.set(response.data?.notifications || []);
+          this.notificationsLoading.set(false);
+        },
+        error: (error) => {
+          console.error('Error loading employee notifications:', error);
+          this.notificationsError.set('Unable to load notifications right now.');
+          this.notificationsLoading.set(false);
+        }
+      });
+  }
+
+  markNotificationAsRead(notification: EmployeeNotification): void {
+    if (!notification._id || notification.isRead) return;
+
+    this.dashboardService.markEmployeeNotificationAsRead(notification._id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.employeeNotifications.update((list) => list.map((item) => item._id === notification._id ? { ...item, isRead: true } : item));
+        },
+        error: (error) => {
+          console.error('Error marking notification as read:', error);
+          this.notificationsError.set('Unable to update that notification.');
+        }
+      });
+  }
+
+  formatNotificationDate(value?: string | null): string {
+    if (!value) return 'Just now';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Just now';
+
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: false,
+    });
   }
 
   getRolePrefix(): string {

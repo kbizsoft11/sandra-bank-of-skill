@@ -20,7 +20,6 @@
   color: var(--ink);
   background: var(--bg);
   min-height: 100%;
-  padding: 1rem;
 }
 
 .company-dashboard * { box-sizing: border-box; }
@@ -526,7 +525,6 @@ select:focus-visible {
 
 /* ≥640px: two-column layouts, restore table as a table, wider paddings */
 @media (min-width: 640px) {
-  .company-dashboard { padding: 1.5rem; }
 
   .dashboard-heading { flex-direction: row; align-items: center; justify-content: space-between; }
   .dashboard-heading .btn { width: auto; }
@@ -568,9 +566,4 @@ select:focus-visible {
   .insight-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .chart-canvas, .chart-panel .empty-state { height: 260px; }
   .skill-row > span:first-child { width: auto; flex: 1; }
-}
-
-/* ≥1200px: cap the reading width so the dashboard doesn't stretch edge to edge */
-@media (min-width: 1200px) {
-  .company-dashboard { padding: 2rem 2.5rem; }
 }

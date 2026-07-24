@@ -943,6 +943,108 @@ export const markNotificationAsUnread = async (req: Request, res: Response) => {
 };
 
 /**
+ * GET /dashboard/employee/notifications
+ * Get employee notifications with filtering
+ */
+export const getEmployeeNotifications = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    if (!userId || userRole !== 'employee') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+    }
+
+    const filter = (req.query.filter as 'recent' | 'unread' | 'read') || 'recent';
+    const page = Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1);
+    const limit = Math.min(20, Math.max(1, parseInt(String(req.query.limit || '5'), 10) || 5));
+
+    const data = await AdminDashboardService.getEmployeeNotifications(userId, filter, page, limit);
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error: any) {
+    console.error('Error fetching employee notifications:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching notifications',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * PUT /dashboard/employee/notifications/:id/read
+ * Mark employee notification as read
+ */
+export const markEmployeeNotificationAsRead = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+    const notificationId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    if (!userId || userRole !== 'employee') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+    }
+
+    await AdminDashboardService.markEmployeeNotificationAsRead(notificationId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Notification marked as read',
+    });
+  } catch (error: any) {
+    console.error('Error marking employee notification as read:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error marking notification as read',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * PUT /dashboard/employee/notifications/:id/unread
+ * Mark employee notification as unread
+ */
+export const markEmployeeNotificationAsUnread = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+    const notificationId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    if (!userId || userRole !== 'employee') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+    }
+
+    await AdminDashboardService.markEmployeeNotificationAsUnread(notificationId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Notification marked as unread',
+    });
+  } catch (error: any) {
+    console.error('Error marking employee notification as unread:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error marking notification as unread',
+      error: error.message,
+    });
+  }
+};
+
+/**
  * GET /dashboard/admin/recent-activities
  * Get recent activities
  */
