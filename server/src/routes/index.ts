@@ -14,7 +14,8 @@ import waitlistRouter from './waitlist.route';
 import companySkillCategoryRoutes from './company-skill-category.route';
 import organisationRouter from './organisation.routes';
 import systemSettingsRouter from './system-settings.routes';
-import companyNotificationRoutes from './company-notification.route'
+import companyNotificationRoutes from './company-notification.route';
+import documentRouter from './document.route';
 
 const router = Router();
 
@@ -28,6 +29,7 @@ router.get('/', (_, res) => {
 router.use('/users', userRouter);
 router.use('/auth', authRouter);
 router.use('/waitlist', waitlistRouter);
+router.use('/documents', authenticate, documentRouter);
 router.use('/dashboard', authenticate, dashboardRoutes);
 router.use('/admin/global-search', authenticate, adminGlobalSearchRoutes);
 router.use('/skill-categories', authenticate, skillCategoryRoutes);

@@ -6,22 +6,12 @@
     <!-- Page Header -->
     <div class="pp-page-header">
       <div class="pp-page-header__title">
+        <p class="pp-eyebrow">Public profile</p>
         <h1>
           My Profile
           <span class="pp-badge">Public View</span>
         </h1>
         <p>Your Professional Identity At Bank Of Skill</p>
-      </div>
-
-      <div class="pp-page-header__actions">
-        <button class="pp-btn pp-btn--outline" (click)="shareProfile()">
-          <i class="bi bi-share"></i>
-          <span>Share Profile</span>
-        </button>
-        <button class="pp-btn pp-btn--primary" (click)="addSkill()">
-          <i class="bi bi-plus-lg"></i>
-          <span>Add Skills</span>
-        </button>
       </div>
     </div>
 
@@ -85,212 +75,598 @@
       </button>
     </div>
 
-    <!-- Stats Cards Section -->
-    <div class="pp-stats-grid">
-
-      <!-- Profile Completion -->
-      <div class="pp-card pp-stat-card">
-        <div class="pp-stat-card__label">Profile Completion</div>
-        <div class="pp-stat-card__chart">
-          <svg viewBox="0 0 36 36" class="pp-ring pp-ring--completion">
-            <path class="pp-ring__bg"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            />
-            <path class="pp-ring__fill"
-              [attr.stroke-dasharray]="profileCompletion() + ', 100'"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            />
-            <text x="18" y="20.35" class="pp-ring__text">{{ profileCompletion() }}%</text>
-          </svg>
-        </div>
-        <div class="pp-stat-card__sublabel">Complete</div>
-      </div>
-
-      <!-- Talent Score -->
-      <div class="pp-card pp-stat-card">
-        <div class="pp-stat-card__label">Talent Score</div>
-        <div class="pp-stat-card__chart">
-          <svg viewBox="0 0 36 36" class="pp-ring pp-ring--score">
-            <path class="pp-ring__bg"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            />
-            <path class="pp-ring__fill"
-              [attr.stroke-dasharray]="talentScore() + ', 100'"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            />
-            <text x="18" y="20.35" class="pp-ring__text">{{ talentScore() }}</text>
-          </svg>
-        </div>
-        <div class="pp-stat-card__sublabel">/100</div>
-      </div>
-
-      <!-- Skill Credits -->
-      <div class="pp-card pp-stat-card">
-        <div class="pp-stat-card__label">Skill Credits</div>
-        <div class="pp-stat-card__chart">
-          <svg viewBox="0 0 36 36" class="pp-ring pp-ring--credits">
-            <path class="pp-ring__bg"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            />
-            <path class="pp-ring__fill"
-              [attr.stroke-dasharray]="skillCredits() + ', 100'"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            />
-            <text x="18" y="20.35" class="pp-ring__text">{{ skillCredits() }}</text>
-          </svg>
-        </div>
-        <div class="pp-stat-card__sublabel">Available Credits</div>
-      </div>
-
-      <!-- Profile Reach -->
-      <div class="pp-card pp-stat-card">
-        <div class="pp-stat-card__label">Profile Reach</div>
-        <div class="pp-stat-card__chart">
-          <svg viewBox="0 0 36 36" class="pp-ring pp-ring--reach">
-            <path class="pp-ring__bg"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            />
-            <path class="pp-ring__fill"
-              [attr.stroke-dasharray]="profileReach() + ', 100'"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            />
-            <text x="18" y="20.35" class="pp-ring__text">{{ profileReach() }}%</text>
-          </svg>
-        </div>
-        <div class="pp-stat-card__sublabel">Reach</div>
-      </div>
-
-    </div>
-
     <!-- Navigation Tabs -->
     <div class="pp-tabs">
       <button
         class="pp-tab"
         [class.pp-tab--active]="activeTab() === 'overview'"
         (click)="setActiveTab('overview')">
+        <i class="bi bi-person-fill me-2"></i>
         Overview
       </button>
       <button
         class="pp-tab"
-        [class.pp-tab--active]="activeTab() === 'skills'"
-        (click)="setActiveTab('skills')">
-        Skills
+        [class.pp-tab--active]="activeTab() === 'change-password'"
+        (click)="setActiveTab('change-password')">
+        <i class="bi bi-shield-lock me-2"></i>
+        Change Password
       </button>
       <button
         class="pp-tab"
-        [class.pp-tab--active]="activeTab() === 'experience'"
-        (click)="setActiveTab('experience')">
-        Experience
+        [class.pp-tab--active]="activeTab() === 'account-activity'"
+        (click)="setActiveTab('account-activity')">
+        <i class="bi bi-activity me-2"></i>
+        Account Activity
       </button>
       <button
         class="pp-tab"
-        [class.pp-tab--active]="activeTab() === 'projects'"
-        (click)="setActiveTab('projects')">
-        Projects
-      </button>
-      <button
-        class="pp-tab"
-        [class.pp-tab--active]="activeTab() === 'education'"
-        (click)="setActiveTab('education')">
-        Education
-      </button>
-      <button
-        class="pp-tab"
-        [class.pp-tab--active]="activeTab() === 'achievements'"
-        (click)="setActiveTab('achievements')">
-        Achievements
+        [class.pp-tab--active]="activeTab() === 'upload-documents'"
+        (click)="setActiveTab('upload-documents')"
+        [hidden]="user()?.role === 'company'">
+        <i class="bi bi-cloud-upload me-2"></i>
+        Upload Documents
       </button>
     </div>
 
-    <!-- Content Section -->
-    <div class="pp-content-grid">
-
-      <!-- Top Strengths Card -->
-      <div class="pp-card pp-content-card">
-        <div class="pp-content-card__header">
-          <h3 class="pp-content-card__title">
-            <i class="bi bi-trophy-fill pp-icon-strength"></i>
-            Top Strengths
-          </h3>
-        </div>
-        <div class="pp-content-card__body">
-          <div class="pp-tags">
-            @for (strength of topStrengths(); track strength) {
-              <span class="pp-tag pp-tag--strength">{{ strength }}</span>
-            }
-          </div>
-        </div>
-      </div>
-
-      <!-- Interests Card -->
-      <div class="pp-card pp-content-card">
-        <div class="pp-content-card__header">
-          <h3 class="pp-content-card__title">
-            <i class="bi bi-heart-fill pp-icon-interest"></i>
-            Interests
-          </h3>
-        </div>
-        <div class="pp-content-card__body">
-          <div class="pp-tags">
-            @for (interest of interests(); track interest) {
-              <span class="pp-tag pp-tag--interest">{{ interest }}</span>
-            }
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Tab Content Placeholder -->
+    <!-- Tab Content -->
     <div class="pp-tab-content">
       @switch (activeTab()) {
         @case ('overview') {
-          <div class="pp-card pp-content-card">
-            <div class="pp-content-card__body">
-              <h4>Overview</h4>
-              <p class="pp-text-muted">Detailed overview content will be displayed here.</p>
+          <div class="pp-card">
+            <div class="pp-card-header">
+              <h3>Profile Overview</h3>
+              <p class="pp-text-muted">Your professional information and expertise</p>
+            </div>
+
+            <div class="pp-card-body">
+              <!-- About Section -->
+              <div class="overview-section">
+                <h4 class="overview-section-title">About</h4>
+                <p class="overview-text">
+                  {{ user()?.bio || 'No bio provided yet. Update your profile to add your professional bio.' }}
+                </p>
+              </div>
+
+              <!-- Contact Information -->
+              <div class="overview-section">
+                <h4 class="overview-section-title">Contact Information</h4>
+                <div class="overview-info-grid">
+                  <div class="info-item">
+                    <label class="info-label">Email</label>
+                    <p class="info-value">{{ user()?.email }}</p>
+                  </div>
+                  <div class="info-item">
+                    <label class="info-label">Title</label>
+                    <p class="info-value">{{ user()?.title || 'Not specified' }}</p>
+                  </div>
+                  <div class="info-item">
+                    <label class="info-label">Role</label>
+                    <p class="info-value">
+                      <span class="badge">{{ user()?.role | uppercase }}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Social Links -->
+              @if (user()?.socialLinks && (user()?.socialLinks?.facebook || user()?.socialLinks?.twitter || user()?.socialLinks?.linkedin)) {
+                <div class="overview-section">
+                  <h4 class="overview-section-title">Social Profiles</h4>
+                  <div class="social-links-grid">
+                    @if (user()?.socialLinks?.facebook) {
+                      <a [href]="user()?.socialLinks?.facebook" target="_blank" class="social-link">
+                        <i class="bi bi-facebook"></i>
+                        <span>Facebook</span>
+                      </a>
+                    }
+                    @if (user()?.socialLinks?.twitter) {
+                      <a [href]="user()?.socialLinks?.twitter" target="_blank" class="social-link">
+                        <i class="bi bi-twitter"></i>
+                        <span>Twitter</span>
+                      </a>
+                    }
+                    @if (user()?.socialLinks?.linkedin) {
+                      <a [href]="user()?.socialLinks?.linkedin" target="_blank" class="social-link">
+                        <i class="bi bi-linkedin"></i>
+                        <span>LinkedIn</span>
+                      </a>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Top Strengths -->
+              <div class="overview-section">
+                <h4 class="overview-section-title">
+                  <i class="bi bi-trophy-fill pp-icon-strength me-2"></i>
+                  Top Strengths
+                </h4>
+                <div class="pp-tags">
+                  @for (strength of topStrengths(); track strength) {
+                    <span class="pp-tag pp-tag--strength">{{ strength }}</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Interests -->
+              <div class="overview-section">
+                <h4 class="overview-section-title">
+                  <i class="bi bi-heart-fill pp-icon-interest me-2"></i>
+                  Interests
+                </h4>
+                <div class="pp-tags">
+                  @for (interest of interests(); track interest) {
+                    <span class="pp-tag pp-tag--interest">{{ interest }}</span>
+                  }
+                </div>
+              </div>
             </div>
           </div>
         }
-        @case ('skills') {
-          <div class="pp-card pp-content-card">
-            <div class="pp-content-card__body">
-              <h4>Skills</h4>
-              <p class="pp-text-muted">Skills content will be displayed here.</p>
+
+        @case ('change-password') {
+          <div class="pp-card">
+            <div class="pp-card-header">
+              <h3>Change Your Password</h3>
+              <p class="pp-text-muted">Update your password to keep your account secure</p>
+            </div>
+
+            <div class="pp-card-body">
+              @if (passwordSuccess()) {
+                <div class="alert alert-success">
+                  <i class="bi bi-check-circle-fill me-2"></i>{{ passwordSuccess() }}
+                </div>
+              }
+
+              @if (passwordError()) {
+                <div class="alert alert-danger">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ passwordError() }}
+                </div>
+              }
+
+              @if (!otpSent()) {
+                <div>
+                  <p class="pp-text-muted mb-3">A verification code will be sent to <strong>{{ user()?.email }}</strong></p>
+                  <button
+                    type="button"
+                    class="pp-btn pp-btn--primary"
+                    (click)="requestPasswordOtp()"
+                    [disabled]="isSendingOtp()">
+                    @if (isSendingOtp()) {
+                      <span class="spinner-border spinner-border-sm me-2"></span>
+                      Sending Code...
+                    } @else {
+                      <i class="bi bi-envelope-fill me-2"></i>
+                      Send Verification Code
+                    }
+                  </button>
+                </div>
+              } @else {
+                <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+                  <!-- OTP -->
+                  <div class="form-group">
+                    <label class="form-label">Verification Code *</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="otp"
+                      placeholder="Enter 6-digit code"
+                      maxlength="6"
+                      inputmode="numeric">
+                    @if (passwordForm.get('otp')?.invalid && passwordForm.get('otp')?.touched) {
+                      <div class="form-error">
+                        @if (passwordForm.get('otp')?.errors?.['required']) {
+                          <span>Verification code is required</span>
+                        }
+                        @if (passwordForm.get('otp')?.errors?.['pattern']) {
+                          <span>Code must be 6 digits</span>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <!-- New Password -->
+                  <div class="form-group">
+                    <label class="form-label">New Password *</label>
+                    <input
+                      type="password"
+                      class="form-control"
+                      formControlName="newPassword"
+                      placeholder="Enter new password (min 8 characters)">
+                    @if (passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched) {
+                      <div class="form-error">
+                        @if (passwordForm.get('newPassword')?.errors?.['required']) {
+                          <span>New password is required</span>
+                        }
+                        @if (passwordForm.get('newPassword')?.errors?.['minlength']) {
+                          <span>Password must be at least 8 characters</span>
+                        }
+                        @if (passwordForm.get('newPassword')?.errors?.['passwordStrength']) {
+                          <span>Password must contain uppercase, lowercase, and numbers</span>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Confirm Password -->
+                  <div class="form-group">
+                    <label class="form-label">Confirm Password *</label>
+                    <input
+                      type="password"
+                      class="form-control"
+                      formControlName="confirmPassword"
+                      placeholder="Confirm new password">
+                    @if (passwordForm.get('confirmPassword')?.invalid && passwordForm.get('confirmPassword')?.touched) {
+                      <div class="form-error">
+                        @if (passwordForm.get('confirmPassword')?.errors?.['required']) {
+                          <span>Please confirm your password</span>
+                        }
+                      </div>
+                    }
+                    @if (passwordForm.errors?.['passwordMismatch'] && passwordForm.get('confirmPassword')?.touched) {
+                      <div class="form-error">
+                        <span>Passwords do not match</span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="form-actions">
+                    <button
+                      type="button"
+                      class="pp-btn pp-btn--outline"
+                      (click)="otpSent.set(false)">
+                      <i class="bi bi-arrow-left me-2"></i>
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      class="pp-btn pp-btn--primary"
+                      [disabled]="isChangingPassword() || passwordForm.invalid">
+                      @if (isChangingPassword()) {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        Updating...
+                      } @else {
+                        <i class="bi bi-check-lg me-2"></i>
+                        Update Password
+                      }
+                    </button>
+                  </div>
+                </form>
+              }
             </div>
           </div>
         }
-        @case ('experience') {
-          <div class="pp-card pp-content-card">
-            <div class="pp-content-card__body">
-              <h4>Experience</h4>
-              <p class="pp-text-muted">Experience content will be displayed here.</p>
+
+        @case ('account-activity') {
+          <div class="pp-card">
+            <div class="pp-card-header">
+              <h3>Account Activity</h3>
+              <p class="pp-text-muted">Track all activities on your account (login, logout, profile updates, etc.)</p>
+            </div>
+
+            <div class="pp-card-body">
+              @if (isLoadingAccountActivity()) {
+                <div class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              } @else if (allActivities().length > 0) {
+                <div class="activity-list">
+                  @for (activity of allActivities(); track activity._id) {
+                    <div class="activity-item">
+                      <div class="activity-icon" [ngClass]="getActivityColor(activity.activityType)">
+                        <i [ngClass]="getActivityIcon(activity.activityType)"></i>
+                      </div>
+                      <div class="activity-details">
+                        <div class="activity-title">
+                          {{ activity.description }}
+                          <span class="activity-type-badge" [ngClass]="getActivityBadge(activity.activityType)">
+                            {{ activity.activityType | uppercase }}
+                          </span>
+                        </div>
+                        @if (activity.details) {
+                          <div class="activity-description">
+                            @if (activity.details.changedFields) {
+                              <small>Changed: {{ activity.details.changedFields.join(', ') }}</small>
+                            }
+                            @if (activity.details.status) {
+                              <small class="text-muted">
+                                <i class="bi bi-info-circle"></i> 
+                                Status: {{ activity.details.status }}
+                              </small>
+                            }
+                            @if (activity.details.profileImage) {
+                              <small class="text-muted">
+                                <i class="bi bi-image"></i> 
+                                Profile picture updated
+                              </small>
+                            }
+                            @if (activity.details.ipAddress) {
+                              <small class="text-muted">
+                                <i class="bi bi-globe"></i> 
+                                IP: {{ activity.details.ipAddress }}
+                              </small>
+                            }
+                            @if (activity.details.device) {
+                              <small class="text-muted">
+                                <i class="bi bi-phone"></i> 
+                                {{ activity.details.device }}
+                              </small>
+                            }
+                            @if (activity.details.browser) {
+                              <small class="text-muted">
+                                <i class="bi bi-browser-chrome"></i> 
+                                {{ activity.details.browser }}
+                              </small>
+                            }
+                          </div>
+                        }
+                        @if (activity.status) {
+                          <div class="activity-status">
+                            <span class="badge" [ngClass]="'badge-' + (activity.status === 'completed' ? 'success' : 'info')">
+                              {{ activity.status | uppercase }}
+                            </span>
+                          </div>
+                        }
+                      </div>
+                      <div class="activity-time">
+                        <small class="text-muted">{{ activity.timestamp | date:'short' }}</small>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="empty-state">
+                  <i class="bi bi-inbox"></i>
+                  <p>No activity history available</p>
+                </div>
+              }
             </div>
           </div>
         }
-        @case ('projects') {
-          <div class="pp-card pp-content-card">
-            <div class="pp-content-card__body">
-              <h4>Projects</h4>
-              <p class="pp-text-muted">Projects content will be displayed here.</p>
+
+        @case ('upload-documents') {
+          @if (user()?.role !== 'company') {
+            <div class="pp-card">
+              <div class="pp-card-header">
+                <div>
+                  <h3>Document Requirements</h3>
+                  <p class="pp-text-muted">Upload documents and save as drafts. Click "Submit All for Review" when ready to send for verification.</p>
+                </div>
+              </div>
+
+              <div class="pp-card-body">
+                @if (isLoadingDocuments()) {
+                  <div class="text-center py-5">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <p class="text-muted mt-3">Loading document requirements...</p>
+                  </div>
+                } @else if (documentRequirements().length > 0) {
+                  <!-- Document Requirements List -->
+                  <div class="document-requirements-list">
+                    @for (requirement of documentRequirements(); track requirement.requirement._id) {
+                      <div class="document-requirement-item">
+                        <!-- Left: Document Info -->
+                        <div class="requirement-main">
+                          <div class="requirement-title-section">
+                            <h6 class="requirement-name">
+                              {{ requirement.requirement.documentType }}
+                              @if (requirement.requirement.isRequired) {
+                                <span class="badge badge-sm bg-danger ms-2">Required</span>
+                              }
+                            </h6>
+                            <p class="requirement-desc">{{ requirement.requirement.description }}</p>
+                            <div class="requirement-meta">
+                              <span class="meta-item">
+                                <i class="bi bi-file-earmark-text"></i>
+                                {{ requirement.requirement.acceptedFormats.join(', ').toUpperCase() }}
+                              </span>
+                              <span class="meta-item">
+                                <i class="bi bi-hdd"></i>
+                                Max {{ formatFileSize(requirement.requirement.maxFileSize) }}
+                              </span>
+                            </div>
+                          </div>
+
+                          <!-- Status & Actions -->
+                          <div class="requirement-status-actions">
+                            <!-- Status Badge -->
+                            <div class="status-section">
+                              @switch (requirement.uploadStatus) {
+                                @case ('pending_upload') {
+                                  <span class="status-badge status-pending">
+                                    <i class="bi bi-clock"></i>
+                                    Pending Upload
+                                  </span>
+                                }
+                                @case ('uploaded') {
+                                  <span class="status-badge status-uploaded">
+                                    <i class="bi bi-hourglass-split"></i>
+                                    Uploaded
+                                  </span>
+                                }
+                                @case ('under_review') {
+                                  <span class="status-badge status-review">
+                                    <i class="bi bi-eye"></i>
+                                    Under Review
+                                  </span>
+                                }
+                                @case ('verified') {
+                                  <span class="status-badge status-verified">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    Verified
+                                  </span>
+                                }
+                                @case ('rejected') {
+                                  <span class="status-badge status-rejected">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                    Rejected
+                                  </span>
+                                }
+                              }
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="actions-section">
+                              @if (requirement.document) {
+                                <!-- View Button -->
+                                <button
+                                  type="button"
+                                  class="btn-icon btn-view"
+                                  (click)="viewDocument(requirement.document)"
+                                  title="View document">
+                                  <i class="bi bi-eye"></i>
+                                </button>
+
+                                <!-- Delete Button (only if can modify) -->
+                                @if (canModifyDocument(requirement.uploadStatus)) {
+                                  <button
+                                    type="button"
+                                    class="btn-icon btn-delete"
+                                    (click)="deleteRequirementDocument(requirement.document._id)"
+                                    [disabled]="isUploadingDocument()"
+                                    title="Delete document">
+                                    <i class="bi bi-trash"></i>
+                                  </button>
+                                }
+                              }
+
+                              <!-- Upload Button (only if can modify) -->
+                              @if (canModifyDocument(requirement.uploadStatus)) {
+                                <label
+                                  [for]="'file-' + requirement.requirement._id"
+                                  class="btn-icon btn-upload"
+                                  [class.disabled]="isUploadingDocument()"
+                                  title="Upload document">
+                                  <i class="bi bi-cloud-upload"></i>
+                                  <input
+                                    type="file"
+                                    [id]="'file-' + requirement.requirement._id"
+                                    class="d-none"
+                                    (change)="onRequirementFileSelected($event, requirement.requirement._id)"
+                                    [accept]="requirement.requirement.acceptedFormats.map(f => '.' + f).join(',')"
+                                    [disabled]="isUploadingDocument()">
+                                </label>
+
+                                @if (selectedRequirementFiles()[requirement.requirement._id]) {
+                                  <!-- <button
+                                    type="button"
+                                    class="btn-icon btn-save"
+                                    (click)="uploadRequirementDocument(requirement.requirement._id)"
+                                    [disabled]="isUploadingDocument()"
+                                    title="Save as draft">
+                                    @if (isUploadingDocument()) {
+                                      <span class="spinner-border spinner-border-sm"></span>
+                                    } @else {
+                                      <i class="bi bi-check2"></i>
+                                    }
+                                  </button> -->
+                                }
+                              }
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Selected File Indicator -->
+                        @if (selectedRequirementFiles()[requirement.requirement._id] && canModifyDocument(requirement.uploadStatus)) {
+                          <div class="file-selected-indicator">
+                            <i class="bi bi-paperclip"></i>
+                            <span>{{ selectedRequirementFiles()[requirement.requirement._id].name }}</span>
+                            <small>({{ formatFileSize(selectedRequirementFiles()[requirement.requirement._id].size) }})</small>
+                            <span class="ms-2 text-muted small">• Click ✓ to save as draft</span>
+                          </div>
+                        }
+
+                        <!-- Uploaded File Info -->
+                        @if (requirement.document) {
+                          <div class="uploaded-file-info">
+                            <div class="file-info-row">
+                              <span class="label"><i class="bi bi-file-earmark"></i> File:</span>
+                              <span class="value">{{ requirement.document.fileName }}</span>
+                            </div>
+                            <div class="file-info-row">
+                              <span class="label"><i class="bi bi-calendar-event"></i> Uploaded:</span>
+                              <span class="value">{{ requirement.document.uploadedAt | date:'medium' }}</span>
+                            </div>
+                            @if (requirement.uploadStatus === 'rejected' && requirement.document?.verificationNotes) {
+                              <div class="file-info-row rejection-note">
+                                <span class="label"><i class="bi bi-exclamation-triangle"></i> Rejection Reason:</span>
+                                <span class="value">{{ requirement.document.verificationNotes }}</span>
+                              </div>
+                            }
+                          </div>
+                        }
+
+                        <!-- Locked Message -->
+                        @if (!canModifyDocument(requirement.uploadStatus) && requirement.document) {
+                          <div class="locked-message">
+                            <i class="bi bi-lock-fill"></i>
+                            @if (requirement.uploadStatus === 'under_review') {
+                              <span>This document is under review and cannot be modified until the company completes the verification.</span>
+                            } @else if (requirement.uploadStatus === 'verified') {
+                              <span>This document has been verified and locked. No further action needed.</span>
+                            }
+                          </div>
+                        }
+                        
+                        <!-- Rejection Notice (still allows editing) -->
+                        @if (requirement.uploadStatus === 'rejected' && requirement.document?.verificationNotes) {
+                          <div class="rejection-notice">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <div>
+                              <strong>Document Rejected:</strong>
+                              <p>{{ requirement.document.verificationNotes }}</p>
+                              <small>Please upload a corrected version above.</small>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Save Draft / Submit Review Buttons -->
+                  <div class="document-submit-section" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e9ecef; display: flex; flex-wrap: wrap; gap: 0.75rem;">
+                    <button
+                      class="btn d-inline-flex align-items-center gap-2"
+                      [ngClass]="canSaveAllDrafts() ? 'btn-outline-primary' : 'btn-secondary'"
+                      (click)="saveAllDrafts()"
+                      [disabled]="!canSaveAllDrafts() || isSavingAllDrafts()"
+                      [title]="canSaveAllDrafts() ? 'Save all selected documents as drafts' : 'Select documents to save as drafts'">
+                      @if (isSavingAllDrafts()) {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Saving...</span>
+                      } @else {
+                        <i class="bi bi-journal-plus"></i>
+                        <span>Save All as Draft</span>
+                      }
+                    </button>
+
+                    <button
+                      class="btn d-inline-flex align-items-center gap-2"
+                      [ngClass]="canSubmitForReview() ? 'btn-success' : 'btn-secondary'"
+                      (click)="submitAllForReview()"
+                      [disabled]="!canSubmitForReview() || isSubmittingForReview()"
+                      [title]="canSubmitForReview() ? 'Submit all documents for company review' : 'Upload all required documents before submitting'">
+                      @if (isSubmittingForReview()) {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Submitting...</span>
+                      } @else {
+                        <i class="bi bi-send-check-fill"></i>
+                        <span>Submit All for Review</span>
+                      }
+                    </button>
+                  </div>
+                } @else {
+                  <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <p>No document requirements found</p>
+                    <small class="text-muted">Your company has not set up any document requirements yet</small>
+                  </div>
+                }
+              </div>
             </div>
-          </div>
-        }
-        @case ('education') {
-          <div class="pp-card pp-content-card">
-            <div class="pp-content-card__body">
-              <h4>Education</h4>
-              <p class="pp-text-muted">Education content will be displayed here.</p>
-            </div>
-          </div>
-        }
-        @case ('achievements') {
-          <div class="pp-card pp-content-card">
-            <div class="pp-content-card__body">
-              <h4>Achievements</h4>
-              <p class="pp-text-muted">Achievements content will be displayed here.</p>
-            </div>
-          </div>
+          }
         }
       }
     </div>
@@ -459,7 +835,7 @@
         </div>
 
         <div class="modal-body">
-          
+
           <!-- Image Preview -->
           <div class="image-upload-area">
             @if (imagePreview()) {

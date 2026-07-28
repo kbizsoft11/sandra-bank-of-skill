@@ -18,6 +18,8 @@ import {
     updateProfileSchema,
     searchEmployeesQuerySchema,
     allActivitiesQuerySchema,
+    changePasswordRequestSchema,
+    changePasswordVerifySchema,
 } from '../validators/user.validator';
 
 import { upload, importUpload } from '../utils/file-upload';
@@ -39,10 +41,38 @@ router.put(
 );
 
 router.post(
+    '/me/change-password/request-otp',
+    authenticate,
+    validate(changePasswordRequestSchema),
+    userController.requestPasswordChangeOtp
+);
+
+router.post(
+    '/me/change-password/verify',
+    authenticate,
+    validate(changePasswordVerifySchema),
+    userController.verifyPasswordChangeOtp
+);
+
+router.post(
     '/me/profile-picture',
     authenticate,
     upload.single('profileImage'),
     userController.updateProfilePicture
+);
+
+router.get(
+    '/me/login-history',
+    authenticate,
+    validateQuery(allActivitiesQuerySchema),
+    userController.getMyLoginHistory
+);
+
+router.get(
+    '/me/account-activity',
+    authenticate,
+    validateQuery(allActivitiesQuerySchema),
+    userController.getMyAccountActivity
 );
 
 // Get all users - filtered by role

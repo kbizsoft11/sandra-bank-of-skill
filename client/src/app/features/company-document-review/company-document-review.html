@@ -1,0 +1,263 @@
+<div class="doc-review-shell">
+  <!-- Header -->
+  <header class="dr-heading">
+    <div>
+      <p class="eyebrow">Verification workspace</p>
+      <h1>Document Review</h1>
+      <p class="subtitle">Review and verify employee uploaded documents</p>
+    </div>
+  </header>
+
+  <!-- Filters -->
+  <div class="panel filter-panel">
+    <div class="filter-grid">
+      <div class="filter-field">
+        <label class="form-label">Status</label>
+        <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="form-select form-select-sm">
+          <option value="">All Status</option>
+          <option value="pending_upload">Pending Upload</option>
+          <option value="uploaded">Uploaded</option>
+          <option value="under_review">Under Review</option>
+          <option value="verified">Verified</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+
+      <div class="filter-field">
+        <label class="form-label">Document Type</label>
+        <input
+          type="text"
+          [(ngModel)]="selectedDocType"
+          (change)="applyFilters()"
+          class="form-control form-control-sm"
+          placeholder="e.g., Resume, Certificate">
+      </div>
+
+      <div class="filter-actions">
+        <button (click)="clearFilters()" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-x-circle me-1"></i>
+          Clear Filters
+        </button>
+        <button (click)="applyFilters()" class="btn btn-sm btn-primary">
+          <i class="bi bi-search me-1"></i>
+          Apply Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="panel table-panel">
+    <app-data-table
+      [columns]="columns"
+      [data]="documents()"
+      [serverSide]="true"
+      [totalItems]="totalItems"
+      [loading]="isLoading()"
+      [searchable]="true"
+      searchPlaceholder="Search documents..."
+      [emptyMessage]="'No documents found'"
+      (searchChange)="onSearch($event)"
+      (sortChange)="onSort($event)"
+      (pageChange)="onPage($event)"
+      (pageSizeChange)="onPageSize($event)"
+    >
+      <!-- Preview Column -->
+      <ng-template appTableCol="preview" let-doc>
+        <div class="document-preview-wrapper" (click)="viewDocument(doc)" title="Click to view document">
+          @if (isImageFile(doc)) {
+            <img 
+              [src]="getDocumentPreviewUrl(doc)" 
+              [alt]="doc.fileName"
+              class="document-preview-image"
+              (error)="$event.target.src = 'assets/images/image-placeholder.png'">
+          } @else if (isPdfFile(doc)) {
+            <div class="document-preview-pdf">
+              <i class="bi bi-file-pdf-fill text-danger"></i>
+            </div>
+          } @else {
+            <div class="document-preview-file">
+              <i class="bi bi-file-earmark-fill text-secondary"></i>
+            </div>
+          }
+        </div>
+      </ng-template>
+
+      <!-- Employee Column -->
+      <ng-template appTableCol="employee" let-doc>
+        <div class="d-flex align-items-center gap-2">
+          <div class="user-avatar">
+            {{ getEmployeeDisplayName(doc).charAt(0)?.toUpperCase() || '?' }}
+          </div>
+          <span class="fw-medium">{{ getEmployeeDisplayName(doc) }}</span>
+        </div>
+      </ng-template>
+
+      <!-- Document Type Column -->
+      <ng-template appTableCol="documentType" let-doc>
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-file-earmark-text text-primary"></i>
+          <div>
+            <div class="fw-medium">{{ doc.documentType }}</div>
+            <small class="text-muted">{{ doc.fileName }}</small>
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- Uploaded At Column -->
+      <ng-template appTableCol="uploadedAt" let-doc>
+        <small class="text-muted-soft">{{ doc.uploadedAt | date:'short' }}</small>
+      </ng-template>
+
+      <!-- Status Column -->
+      <ng-template appTableCol="verificationStatus" let-doc>
+        <span class="badge" [ngClass]="getStatusBadgeClass(doc.verificationStatus)">
+          <i class="bi me-1" [ngClass]="getStatusIcon(doc.verificationStatus)"></i>
+          {{ formatStatus(doc.verificationStatus) }}
+        </span>
+      </ng-template>
+
+      <!-- Actions Column -->
+      <!-- Actions Column -->
+      <ng-template appTableCol="actions" let-doc>
+        <div class="d-flex align-items-center justify-content-end gap-2">
+          @if (doc.verificationStatus !== 'verified') {
+            <div class="dropdown">
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                title="Actions">
+                <i class="bi bi-three-dots"></i>
+              </button>
+
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li>
+                  <button type="button" class="dropdown-item d-flex align-items-center gap-2" (click)="openVerifyModal(doc, 'verify')">
+                    <i class="bi bi-check-circle text-success"></i>
+                    <span>Verify</span>
+                  </button>
+                </li>
+                <li>
+                  <button type="button" class="dropdown-item d-flex align-items-center gap-2" (click)="openVerifyModal(doc, 'review')">
+                    <i class="bi bi-eye text-info"></i>
+                    <span>Mark Under Review</span>
+                  </button>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <button type="button" class="dropdown-item d-flex align-items-center gap-2" (click)="openVerifyModal(doc, 'reject')">
+                    <i class="bi bi-x-circle text-danger"></i>
+                    <span>Reject</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+          } @else {
+            <span class="badge bg-success-subtle text-success">
+              <i class="bi bi-check-circle me-1"></i>
+              Verified
+            </span>
+          }
+        </div>
+      </ng-template>
+    </app-data-table>
+  </div>
+</div>
+
+<!-- Verify/Reject Modal -->
+@if (showVerifyModal() && selectedDocument()) {
+  <div class="modal-overlay" (click)="closeVerifyModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>
+          @switch (verifyForm.get('verificationStatus')?.value) {
+            @case ('verified') { Verify Document }
+            @case ('rejected') { Reject Document }
+            @case ('under_review') { Mark as Under Review }
+          }
+        </h3>
+        <button class="modal-close" (click)="closeVerifyModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Document Info -->
+        <div class="doc-info-card">
+          <span class="doc-info-icon"><i class="bi bi-file-earmark-text"></i></span>
+          <div class="flex-grow-1">
+            <div class="fw-semibold">{{ selectedDocument().documentType }}</div>
+            <div class="small text-muted-soft">{{ selectedDocument().fileName }}</div>
+            <div class="small text-muted-soft">Uploaded: {{ selectedDocument().uploadedAt | date:'medium' }}</div>
+          </div>
+        </div>
+
+        <form [formGroup]="verifyForm" (ngSubmit)="submitVerification()">
+          <!-- Verification Status (hidden, controlled by action) -->
+          <input type="hidden" formControlName="verificationStatus">
+
+          <!-- Verification Notes -->
+          <div class="form-group">
+            <label class="form-label">
+              Notes
+              @if (verifyForm.get('verificationStatus')?.value === 'rejected') {
+                <span class="required-mark">*</span>
+              }
+            </label>
+            <textarea
+              class="form-control"
+              formControlName="verificationNotes"
+              rows="4"
+              [placeholder]="verifyForm.get('verificationStatus')?.value === 'rejected'
+                ? 'Please provide a reason for rejection...'
+                : 'Optional notes about this verification...'">
+            </textarea>
+            @if (verifyForm.get('verificationNotes')?.invalid && verifyForm.get('verificationNotes')?.touched) {
+              <small class="form-error">
+                @if (verifyForm.get('verificationNotes')?.errors?.['maxlength']) {
+                  Notes must not exceed 1000 characters
+                }
+              </small>
+            }
+            <small class="text-muted-soft d-block mt-1">
+              {{ verifyForm.get('verificationNotes')?.value?.length || 0 }} / 1000 characters
+            </small>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="closeVerifyModal()"
+          [disabled]="isVerifying()">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn"
+          [ngClass]="{
+            'btn-verify': verifyForm.get('verificationStatus')?.value === 'verified',
+            'btn-reject': verifyForm.get('verificationStatus')?.value === 'rejected',
+            'btn-review': verifyForm.get('verificationStatus')?.value === 'under_review'
+          }"
+          [disabled]="isVerifying() || verifyForm.invalid"
+          (click)="submitVerification()">
+          @if (isVerifying()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            Processing...
+          } @else {
+            @switch (verifyForm.get('verificationStatus')?.value) {
+              @case ('verified') { <i class="bi bi-check-circle me-2"></i>Verify Document }
+              @case ('rejected') { <i class="bi bi-x-circle me-2"></i>Reject Document }
+              @case ('under_review') { <i class="bi bi-eye me-2"></i>Mark Under Review }
+            }
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,11 +1,13 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { take } from 'rxjs';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
 import { AuthService } from '../../core/services/auth.service';
 import { DashboardService, EmployeeNotification } from '../../core/services/dashboard.service';
+import { DocumentService } from '../../core/services/document.service';
 
 Chart.register(...registerables);
 
@@ -17,16 +19,32 @@ export interface SkillItem {
   interestLevel: number;
 }
 
+export interface Document {
+  _id: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  documentType: string;
+  description?: string;
+  uploadedAt: Date;
+  verificationStatus: 'pending' | 'verified' | 'rejected';
+  verifiedBy?: string;
+  verificationDate?: Date;
+  verificationNotes?: string;
+  filePath?: string;
+}
+
 @Component({
   selector: 'app-employee-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './employee-dashboard.html',
   styleUrl: './employee-dashboard.scss',
 })
 export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly dashboardService = inject(DashboardService);
+  private readonly documentService = inject(DocumentService);
 
   @ViewChild('skillDistributionChart') skillDistributionChart?: ElementRef<HTMLCanvasElement>;
   @ViewChild('topSkillsChart') topSkillsChart?: ElementRef<HTMLCanvasElement>;
@@ -40,6 +58,17 @@ export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
   readonly notificationsError = signal<string | null>(null);
   readonly notificationFilter = signal<'recent' | 'unread' | 'read'>('recent');
   readonly loading = signal(true);
+
+  // Document-related signals
+  readonly documents = signal<Document[]>([]);
+  readonly documentSummary = signal<any>(null);
+  readonly documentsLoading = signal(true);
+  readonly documentsError = signal<string | null>(null);
+  readonly uploadingDocument = signal(false);
+  readonly showDocumentUploadForm = signal(false);
+  readonly selectedFile = signal<File | null>(null);
+  readonly documentDescription = signal('');
+  readonly selectedDocumentType = signal('resume');
 
   readonly unreadNotificationsCount = computed(() =>
     this.employeeNotifications().filter((notification) => !notification.isRead).length,
@@ -87,6 +116,8 @@ export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.loadEmployeeStats();
     this.loadEmployeeNotifications();
+    this.loadDocuments();
+    this.loadDocumentSummary();
   }
 
   ngAfterViewInit(): void {
@@ -426,5 +457,143 @@ export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
     if (normalized === 'completed') return 'text-success';
     if (normalized === 'in_progress') return 'text-warning';
     return 'text-muted';
+  }
+
+  // Document-related methods
+  private loadDocuments(): void {
+    this.documentsLoading.set(true);
+    this.documentsError.set(null);
+
+    this.documentService.getMyDocuments()
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.documents.set(response.data);
+          }
+          this.documentsLoading.set(false);
+        },
+        error: (error) => {
+          console.error('Error loading documents:', error);
+          this.documentsError.set('Failed to load documents');
+          this.documentsLoading.set(false);
+        }
+      });
+  }
+
+  private loadDocumentSummary(): void {
+    this.documentService.getDocumentSummary()
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.documentSummary.set(response.data);
+          }
+        },
+        error: (error) => {
+          console.error('Error loading document summary:', error);
+        }
+      });
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files?.[0];
+    if (file) {
+      this.selectedFile.set(file);
+    }
+  }
+
+  uploadDocument(): void {
+    const file = this.selectedFile();
+    const docType = this.selectedDocumentType();
+    const description = this.documentDescription();
+
+    if (!file || !docType) {
+      this.documentsError.set('Please select a file and document type');
+      return;
+    }
+
+    this.uploadingDocument.set(true);
+    this.documentsError.set(null);
+
+    this.documentService.uploadDocument(file, docType, description)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.documents.update((docs) => [response.data, ...docs]);
+            this.loadDocumentSummary();
+            this.showDocumentUploadForm.set(false);
+            this.resetDocumentForm();
+            this.uploadingDocument.set(false);
+          }
+        },
+        error: (error) => {
+          console.error('Error uploading document:', error);
+          this.documentsError.set(error.error?.message || 'Failed to upload document');
+          this.uploadingDocument.set(false);
+        }
+      });
+  }
+
+  deleteDocument(documentId: string): void {
+    if (!confirm('Are you sure you want to delete this document?')) {
+      return;
+    }
+
+    this.documentService.deleteDocument(documentId)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.documents.update((docs) => docs.filter((doc) => doc._id !== documentId));
+          this.loadDocumentSummary();
+        },
+        error: (error) => {
+          console.error('Error deleting document:', error);
+          this.documentsError.set('Failed to delete document');
+        }
+      });
+  }
+
+  viewDocument(document: Document): void {
+    this.documentService.viewFile(document.filePath || '', document.fileName);
+  }
+
+  resetDocumentForm(): void {
+    this.selectedFile.set(null);
+    this.documentDescription.set('');
+    this.selectedDocumentType.set('resume');
+  }
+
+  getVerificationStatusClass(status: string): string {
+    switch (status) {
+      case 'verified':
+        return 'badge-success';
+      case 'rejected':
+        return 'badge-danger';
+      case 'pending':
+      default:
+        return 'badge-warning';
+    }
+  }
+
+  getVerificationStatusIcon(status: string): string {
+    switch (status) {
+      case 'verified':
+        return 'bi-check-circle-fill';
+      case 'rejected':
+        return 'bi-x-circle-fill';
+      case 'pending':
+      default:
+        return 'bi-clock-history';
+    }
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   }
 }

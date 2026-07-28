@@ -202,3 +202,36 @@ export const login = asyncHandler(
     );
   }
 );
+
+/**
+ * Logout
+ * POST /api/auth/logout
+ */
+export const logout = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+    const userFullName = req.user?.fullName || 'User';
+    const tenantId = req.user?.tenantId;
+    const organisationId = req.user?.organisationId;
+
+    if (userId) {
+      const AdminDashboardService = require('../services/admin-dashboard.service');
+      await AdminDashboardService.createActivity(
+        userId,
+        userFullName,
+        'Logged out successfully',
+        'logout',
+        {
+          tenantId,
+          organisationId,
+        }
+      );
+    }
+
+    return sendResponse(
+      res,
+      200,
+      'Logout successful'
+    );
+  }
+);

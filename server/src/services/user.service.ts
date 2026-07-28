@@ -9,7 +9,8 @@ import { userRepository } from '../repositories/user.repository';
 import { ActivityModel } from '../models/activity.model';
 
 import { hashPassword, generateRandomPassword } from '../utils/password';
-import { sendInvitationEmail, sendInvitationLinkEmail, sendPasswordResetNotificationEmail } from './email.service';
+import { sendInvitationEmail, sendInvitationLinkEmail, sendPasswordResetNotificationEmail, sendVerificationEmail } from './email.service';
+import { generateOTP, hashOTP, compareOTP, getOTPExpiry, isOTPExpired } from '../utils/otp.util';
 import { deleteOldProfileImage } from '../utils/file-upload';
 import path from 'path';
 import { AccountStatus } from '../types/common.types';
@@ -192,6 +193,7 @@ export const userService = {
     endDate?: string;
     userRole?: string;
     userTenantId?: string;
+    excludeLoginLogout?: boolean;
   }) => {
     const {
       employeeId,
@@ -205,6 +207,7 @@ export const userService = {
       endDate,
       userRole,
       userTenantId,
+      excludeLoginLogout = false,
     } = params;
 
     return await userService.getAllActivities({
@@ -219,6 +222,7 @@ export const userService = {
       endDate,
       userRole,
       userTenantId,
+      excludeLoginLogout,
     });
   },
 
@@ -237,9 +241,10 @@ export const userService = {
       userTenantId,
     } = params;
 
+    // Filter for login and logout activities only
     return await userService.getAllActivities({
       employeeId,
-      activityType: 'login',
+      activityType: 'login,logout',
       page,
       limit,
       userRole,
@@ -833,6 +838,81 @@ export const userService = {
   },
 
   /**
+   * Request OTP for password change
+   */
+  requestPasswordChangeOtp: async (userId: string, email?: string) => {
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const targetEmail = (email || user.email || '').trim().toLowerCase();
+
+    if (!targetEmail) {
+      throw new Error('Email is required');
+    }
+
+    const otp = generateOTP();
+    const hashedOTP = hashOTP(otp);
+    const otpExpiry = getOTPExpiry();
+
+    await userRepository.update(userId, {
+      verificationCode: hashedOTP,
+      verificationCodeExpiresAt: otpExpiry,
+    });
+
+    try {
+      await sendVerificationEmail(targetEmail, otp, user.fullName || 'User');
+    } catch (error) {
+      console.error('Failed to send password change OTP email:', error);
+      throw new Error('Unable to send verification code. Please try again.');
+    }
+
+    return {
+      message: 'Verification code sent successfully',
+      email: targetEmail,
+    };
+  },
+
+  /**
+   * Verify OTP and update password
+   */
+  verifyPasswordChangeOtp: async (userId: string, payload: { otp: string; newPassword: string }) => {
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (!user.verificationCode || !user.verificationCodeExpiresAt) {
+      throw new Error('No verification code found. Please request a new one.');
+    }
+
+    if (isOTPExpired(user.verificationCodeExpiresAt)) {
+      throw new Error('Verification code has expired. Please request a new one.');
+    }
+
+    const isValid = compareOTP(payload.otp, user.verificationCode);
+
+    if (!isValid) {
+      throw new Error('Invalid verification code');
+    }
+
+    const hashedPassword = await hashPassword(payload.newPassword);
+
+    await userRepository.update(userId, {
+      password: hashedPassword,
+      verificationCode: undefined,
+      verificationCodeExpiresAt: undefined,
+    });
+
+    return {
+      message: 'Password changed successfully',
+    };
+  },
+
+  /**
    * Get current user profile
    */
   getMyProfile: async (userId: string) => {
@@ -983,6 +1063,7 @@ export const userService = {
     endDate?: string;
     userRole?: string;
     userTenantId?: string;
+    excludeLoginLogout?: boolean;
   }) => {
     const {
       page = 1,
@@ -996,6 +1077,7 @@ export const userService = {
       endDate,
       userRole,
       userTenantId,
+      excludeLoginLogout = false,
     } = params;
 
     const filter: any = {};
@@ -1005,7 +1087,16 @@ export const userService = {
     }
 
     if (activityType) {
-      filter.type = activityType;
+      // Handle multiple activity types (comma-separated)
+      const types = activityType.split(',').map(t => t.trim());
+      if (types.length > 1) {
+        filter.type = { $in: types };
+      } else {
+        filter.type = activityType;
+      }
+    } else if (excludeLoginLogout) {
+      // Exclude login and logout activities
+      filter.type = { $nin: ['login', 'logout'] };
     }
 
     if (employeeId) {

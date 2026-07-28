@@ -470,4 +470,26 @@ export const dashboardRoutes: Routes = [
         (c) => c.EmployeeNotifications,
       ),
   },
+
+  // Document Requirements (Company only)
+  {
+    path: 'document-requirements',
+    canActivate: [roleGuard],
+    data: { roles: ['company'] },
+    loadComponent: () =>
+      import('../features/company-document-requirements/company-document-requirements').then(
+        (c) => c.CompanyDocumentRequirements,
+      ),
+  },
+
+  // Document Review (Company only)
+  {
+    path: 'document-review',
+    canActivate: [roleGuard],
+    data: { roles: ['company'] },
+    loadComponent: () =>
+      import('../features/company-document-review/company-document-review').then(
+        (c) => c.CompanyDocumentReview,
+      ),
+  },
 ];

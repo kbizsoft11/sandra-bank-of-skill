@@ -400,7 +400,7 @@ export const updateMyProfile = asyncHandler(
   async (req: Request, res: Response) => {
 
     const userId = (req as any).user?.userId;
-    const userFullName = (req as any).user?.fullName || '';
+    const userFullName = (req as any).user?.fullName || (req as any).user?.email || 'User';
     const tenantId = (req as any).user?.tenantId;
     const organisationId = (req as any).user?.organisationId;
 
@@ -428,10 +428,40 @@ export const updateMyProfile = asyncHandler(
   }
 );
 
+export const requestPasswordChangeOtp = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    const result = await userService.requestPasswordChangeOtp(userId, req.body?.email);
+
+    return sendResponse(
+      res,
+      200,
+      result.message,
+      { email: result.email }
+    );
+  }
+);
+
+export const verifyPasswordChangeOtp = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    const result = await userService.verifyPasswordChangeOtp(userId, {
+      otp: req.body.otp,
+      newPassword: req.body.newPassword,
+    });
+
+    return sendResponse(
+      res,
+      200,
+      result.message
+    );
+  }
+);
+
 export const updateProfilePicture = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
-    const userFullName = (req as any).user?.fullName || '';
+    const userFullName = (req as any).user?.fullName || (req as any).user?.email || 'User';
     const tenantId = (req as any).user?.tenantId;
     const organisationId = (req as any).user?.organisationId;
 
@@ -461,6 +491,53 @@ export const updateProfilePicture = asyncHandler(
     );
 
 
+  }
+);
+
+export const getMyLoginHistory = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    const userRole = (req as any).user?.role;
+    const { page, limit } = req.query;
+
+    const result = await userService.getEmployeeLoginHistory({
+      employeeId: userId,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      userRole: userRole,
+      userTenantId: (req as any).user?.tenantId,
+    });
+
+    return sendResponse(
+      res,
+      200,
+      'Login history fetched successfully',
+      result
+    );
+  }
+);
+
+export const getMyAccountActivity = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    const userRole = (req as any).user?.role;
+    const { page, limit } = req.query;
+
+    const result = await userService.getEmployeeActivities({
+      employeeId: userId,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      userRole: userRole,
+      userTenantId: (req as any).user?.tenantId,
+      excludeLoginLogout: true, // Exclude login/logout activities
+    });
+
+    return sendResponse(
+      res,
+      200,
+      'Account activity fetched successfully',
+      result
+    );
   }
 );
 

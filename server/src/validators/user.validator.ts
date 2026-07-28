@@ -166,6 +166,18 @@ export const updateProfileSchema = z.object({
 
 });
 
+export const changePasswordRequestSchema = z.object({
+    email: z.string().email('Invalid email format').optional(),
+});
+
+export const changePasswordVerifySchema = z.object({
+    otp: z.string().trim().length(6, 'OTP must be exactly 6 digits').regex(/^\d{6}$/, 'OTP must contain only digits'),
+    newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z.string().min(8, 'Password must be at least 8 characters'),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+});
 
 export const searchEmployeesQuerySchema = z.object({
 

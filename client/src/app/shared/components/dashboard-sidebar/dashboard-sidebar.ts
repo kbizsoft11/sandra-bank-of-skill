@@ -228,6 +228,18 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       icon: 'bi bi-sliders',
       roles: ['admin'],
     },
+    {
+      label: 'Document Requirements',
+      path: 'document-requirements',
+      icon: 'bi bi-file-earmark-check',
+      roles: ['company'],
+    },
+    {
+      label: 'Document Review',
+      path: 'document-review',
+      icon: 'bi bi-file-earmark-check-fill',
+      roles: ['company'],
+    },
   ];
 
   // Computed property to get role-filtered menu items with correct URLs

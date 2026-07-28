@@ -4,6 +4,7 @@ import {
   register, 
   getMe, 
   login,
+  logout,
   registerStep1,
   verifyOTP,
   registerStep3,
@@ -42,5 +43,6 @@ router.post('/invite/accept', validate(acceptInvitationSchema), acceptInvitation
 // Authentication routes
 router.get('/me', authenticate, getMe);
 router.post('/login', validate(loginSchema), login);
+router.post('/logout', authenticate, logout);
 
 export default router;

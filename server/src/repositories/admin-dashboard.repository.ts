@@ -413,9 +413,11 @@ export const createActivity = async (
   type: string,
   details?: Record<string, any>
 ) => {
+  const safeUserName = typeof user === 'string' ? user.trim() : '';
+
   const activityPayload: Record<string, any> = {
     userId,
-    user,
+    user: safeUserName || 'User',
     activity,
     type,
     details,

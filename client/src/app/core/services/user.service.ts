@@ -125,6 +125,42 @@ export class UserService {
 
   }
 
+  requestPasswordChangeOtp(email?: string | null): Observable<any> {
+    return this.http.post(
+      `${this.api}/me/change-password/request-otp`,
+      { email }
+    );
+  }
+
+  verifyPasswordChangeOtp(payload: { otp?: string | null; newPassword?: string | null; confirmPassword?: string | null }): Observable<any> {
+    return this.http.post(
+      `${this.api}/me/change-password/verify`,
+      payload
+    );
+  }
+
+  getMyLoginHistory(page: number = 1, limit: number = 10): Observable<any> {
+    let httpParams = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+
+    return this.http.get(
+      `${this.api}/me/login-history`,
+      { params: httpParams }
+    );
+  }
+
+  getMyAccountActivity(page: number = 1, limit: number = 20): Observable<any> {
+    let httpParams = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+
+    return this.http.get(
+      `${this.api}/me/account-activity`,
+      { params: httpParams }
+    );
+  }
+
   uploadUserProfilePicture(
     userId: string,
     file: File

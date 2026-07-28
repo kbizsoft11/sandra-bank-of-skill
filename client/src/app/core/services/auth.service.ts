@@ -297,6 +297,13 @@ export class AuthService {
 
     }
 
+    logoutWithTracking(): Observable<any> {
+        // Call the logout endpoint to track the logout activity
+        return this.http.post(`${API_CONFIG.BASE_URL}/auth/logout`, {}).pipe(
+            tap(() => this.logout())
+        );
+    }
+
     isEmployee(): boolean {
 
         return this.role() === 'employee';
