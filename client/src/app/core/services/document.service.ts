@@ -135,6 +135,13 @@ export class DocumentService {
   }
 
   /**
+   * Submit a single document for review (employee only)
+   */
+  submitDocumentForReview(documentId: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${documentId}/submit-for-review`, {});
+  }
+
+  /**
    * Submit all documents for review (employee only)
    */
   submitAllForReview(): Observable<any> {

@@ -376,6 +376,56 @@ export const documentController = {
   },
 
   /**
+   * Submit a single document for review
+   * POST /api/documents/:id/submit-for-review
+   */
+  submitDocumentForReview: async (req: Request, res: Response) => {
+    try {
+      const userIdValue = req.user?.userId;
+      const tenantIdValue = req.user?.tenantId;
+      const userId: string | undefined = typeof userIdValue === 'string'
+        ? userIdValue
+        : Array.isArray(userIdValue)
+          ? userIdValue[0]
+          : undefined;
+      const tenantId: string | undefined = typeof tenantIdValue === 'string'
+        ? tenantIdValue
+        : Array.isArray(tenantIdValue)
+          ? tenantIdValue[0]
+          : undefined;
+      const documentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'User not authenticated. Please login again.',
+        });
+      }
+
+      if (!tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant information not found. Please login again.',
+        });
+      }
+
+      const document = await documentService.submitDocumentForReview(documentId, userId, tenantId);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Document submitted for review successfully',
+        data: document,
+      });
+    } catch (error: any) {
+      console.error('Error submitting document for review:', error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Error submitting document for review',
+      });
+    }
+  },
+
+  /**
    * Submit all documents for review
    * POST /api/documents/submit-for-review
    */

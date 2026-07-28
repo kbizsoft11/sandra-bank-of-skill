@@ -306,10 +306,52 @@ export const documentService = {
   },
 
   /**
+   * Submit a single document for review
+   */
+  submitDocumentForReview: async (documentId: string, employeeId: string, tenantId: string) => {
+    const document = await Document.findOne({
+      _id: documentId,
+      employeeId,
+      tenantId,
+      isActive: true,
+    });
+
+    if (!document) {
+      throw new Error('Document not found');
+    }
+
+    if (!['pending_upload', 'uploaded'].includes(document.verificationStatus)) {
+      throw new Error('This document is already under review or has been processed');
+    }
+
+    const updatedDocument = await Document.findByIdAndUpdate(
+      documentId,
+      {
+        verificationStatus: 'under_review',
+        submittedForReviewAt: new Date(),
+      },
+      { new: true }
+    );
+
+    const employee = await userRepository.findById(employeeId);
+    await AdminDashboardService.createActivity(
+      employeeId,
+      employee?.fullName || 'Employee',
+      `Submitted ${document.documentType} for review`,
+      'document_submission',
+      {
+        documentType: document.documentType,
+        fileName: document.fileName,
+      }
+    );
+
+    return updatedDocument;
+  },
+
+  /**
    * Submit all documents for review
    */
   submitAllForReview: async (employeeId: string, tenantId: string) => {
-    // Get all employee's uploaded documents that are not yet under review or verified
     const documents = await Document.find({
       employeeId,
       tenantId,
@@ -321,7 +363,6 @@ export const documentService = {
       throw new Error('No documents available to submit for review');
     }
 
-    // Update all eligible documents to 'under_review' status
     const updatePromises = documents.map((doc) =>
       Document.findByIdAndUpdate(
         doc._id,
@@ -335,7 +376,6 @@ export const documentService = {
 
     const updatedDocuments = await Promise.all(updatePromises);
 
-    // Log activity
     const employee = await userRepository.findById(employeeId);
     await AdminDashboardService.createActivity(
       employeeId,

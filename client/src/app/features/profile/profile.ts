@@ -755,6 +755,10 @@ export class Profile implements OnInit {
     return status === 'pending_upload' || status === 'uploaded' || status === 'rejected';
   }
 
+  canSubmitDocument(status: string): boolean {
+    return status === 'pending_upload' || status === 'uploaded';
+  }
+
   hasUploadedDocuments(): boolean {
     return this.documentRequirements().some(req => req.document);
   }
@@ -766,17 +770,40 @@ export class Profile implements OnInit {
       return false;
     }
 
-    return requirements.every((req) => {
-      if (!req.requirement?.isRequired) {
-        return true;
-      }
-
-      return !!req.document && ['pending_upload', 'uploaded', 'rejected'].includes(req.uploadStatus);
+    return requirements.some((req) => {
+      return !!req.document && ['pending_upload', 'uploaded'].includes(req.uploadStatus);
     });
   }
 
   canSaveAllDrafts(): boolean {
     return Object.keys(this.selectedRequirementFiles()).length > 0 && !this.isSavingAllDrafts() && !this.isUploadingDocument();
+  }
+
+  submitSingleDocument(documentId: string): void {
+    if (!documentId) {
+      return;
+    }
+
+    if (!confirm('Submit this document for review?')) {
+      return;
+    }
+
+    this.isSubmittingForReview.set(true);
+
+    this.documentService.submitDocumentForReview(documentId).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.loadDocumentRequirements();
+          this.alertService.toast('Document submitted for review successfully!', 'success');
+        }
+        this.isSubmittingForReview.set(false);
+      },
+      error: (error) => {
+        console.error('Error submitting document:', error);
+        this.alertService.error(error.error?.message || 'Failed to submit document for review');
+        this.isSubmittingForReview.set(false);
+      }
+    });
   }
 
   submitAllForReview(): void {
@@ -785,7 +812,7 @@ export class Profile implements OnInit {
       return;
     }
 
-    if (!confirm('Are you sure you want to submit all documents for review? You will not be able to modify them until the company reviews them.')) {
+    if (!confirm('Are you sure you want to submit all eligible documents for review?')) {
       return;
     }
 
@@ -795,7 +822,7 @@ export class Profile implements OnInit {
       next: (response) => {
         if (response.success) {
           this.loadDocumentRequirements();
-          this.alertService.toast('All documents submitted for review successfully!', 'success');
+          this.alertService.toast('Eligible documents submitted for review successfully!', 'success');
         }
         this.isSubmittingForReview.set(false);
       },

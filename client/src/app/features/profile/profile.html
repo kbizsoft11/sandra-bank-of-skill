@@ -519,6 +519,22 @@
                                   <i class="bi bi-eye"></i>
                                 </button>
 
+                                <!-- Submit Button (only if ready for review) -->
+                                @if (canSubmitDocument(requirement.uploadStatus)) {
+                                  <button
+                                    type="button"
+                                    class="btn-icon btn-upload"
+                                    (click)="submitSingleDocument(requirement.document._id)"
+                                    [disabled]="isUploadingDocument() || isSubmittingForReview()"
+                                    title="Submit this document for review">
+                                    @if (isSubmittingForReview()) {
+                                      <span class="spinner-border spinner-border-sm"></span>
+                                    } @else {
+                                      <i class="bi bi-send-check-fill"></i>
+                                    }
+                                  </button>
+                                }
+
                                 <!-- Delete Button (only if can modify) -->
                                 @if (canModifyDocument(requirement.uploadStatus)) {
                                   <button

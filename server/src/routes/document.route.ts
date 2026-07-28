@@ -26,6 +26,9 @@ router.get('/me', documentController.getMyDocuments);
 // Get document summary
 router.get('/summary', documentController.getDocumentSummary);
 
+// Submit a single document for review
+router.post('/:id/submit-for-review', documentController.submitDocumentForReview);
+
 // Submit all documents for review
 router.post('/submit-for-review', documentController.submitAllForReview);
 
