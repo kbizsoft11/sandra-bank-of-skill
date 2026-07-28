@@ -9,7 +9,9 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CompanyService } from '../../../core/services/company.service';
+import { UserService } from '../../../core/services/user.service';
 import { AlertService } from '../../../core/services/alert.service';
+import { StorageService } from '../../../core/services/storage.service';
 
 @Component({
   selector: 'app-admin-companies-list',
@@ -25,7 +27,9 @@ import { AlertService } from '../../../core/services/alert.service';
 export class AdminCompaniesList implements OnInit {
 
   private readonly companyService = inject(CompanyService);
+  private readonly userService = inject(UserService);
   private readonly alertService = inject(AlertService);
+  private readonly storageService = inject(StorageService);
   private readonly fb = inject(FormBuilder);
 
   readonly companies = signal<any[]>([]);
@@ -156,5 +160,48 @@ export class AdminCompaniesList implements OnInit {
   formatDate(date: string | Date): string {
     if (!date) return 'N/A';
     return new Date(date).toLocaleDateString();
+  }
+
+  impersonateCompany(company: any): void {
+    this.alertService.confirm(
+      `Are you sure you want to impersonate ${company.fullName}?`,
+      'You will be logged in as this company in a new session while remaining logged in as admin.',
+      'Yes, impersonate',
+      'Cancel'
+    ).then((confirmed) => {
+      if (confirmed) {
+        this.userService.impersonateCompanyUser(company._id).subscribe({
+          next: (response) => {
+            if (response?.data?.token && response?.data?.user) {
+              // Store the impersonate token using the dedicated method
+              // This stores in localStorage so it's accessible from new tab
+              this.storageService.setImpersonationToken(response.data.token, false);
+              
+              // Determine redirect path based on user role
+              const userRole = response.data.user.role;
+              let redirectPath = '/dashboard'; // default
+              
+              if (userRole === 'company') {
+                redirectPath = '/company/dashboard';
+              } else if (userRole === 'employee') {
+                redirectPath = '/employee/dashboard';
+              } else if (userRole === 'admin') {
+                redirectPath = '/admin/dashboard';
+              }
+              
+              this.alertService.success('Impersonation successful! Opening in new session...');
+              
+              // Open in new window/tab with impersonation flag and dynamic redirect
+              const url = `${window.location.origin}${redirectPath}?impersonation=true`;
+              window.open(url, '_blank');
+            }
+          },
+          error: (err) => {
+            console.error('Error impersonating company:', err);
+            this.alertService.error('Failed to impersonate company');
+          },
+        });
+      }
+    });
   }
 }

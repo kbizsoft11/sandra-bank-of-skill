@@ -1,0 +1,390 @@
+<div class="container-fluid py-4">
+
+  <!-- Header with Back Button -->
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <button (click)="goBack()" class="btn btn-light d-inline-flex align-items-center gap-2">
+      <i class="bi bi-arrow-left"></i>
+      Back
+    </button>
+    <div>
+      <h1 class="h3 fw-semibold mb-1">Employee Profile</h1>
+      <p class="text-secondary mb-0">View complete employee information</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="card shadow-sm">
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-secondary">Loading employee profile...</p>
+      </div>
+    </div>
+  } @else if (error()) {
+    <!-- Error State -->
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-circle-fill me-2"></i>
+      {{ error() }}
+      <button type="button" class="btn-close" (click)="error.set(null)"></button>
+    </div>
+  } @else if (employee()) {
+    <!-- Tab Navigation -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button 
+              class="nav-link"
+              [class.active]="activeTab() === 'overview'"
+              (click)="setActiveTab('overview')"
+              type="button"
+              role="tab">
+              <i class="bi bi-person-fill me-2"></i>
+              Overview
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button 
+              class="nav-link"
+              [class.active]="activeTab() === 'skills'"
+              (click)="setActiveTab('skills')"
+              type="button"
+              role="tab">
+              <i class="bi bi-lightbulb-fill me-2"></i>
+              Skills
+              <span class="badge bg-warning-subtle text-warning-emphasis ms-2">{{ skills().length }}</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button 
+              class="nav-link"
+              [class.active]="activeTab() === 'assessments'"
+              (click)="setActiveTab('assessments')"
+              type="button"
+              role="tab">
+              <i class="bi bi-clipboard-check me-2"></i>
+              Assessments
+              <span class="badge bg-info-subtle text-info-emphasis ms-2">{{ assessments().length }}</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button 
+              class="nav-link"
+              [class.active]="activeTab() === 'activity'"
+              (click)="setActiveTab('activity')"
+              type="button"
+              role="tab">
+              <i class="bi bi-clock-history me-2"></i>
+              Activity
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    @if (activeTab() === 'overview') {
+      <div class="row">
+        <!-- Employee Info Card -->
+        <div class="col-lg-6">
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light border-0 py-3">
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-person-circle me-2"></i>
+                Personal Information
+              </h5>
+            </div>
+            <div class="card-body">
+              <!-- Employee Name and Avatar -->
+              <div class="text-center mb-4">
+                <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
+                  {{ employee()?.fullName?.charAt(0) || 'E' }}
+                </div>
+                <h4 class="fw-semibold mb-1">{{ employee()?.fullName }}</h4>
+                <p class="text-secondary small">{{ employee()?.email }}</p>
+              </div>
+
+              <!-- Basic Information -->
+              <div class="row mb-3">
+                <div class="col-12">
+                  <label class="form-label small fw-semibold text-secondary">Employee ID</label>
+                  <p class="mb-0">{{ employee()?._id }}</p>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-secondary">Department</label>
+                  <p class="mb-0">{{ employee()?.department || 'N/A' }}</p>
+                </div>
+                @if (employee()?.designationId) {
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold text-secondary">Designation</label>
+                    <p class="mb-0">{{ getDesignationName(employee()?.designationId, employee()?.designationName) }}</p>
+                  </div>
+                }
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-secondary">Status</label>
+                  <span 
+                    class="badge rounded-pill px-3 py-2 fw-medium"
+                    [ngClass]="getStatusBadgeClass(employee()?.isActive)">
+                    {{ getStatusText(employee()?.isActive) }}
+                  </span>
+                </div>
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-secondary">Joined Date</label>
+                  <p class="mb-0">{{ formatDate(employee()?.createdAt) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact & Statistics Card -->
+        <div class="col-lg-6">
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light border-0 py-3">
+              <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-bar-chart me-2"></i>
+                Statistics & Details
+              </h5>
+            </div>
+            <div class="card-body">
+              <!-- Contact Information -->
+              <div class="row mb-3">
+                <div class="col-12">
+                  <label class="form-label small fw-semibold text-secondary">Email</label>
+                  <p class="mb-0 text-break">{{ employee()?.email }}</p>
+                </div>
+              </div>
+
+              @if (employee()?.phone) {
+                <div class="row mb-3">
+                  <div class="col-12">
+                    <label class="form-label small fw-semibold text-secondary">Phone</label>
+                    <p class="mb-0">{{ employee()?.phone }}</p>
+                  </div>
+                </div>
+              }
+
+              <!-- Statistics Grid -->
+              <div class="row g-3 mt-2">
+                <div class="col-6">
+                  <div class="p-3 bg-light rounded text-center">
+                    <p class="text-secondary small mb-1">Skills</p>
+                    <p class="mb-0 fs-5 fw-bold text-warning">{{ skills().length }}</p>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-3 bg-light rounded text-center">
+                    <p class="text-secondary small mb-1">Assessments</p>
+                    <p class="mb-0 fs-5 fw-bold text-info">{{ assessments().length }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- SKILLS TAB -->
+    @if (activeTab() === 'skills') {
+      @if (skills().length === 0) {
+        <div class="card shadow-sm">
+          <div class="card-body text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+            <p class="mt-3 text-secondary">No skills found for this employee</p>
+          </div>
+        </div>
+      } @else {
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table align-middle mb-0 table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th class="px-4 py-3">Skill</th>
+                  <th class="px-4 py-3 d-none d-lg-table-cell">Category</th>
+                  <th class="px-4 py-3">Level</th>
+                  <th class="px-4 py-3 d-none d-md-table-cell">Score</th>
+                  <th class="px-4 py-3 d-none d-lg-table-cell">Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (skill of skills(); track skill._id) {
+                  <tr>
+                    <!-- Skill Name -->
+                    <td class="px-4 py-3">
+                      <p class="fw-medium mb-0 text-dark text-truncate">{{ skill.skill_name }}</p>
+                    </td>
+
+                    <!-- Category (hidden on mobile) -->
+                    <td class="px-4 py-3 d-none d-lg-table-cell">
+                      @if (skill.category?.cat_name) {
+                        <span class="badge bg-info-subtle text-info-emphasis px-3 py-1 text-truncate">
+                          {{ skill.category.cat_name }}
+                        </span>
+                      } @else {
+                        <span class="text-muted small">N/A</span>
+                      }
+                    </td>
+
+                    <!-- Proficiency Level -->
+                    <td class="px-4 py-3">
+                      <span 
+                        class="badge rounded-pill px-3 py-1 fw-medium text-nowrap"
+                        [ngClass]="getProficiencyBadgeClass(skill.skill_level)">
+                        {{ skill.skill_level || 'Not Set' }}
+                      </span>
+                    </td>
+
+                    <!-- Skill Score (hidden on mobile) -->
+                    <td class="px-4 py-3 d-none d-md-table-cell">
+                      @if (skill.skill_score) {
+                        <div class="progress" style="height: 20px; min-width: 60px;">
+                          <div 
+                            class="progress-bar bg-success" 
+                            role="progressbar" 
+                            [style.width.%]="skill.skill_score"
+                            [attr.aria-valuenow]="skill.skill_score"
+                            aria-valuemin="0" 
+                            aria-valuemax="100">
+                            {{ skill.skill_score }}%
+                          </div>
+                        </div>
+                      } @else {
+                        <span class="text-muted small">N/A</span>
+                      }
+                    </td>
+
+                    <!-- Updated Date (hidden on mobile) -->
+                    <td class="px-4 py-3 d-none d-lg-table-cell">
+                      <small class="text-secondary">{{ formatDate(skill.updatedAt) }}</small>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ASSESSMENTS TAB -->
+    @if (activeTab() === 'assessments') {
+      @if (assessments().length === 0) {
+        <div class="card shadow-sm">
+          <div class="card-body text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+            <p class="mt-3 text-secondary">No assessments found for this employee</p>
+          </div>
+        </div>
+      } @else {
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table align-middle mb-0 table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th class="px-4 py-3">Assessment</th>
+                  <th class="px-4 py-3 d-none d-md-table-cell">Type</th>
+                  <th class="px-4 py-3">Status</th>
+                  <th class="px-4 py-3 d-none d-md-table-cell">Score</th>
+                  <th class="px-4 py-3 d-none d-lg-table-cell">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (assessment of assessments(); track assessment._id) {
+                  <tr>
+                    <!-- Assessment Name -->
+                    <td class="px-4 py-3">
+                      <p class="fw-medium mb-0 text-dark text-truncate">{{ assessment.name || assessment.title }}</p>
+                    </td>
+
+                    <!-- Type (hidden on mobile) -->
+                    <td class="px-4 py-3 d-none d-md-table-cell">
+                      <small class="text-secondary">{{ assessment.type || 'N/A' }}</small>
+                    </td>
+
+                    <!-- Status -->
+                    <td class="px-4 py-3">
+                      <span 
+                        class="badge rounded-pill px-3 py-1 fw-medium text-nowrap"
+                        [ngClass]="getAssessmentStatusClass(assessment.status)">
+                        {{ assessment.status || 'Pending' }}
+                      </span>
+                    </td>
+
+                    <!-- Score (hidden on mobile) -->
+                    <td class="px-4 py-3 d-none d-md-table-cell">
+                      @if (assessment.score) {
+                        <span class="fw-medium">{{ assessment.score }}%</span>
+                      } @else {
+                        <span class="text-muted small">N/A</span>
+                      }
+                    </td>
+
+                    <!-- Date (hidden on mobile) -->
+                    <td class="px-4 py-3 d-none d-lg-table-cell">
+                      <small class="text-secondary">{{ formatDate(assessment.completedAt || assessment.createdAt) }}</small>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ACTIVITY TAB -->
+    @if (activeTab() === 'activity') {
+      @if (activities().length === 0) {
+        <div class="card shadow-sm">
+          <div class="card-body text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+            <p class="mt-3 text-secondary">No activity found for this employee</p>
+          </div>
+        </div>
+      } @else {
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <!-- Activity Timeline -->
+            <div class="timeline">
+              @for (activity of activities(); track activity._id; let first = $first; let last = $last) {
+                <div class="timeline-item" [class.first]="first" [class.last]="last">
+                  <!-- Timeline Dot -->
+                  <div class="timeline-dot">
+                    <i class="bi bi-circle-fill"></i>
+                  </div>
+
+                  <!-- Timeline Content -->
+                  <div class="timeline-content">
+                    <div class="card border-0 bg-light mb-2">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                          <h6 class="mb-0 fw-semibold">{{ activity.action || activity.type || 'Activity' }}</h6>
+                          <small class="text-secondary">{{ formatDateTime(activity.timestamp || activity.createdAt) }}</small>
+                        </div>
+                        @if (activity.description) {
+                          <p class="mb-0 text-secondary small">{{ activity.description }}</p>
+                        }
+                        @if (activity.details) {
+                          <p class="mb-0 text-secondary small">{{ activity.details }}</p>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    }
+  }
+</div>

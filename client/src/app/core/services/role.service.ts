@@ -36,12 +36,22 @@ export class RoleService {
   /**
    * Get all roles for the company
    */
-  getRoles(isActive?: boolean): Observable<any> {
+  getRoles(isActive?: boolean, organisationId?: string): Observable<any> {
     const params: any = {};
     if (isActive !== undefined) {
       params.isActive = isActive.toString();
     }
+    if (organisationId) {
+      params.organisationId = organisationId;
+    }
     return this.http.get(this.api, { params });
+  }
+
+  /**
+   * Get all roles (alias for getRoles)
+   */
+  getAllRoles(isActive?: boolean, organisationId?: string): Observable<any> {
+    return this.getRoles(isActive, organisationId);
   }
 
   /**

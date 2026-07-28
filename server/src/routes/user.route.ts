@@ -205,6 +205,14 @@ router.post(
     userController.impersonateEmployee
 );
 
+router.post(
+    '/:id/impersonate-as-company',
+    authenticate,
+    allowRoles('admin'),
+    validateParams(userIdParamSchema),
+    userController.impersonateCompanyUser
+);
+
 // Create user - Admin only (can create employees or companies)
 router.post(
     '/',

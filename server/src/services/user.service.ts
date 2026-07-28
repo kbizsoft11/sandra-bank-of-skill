@@ -448,6 +448,55 @@ export const userService = {
 
   },
 
+  impersonateCompanyUser: async (
+    companyUserId: string,
+    actor: { role?: string }
+  ) => {
+    // Only admin can impersonate company users
+    if (actor.role !== 'admin') {
+      throw new Error('Only admin can impersonate company users');
+    }
+
+    const companyUser = await userRepository.findById(companyUserId);
+
+    if (!companyUser) {
+      throw new Error('Company user not found');
+    }
+
+    if (companyUser.role !== 'company') {
+      throw new Error('User is not a company user');
+    }
+
+    if (!companyUser.isActive) {
+      throw new Error('Cannot impersonate an inactive company user');
+    }
+
+    if (companyUser.accountStatus === 'invited') {
+      throw new Error('Company user must accept invitation before logging in');
+    }
+
+    const token = generateToken({
+      userId: companyUser._id.toString(),
+      email: companyUser.email,
+      role: companyUser.role,
+      tenantId: companyUser.tenantId,
+      organisationId: companyUser.organisationId,
+    });
+
+    return {
+      token,
+      user: {
+        _id: companyUser._id,
+        fullName: companyUser.fullName,
+        email: companyUser.email,
+        role: companyUser.role,
+        tenantId: companyUser.tenantId,
+        organisationId: companyUser.organisationId,
+      },
+    };
+
+  },
+
   createUser: async (
     payload: CreateUserDto,
     createdByUserId?: string,

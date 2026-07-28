@@ -162,4 +162,154 @@ export class CompanyService {
       payload
     );
   }
+
+  /**
+   * Get employee details by ID
+   * Admin only
+   */
+  getEmployeeDetails(employeeId: string): Observable<any> {
+    return this.http.get(
+      `${this.api}/admin/employees/${employeeId}`
+    );
+  }
+
+  /**
+   * Get employee assessments
+   * Admin only
+   */
+  getEmployeeAssessments(employeeId: string): Observable<any> {
+    return this.http.get(
+      `${this.api}/admin/employees/${employeeId}/assessments`
+    );
+  }
+
+  /**
+   * Get employee activity
+   * Admin only
+   */
+  getEmployeeActivity(employeeId: string): Observable<any> {
+    return this.http.get(
+      `${this.api}/admin/employees/${employeeId}/activity`
+    );
+  }
+
+  /**
+   * Export organisation employees to Excel
+   * Admin only
+   */
+  exportEmployeesToExcel(
+    organisationId: string,
+    params?: {
+      search?: string;
+      status?: string;
+    }
+  ): Observable<Blob> {
+    let httpParams = new HttpParams();
+
+    if (params?.search) {
+      httpParams = httpParams.set('search', params.search);
+    }
+    if (params?.status) {
+      httpParams = httpParams.set('status', params.status);
+    }
+
+    return this.http.get(
+      `${this.api}/admin/organisations/${organisationId}/employees/export/excel`,
+      { params: httpParams, responseType: 'blob' }
+    );
+  }
+
+  /**
+   * Export organisation employees to CSV
+   * Admin only
+   */
+  exportEmployeesToCSV(
+    organisationId: string,
+    params?: {
+      search?: string;
+      status?: string;
+    }
+  ): Observable<Blob> {
+    let httpParams = new HttpParams();
+
+    if (params?.search) {
+      httpParams = httpParams.set('search', params.search);
+    }
+    if (params?.status) {
+      httpParams = httpParams.set('status', params.status);
+    }
+
+    return this.http.get(
+      `${this.api}/admin/organisations/${organisationId}/employees/export/csv`,
+      { params: httpParams, responseType: 'blob' }
+    );
+  }
+
+  /**
+   * Export company data (company info + employees + skills) to Excel
+   * Admin only
+   */
+  exportCompanyDataExcel(companyId: string): Observable<Blob> {
+    return this.http.get(
+      `${this.api}/admin/companies/${companyId}/export/excel`,
+      { responseType: 'blob' }
+    );
+  }
+
+  /**
+   * Export company data (company info + employees + skills) to CSV
+   * Admin only
+   */
+  exportCompanyDataCSV(companyId: string): Observable<Blob> {
+    return this.http.get(
+      `${this.api}/admin/companies/${companyId}/export/csv`,
+      { responseType: 'blob' }
+    );
+  }
+
+  /**
+   * Create an employee for a specific organisation
+   * Admin only
+   */
+  createEmployeeForOrganisation(
+    organisationId: string,
+    payload: {
+      fullName: string;
+      email: string;
+      phone?: string;
+      department?: string;
+      designation?: string;
+      team?: string;
+      title?: string;
+      isActive?: boolean;
+    }
+  ): Observable<any> {
+    return this.http.post(
+      `${this.api}/admin/organisations/${organisationId}/employees`,
+      payload
+    );
+  }
+
+  /**
+   * Update an employee for a specific organisation
+   * Admin only
+   */
+  updateEmployeeForOrganisation(
+    organisationId: string,
+    employeeId: string,
+    payload: {
+      fullName?: string;
+      phone?: string;
+      department?: string;
+      designation?: string;
+      team?: string;
+      title?: string;
+      isActive?: boolean;
+    }
+  ): Observable<any> {
+    return this.http.put(
+      `${this.api}/admin/organisations/${organisationId}/employees/${employeeId}`,
+      payload
+    );
+  }
 }

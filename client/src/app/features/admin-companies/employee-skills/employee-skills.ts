@@ -29,12 +29,15 @@ export class EmployeeSkills implements OnInit {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly employeeId = signal<string | null>(null);
+  readonly organisationId = signal<string | null>(null);
   readonly employeeName = signal<string>('Employee');
 
   ngOnInit(): void {
     const empId = this.route.snapshot.paramMap.get('employeeId');
+    const orgId = this.route.snapshot.paramMap.get('organisationId');
     if (empId) {
       this.employeeId.set(empId);
+      this.organisationId.set(orgId);
       this.loadEmployeeSkills();
     } else {
       this.error.set('Employee ID not found');
@@ -64,7 +67,12 @@ export class EmployeeSkills implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/admin/companies']);
+    const organisationId = this.organisationId();
+    if (organisationId) {
+      this.router.navigate(['/admin/organisation', organisationId, 'employees']);
+    } else {
+      this.router.navigate(['/admin/companies']);
+    }
   }
 
   getProficiencyBadgeClass(level: string): string {
