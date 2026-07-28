@@ -11,7 +11,7 @@ import { ActivityModel } from '../models/activity.model';
 import { hashPassword, generateRandomPassword } from '../utils/password';
 import { sendInvitationEmail, sendInvitationLinkEmail, sendPasswordResetNotificationEmail, sendVerificationEmail } from './email.service';
 import { generateOTP, hashOTP, compareOTP, getOTPExpiry, isOTPExpired } from '../utils/otp.util';
-import { deleteOldProfileImage } from '../utils/file-upload';
+import { deleteOldProfileImage, getPublicUploadUrl } from '../utils/file-upload';
 import path from 'path';
 import { AccountStatus } from '../types/common.types';
 import { v4 as uuidv4 } from 'uuid';
@@ -1014,7 +1014,7 @@ export const userService = {
       : null;
 
     // Update profile image in database
-    const profileImageUrl = `/uploads/profiles/${filename}`;
+    const profileImageUrl = getPublicUploadUrl(`profiles/${filename}`);
     
     try {
       const updatedUser = await userRepository.update(userId, {

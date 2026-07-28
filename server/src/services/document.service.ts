@@ -1,7 +1,7 @@
 import Document from '../models/document.model';
 import DocumentRequirement from '../models/document-requirement.model';
 import { userRepository } from '../repositories/user.repository';
-import { deleteOldProfileImage } from '../utils/file-upload';
+import { deleteOldProfileImage, getPublicUploadUrl } from '../utils/file-upload';
 import { documentRequirementService } from './document-requirement.service';
 import path from 'path';
 import * as AdminDashboardService from './admin-dashboard.service';
@@ -74,7 +74,7 @@ export const documentService = {
       fileName: file.originalname,
       fileType: fileExtension,
       fileSize: file.size,
-      filePath: `/uploads/documents/${file.filename}`,
+      filePath: getPublicUploadUrl(`documents/${file.filename}`),
       description: description || '',
       uploadedAt: new Date(),
       verificationStatus: 'pending_upload',

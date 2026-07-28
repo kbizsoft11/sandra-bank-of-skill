@@ -2,9 +2,21 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
+const uploadsRoot = process.env.UPLOADS_ROOT || path.join(__dirname, '..', '..', 'uploads');
+const profilesDir = path.join(uploadsRoot, 'profiles');
+const documentsDir = path.join(uploadsRoot, 'documents');
+const publicUploadBase = process.env.UPLOADS_PUBLIC_BASE || '/uploads';
+
 // Ensure uploads directories exist
-const uploadDir = path.join(__dirname, '../../uploads/profiles');
-const documentsDir = path.join(__dirname, '../../uploads/documents');
+if (!fs.existsSync(profilesDir)) {
+  fs.mkdirSync(profilesDir, { recursive: true });
+}
+
+if (!fs.existsSync(documentsDir)) {
+  fs.mkdirSync(documentsDir, { recursive: true });
+}
+
+const uploadDir = profilesDir;
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -119,4 +131,9 @@ export const deleteOldProfileImage = (imagePath: string): void => {
       console.error('Error deleting file:', error);
     }
   }
+};
+
+export const getPublicUploadUrl = (relativePath: string): string => {
+  const normalizedPath = relativePath.replace(/\\/g, '/').replace(/^\/+/, '');
+  return `${publicUploadBase}/${normalizedPath}`;
 };
