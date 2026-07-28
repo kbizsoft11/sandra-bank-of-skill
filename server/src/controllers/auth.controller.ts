@@ -85,7 +85,11 @@ export const verifyOTP = asyncHandler(
  */
 export const registerStep3 = asyncHandler(
   async (req: Request, res: Response) => {
-    const userId = req.user.userId;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      throw new Error('Authentication required');
+    }
 
     const result = await authService.registerStep3(
       userId,
@@ -111,7 +115,11 @@ export const registerStep3 = asyncHandler(
  */
 export const completeRegistration = asyncHandler(
   async (req: Request, res: Response) => {
-    const userId = req.user.userId;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      throw new Error('Authentication required');
+    }
 
     const result = await authService.completeRegistration(userId);
 
@@ -171,7 +179,13 @@ export const acceptInvitation = asyncHandler(
  */
 export const getMe = asyncHandler(
   async (req: Request, res: Response) => {
-    const user = await userRepository.findById(req.user.userId);
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      throw new Error('Authentication required');
+    }
+
+    const user = await userRepository.findById(userId);
 
     if (!user) {
       throw new Error('User not found');

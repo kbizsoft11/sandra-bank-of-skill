@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { Types } from 'mongoose';
 import { UserModel } from '../models/user.model';
 import { Skill } from '../models/skill.model';
 import { SkillCategory } from '../models/skillCategory.model';
@@ -329,13 +330,15 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
 
     const employee = await UserModel.findById(userId).select('fullName title department location profileImage role designationId');
     const roleLabel = employee?.title || employee?.department || 'Employee';
+    const userObjectId = new Types.ObjectId(userId);
+    const userSkillFilter = { user_id: userObjectId } as any;
 
-    const skills = await Skill.find({ user_id: userId }).sort({ created_at: -1 });
+    const skills = await Skill.find(userSkillFilter).sort({ created_at: -1 });
     const totalSkills = skills.length;
 
     const skillsByCategory = await Skill.aggregate([
       {
-        $match: { user_id: userId },
+        $match: userSkillFilter,
       },
       {
         $lookup: {
@@ -362,7 +365,7 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       },
     ]);
 
-    const recentSkills = await Skill.find({ user_id: userId })
+    const recentSkills = await Skill.find(userSkillFilter)
       .select('skill_name skill_level skill_score created_at')
       .sort({ created_at: -1 })
       .limit(5);
@@ -444,7 +447,7 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
     // Get top categories by average skill level
     const topCategories = await Skill.aggregate([
       {
-        $match: { user_id: userId },
+        $match: userSkillFilter,
       },
       {
         $lookup: {
@@ -490,7 +493,7 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
     ]);
 
     // Get top skills by skill level (sorted highest to lowest)
-    const topSkills = await Skill.find({ user_id: userId })
+    const topSkills = await Skill.find(userSkillFilter)
       .select('skill_name skill_level skill_score interest_level')
       .sort({ skill_score: -1, interest_level: -1 })
       .limit(10)
@@ -513,10 +516,10 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       );
 
     // Get top interests (skills with highest interest level)
-    const topInterests = await Skill.find({ 
-      user_id: userId,
+    const topInterests = await Skill.find({
+      ...userSkillFilter,
       interest_level: { $gte: 1 }
-    })
+    } as any)
       .select('skill_name interest_level skill_level skill_score')
       .sort({ interest_level: -1, skill_score: -1 })
       .limit(10)
@@ -645,14 +648,14 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       })),
     };
 
-    const mySkillNames = await Skill.find({ user_id: userId }).distinct('skill_name');
+    const mySkillNames = await Skill.find(userSkillFilter).distinct('skill_name');
 
     const similarPeople = await Skill.aggregate([
       {
         $match: {
-          user_id: { $ne: userId },
+          user_id: { $ne: userObjectId },
           skill_name: { $in: mySkillNames },
-        },
+        } as any,
       },
       {
         $lookup: {
@@ -688,9 +691,9 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
 
     // Keen to improve: High interest (4-5) but lower skill level (1-3)
     const keenToImprove = await Skill.find({
-      user_id: userId,
+      ...userSkillFilter,
       interest_level: { $gte: 4 },
-    })
+    } as any)
       .select('skill_name skill_level skill_score interest_level')
       .sort({ interest_level: -1, skill_score: 1 })
       .limit(20)
@@ -817,9 +820,11 @@ export const getCompanyAbout = async (req: Request, res: Response) => {
       }
     }
 
-    const skillCount = await Skill.countDocuments({ user_id: userId });
+    const userObjectId = new Types.ObjectId(userId);
+    const userSkillFilter = { user_id: userObjectId } as any;
+    const skillCount = await Skill.countDocuments(userSkillFilter);
     const categoryGroups = await Skill.aggregate([
-      { $match: { user_id: userId } },
+      { $match: userSkillFilter },
       { $group: { _id: '$cat_id' } },
       { $count: 'total' },
     ]);
@@ -883,12 +888,14 @@ export const getCompanyAssessments = async (req: Request, res: Response) => {
 
     const user = await UserModel.findById(userId).select('fullName');
 
-    const lastSelfSkill = await Skill.findOne({ user_id: userId })
+    const userObjectId = new Types.ObjectId(userId);
+    const userSkillFilter = { user_id: userObjectId } as any;
+    const lastSelfSkill = await Skill.findOne(userSkillFilter)
       .sort({ created_at: -1 })
       .select('created_at');
 
     const historyAggregation = await Skill.aggregate([
-      { $match: { user_id: userId } },
+      { $match: userSkillFilter },
       {
         $lookup: {
           from: 'skillcategories',

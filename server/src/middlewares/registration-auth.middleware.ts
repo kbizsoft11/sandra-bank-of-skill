@@ -24,6 +24,13 @@ export const verifyRegistrationToken = async (
         const token = authHeader.split(' ')[1];
         const decoded = verifyToken(token);
 
+        if (!decoded?.userId || !decoded?.email) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid or expired token',
+            });
+        }
+
         // Attach user info to request
         req.user = decoded;
 
@@ -42,7 +49,16 @@ export const verifyRegistrationToken = async (
 export const checkRegistrationStep = (requiredStatus: string) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const user = await userRepository.findByEmail(req.user.email);
+            const userEmail = req.user?.email;
+
+            if (!userEmail) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Authentication required',
+                });
+            }
+
+            const user = await userRepository.findByEmail(userEmail);
 
             if (!user) {
                 return res.status(404).json({
@@ -84,7 +100,16 @@ export const ensureEmailVerified = async (
     next: NextFunction
 ) => {
     try {
-        const user = await userRepository.findByEmail(req.user.email);
+        const userEmail = req.user?.email;
+
+        if (!userEmail) {
+            return res.status(401).json({
+                success: false,
+                message: 'Authentication required',
+            });
+        }
+
+        const user = await userRepository.findByEmail(userEmail);
 
         if (!user) {
             return res.status(404).json({
