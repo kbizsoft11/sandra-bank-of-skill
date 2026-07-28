@@ -49,6 +49,44 @@ export const initializeQuestionAnswers = async (
 };
 
 /**
+ * Reset a questionnaire response so the employee can retake it from the beginning
+ */
+export const resetQuestionnaireResponse = async (
+    questionnaireResponseId: string,
+    employeeId: string,
+    tenantId: string,
+    organisationId: string
+): Promise<void> => {
+    const response = await QuestionnaireResponseModel.findById(questionnaireResponseId);
+
+    if (!response) {
+        throw new Error('Questionnaire response not found');
+    }
+
+    await QuestionAnswerModel.deleteMany({
+        questionnaireResponseId,
+        employeeId,
+    });
+
+    response.status = 'pending';
+    response.answers = [];
+    response.startedAt = undefined as any;
+    response.completedAt = undefined as any;
+
+    await response.save();
+
+    await initializeQuestionAnswers(
+        questionnaireResponseId,
+        response.questionnaireId,
+        employeeId,
+        tenantId,
+        organisationId
+    );
+
+    await updateEmployeeProfileCompletion(employeeId);
+};
+
+/**
  * Get pending questions for an employee's questionnaire
  */
 export const getPendingQuestions = async (

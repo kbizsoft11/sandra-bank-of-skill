@@ -123,6 +123,13 @@ export class QuestionnaireService {
         return this.http.get(`${this.api}/employee/${responseId}/progress`);
     }
 
+    /**
+     * Reset a completed questionnaire so the employee can retake it
+     */
+    retakeQuestionnaire(responseId: string): Observable<any> {
+        return this.http.post(`${this.api}/employee/${responseId}/retake`, {});
+    }
+
     // ==================== LEGACY EMPLOYEE METHODS ====================
 
     /**

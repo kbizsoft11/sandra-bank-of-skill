@@ -143,6 +143,17 @@ router.get(
 );
 
 /**
+ * POST /questionnaires/employee/:responseId/retake
+ * Reset a completed questionnaire so the employee can retake it
+ */
+router.post(
+    '/employee/:responseId/retake',
+    authenticate,
+    allowRoles('employee'),
+    employeeQuestionnaireController.retakeQuestionnaire
+);
+
+/**
  * GET /questionnaires/onboarding/pending
  * Get pending onboarding questionnaire for logged-in employee
  */

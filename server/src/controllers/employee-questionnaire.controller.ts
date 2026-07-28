@@ -11,6 +11,7 @@ import {
     getAnsweredQuestions,
     saveQuestionAnswer,
     getQuestionnaireProgress,
+    resetQuestionnaireResponse,
 } from '../services/question-answer.service';
 
 /**
@@ -89,10 +90,6 @@ export const getAssignedQuestionnaires = asyncHandler(
                     return null;
                 }
 
-                if (questionnaire.skillCategoryId) {
-                    questionnaire.title = categoryMap.get(questionnaire.skillCategoryId as string) || questionnaire.title;
-                }
-
                 // Get progress
                 const progress = await getQuestionnaireProgress(
                     response._id.toString(),
@@ -103,6 +100,10 @@ export const getAssignedQuestionnaires = asyncHandler(
                     _id: questionnaire._id,
                     title: questionnaire.title,
                     description: questionnaire.description,
+                    categoryId: questionnaire.skillCategoryId,
+                    categoryTitle: questionnaire.skillCategoryId
+                        ? categoryMap.get(questionnaire.skillCategoryId as string)
+                        : undefined,
                     responseId: response._id,
                     status: response.status,
                     assignedAt: response.assignedAt,
@@ -159,12 +160,10 @@ export const startQuestionnaire = asyncHandler(
             );
         }
 
-        if (questionnaire.skillCategoryId) {
-            const category = await SkillCategory.findById(questionnaire.skillCategoryId).lean();
-            if (category?.cat_name) {
-                questionnaire.title = category.cat_name;
-            }
-        }
+        // Keep the questionnaire title intact, but preserve category metadata
+        const categoryMeta = questionnaire.skillCategoryId
+            ? await SkillCategory.findById(questionnaire.skillCategoryId).lean()
+            : null;
 
         // Initialize question answers if not already done
         await initializeQuestionAnswers(
@@ -332,6 +331,48 @@ export const getProgress = asyncHandler(
             200,
             'Progress fetched successfully',
             progress
+        );
+    }
+);
+
+/**
+ * Reset a completed questionnaire so the employee can retake it
+ */
+export const retakeQuestionnaire = asyncHandler(
+    async (req: Request, res: Response) => {
+        const user = (req as any).user;
+        const { responseId } = req.params;
+        const responseIdStr = Array.isArray(responseId) ? responseId[0] : responseId;
+
+        const response = await QuestionnaireResponseModel.findOne({
+            _id: responseIdStr,
+            employeeId: user.userId,
+        });
+
+        if (!response) {
+            return sendResponse(
+                res,
+                404,
+                'Questionnaire not found or not assigned to you',
+                null
+            );
+        }
+
+        await resetQuestionnaireResponse(
+            responseIdStr,
+            user.userId,
+            response.tenantId,
+            response.organisationId
+        );
+
+        return sendResponse(
+            res,
+            200,
+            'Questionnaire reset successfully',
+            {
+                responseId: responseIdStr,
+                status: 'pending',
+            }
         );
     }
 );
