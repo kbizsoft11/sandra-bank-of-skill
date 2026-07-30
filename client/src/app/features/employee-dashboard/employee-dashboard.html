@@ -179,7 +179,7 @@
       </article>
 
       <article class="panel">
-        <div class="panel-heading"><h2>Career growth</h2><a [routerLink]="['/employee/profile']" class="text-button">View career path</a></div>
+        <div class="panel-heading"><h2>Career growth</h2></div>
         @if (employeeStats()?.careerGrowth) {
           <div class="assessment-summary">
             <div><span>Current role</span><strong>{{ employeeStats()?.careerGrowth?.currentRole }}</strong></div>
