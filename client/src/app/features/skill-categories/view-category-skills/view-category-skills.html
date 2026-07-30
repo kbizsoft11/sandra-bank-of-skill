@@ -1,0 +1,304 @@
+<div class="container-fluid py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 fw-semibold mb-2">Manage {{ category()?.name }} Skills</h1>
+      <p class="text-secondary mb-0">Drag skills between available and assigned lists</p>
+    </div>
+    <button (click)="backToCategories()" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-2"></i>
+      Back to Categories
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-circle me-2"></i>
+      {{ error() }}
+      <button type="button" class="btn-close" (click)="error.set(null)"></button>
+    </div>
+  }
+
+  <!-- Filters -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-8">
+          <div class="input-group">
+            <span class="input-group-text bg-light">
+              <i class="bi bi-search"></i>
+            </span>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Search skills..."
+              [value]="searchForm()?.get('search')?.value || ''"
+              (change)="onSearchInputChange($event)"
+              (keyup.enter)="onSearch()"
+            />
+            <button class="btn btn-primary" (click)="onSearch()">
+              <i class="bi bi-search me-2"></i>
+              Search
+            </button>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <select
+            class="form-select"
+            (change)="onLevelFilterChange($event)"
+            [value]="skillLevelFilter()"
+          >
+            <option value="">All Levels</option>
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Advanced">Advanced</option>
+            <option value="Expert">Expert</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dual List Container -->
+  <div class="row g-3">
+    <!-- LEFT: Unassigned Skills -->
+    <div class="col-lg-5">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-light border-0">
+          <h5 class="mb-0">
+            <i class="bi bi-inbox me-2"></i>
+            Available Skills
+            <span class="badge bg-secondary ms-2">{{ unassignedTotal() }}</span>
+          </h5>
+        </div>
+
+        @if (unassignedLoading()) {
+          <div class="card-body text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-secondary small">Loading available skills...</p>
+          </div>
+        } @else if (unassignedSkills().length === 0) {
+          <div class="card-body text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 2rem; color: #6c757d;"></i>
+            <p class="mt-3 text-secondary small">No available skills</p>
+          </div>
+        } @else {
+          <!-- Unassigned List Header -->
+          <div class="card-body border-bottom py-2">
+            <div class="form-check">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                id="selectAllUnassigned"
+                (change)="onToggleAllUnassigned($event)"
+              />
+              <label class="form-check-label small text-secondary" for="selectAllUnassigned">
+                Select all ({{ selectedUnassigned().length }}/{{ unassignedSkills().length }})
+              </label>
+            </div>
+          </div>
+
+          <!-- Unassigned Skills List -->
+          <div class="skill-list">
+            @for (skill of getDisplayedUnassigned(); track skill._id) {
+              <div class="skill-item">
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    [id]="'unassigned-' + skill._id"
+                    [checked]="isUnassignedSelected(skill._id)"
+                    (change)="toggleUnassignedSelection(skill._id)"
+                  />
+                  <label [for]="'unassigned-' + skill._id" class="form-check-label w-100">
+                    <div class="skill-content">
+                      <div class="skill-name">{{ skill.skill_name }}</div>
+                      <div class="skill-meta">
+                        <span class="badge" [ngClass]="getSkillLevelBadgeClass(skill.skill_level)">
+                          {{ skill.skill_level }}
+                        </span>
+                        <span class="text-muted small ms-2">{{ skill.user_id.fullName }}</span>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Unassigned Pagination -->
+          @if (unassignedTotalPages() > 1) {
+            <div class="card-footer bg-light border-top py-2">
+              <nav aria-label="Unassigned pagination" class="d-flex justify-content-center">
+                <ul class="pagination pagination-sm mb-0">
+                  <li class="page-item" [class.disabled]="unassignedPage() === 1">
+                    <button class="page-link" (click)="onUnassignedPageChange(unassignedPage() - 1)">
+                      <i class="bi bi-chevron-left"></i>
+                    </button>
+                  </li>
+                  <li class="page-item active">
+                    <span class="page-link">{{ unassignedPage() }}/{{ unassignedTotalPages() }}</span>
+                  </li>
+                  <li class="page-item" [class.disabled]="unassignedPage() === unassignedTotalPages()">
+                    <button class="page-link" (click)="onUnassignedPageChange(unassignedPage() + 1)">
+                      <i class="bi bi-chevron-right"></i>
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- CENTER: Action Buttons -->
+    <div class="col-lg-2 d-flex align-items-center">
+      <div class="w-100">
+        <!-- Move Right Button -->
+        <button
+          class="btn btn-primary w-100 mb-3"
+          (click)="moveToRight()"
+          [disabled]="!canMoveRight() || isMoving()"
+          title="Assign selected skills to this category"
+        >
+          @if (isMoving()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Moving...
+          } @else {
+            <i class="bi bi-arrow-right-circle me-2"></i>
+            Assign
+          }
+        </button>
+
+        <!-- Move Left Button -->
+        <button
+          class="btn btn-warning w-100"
+          (click)="moveToLeft()"
+          [disabled]="!canMoveLeft() || isMoving()"
+          title="Remove selected skills from this category"
+        >
+          @if (isMoving()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Moving...
+          } @else {
+            <i class="bi bi-arrow-left-circle me-2"></i>
+            Remove
+          }
+        </button>
+
+        <!-- Info Cards -->
+        <div class="mt-4">
+          <div class="alert alert-info py-2 px-3 mb-2">
+            <small class="text-break">
+              <strong>Left:</strong> {{ selectedUnassigned().length }} selected
+            </small>
+          </div>
+          <div class="alert alert-warning py-2 px-3">
+            <small class="text-break">
+              <strong>Right:</strong> {{ selectedAssigned().length }} selected
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Assigned Skills -->
+    <div class="col-lg-5">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-light border-0">
+          <h5 class="mb-0">
+            <i class="bi bi-check-circle me-2"></i>
+            Assigned Skills
+            <span class="badge bg-success ms-2">{{ assignedTotal() }}</span>
+          </h5>
+        </div>
+
+        @if (assignedLoading()) {
+          <div class="card-body text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-secondary small">Loading assigned skills...</p>
+          </div>
+        } @else if (assignedSkills().length === 0) {
+          <div class="card-body text-center py-5">
+            <i class="bi bi-check-circle" style="font-size: 2rem; color: #6c757d;"></i>
+            <p class="mt-3 text-secondary small">No skills assigned yet</p>
+          </div>
+        } @else {
+          <!-- Assigned List Header -->
+          <div class="card-body border-bottom py-2">
+            <div class="form-check">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                id="selectAllAssigned"
+                (change)="onToggleAllAssigned($event)"
+              />
+              <label class="form-check-label small text-secondary" for="selectAllAssigned">
+                Select all ({{ selectedAssigned().length }}/{{ assignedSkills().length }})
+              </label>
+            </div>
+          </div>
+
+          <!-- Assigned Skills List -->
+          <div class="skill-list">
+            @for (skill of getDisplayedAssigned(); track skill._id) {
+              <div class="skill-item">
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    [id]="'assigned-' + skill._id"
+                    [checked]="isAssignedSelected(skill._id)"
+                    (change)="toggleAssignedSelection(skill._id)"
+                  />
+                  <label [for]="'assigned-' + skill._id" class="form-check-label w-100">
+                    <div class="skill-content">
+                      <div class="skill-name">{{ skill.skill_name }}</div>
+                      <div class="skill-meta">
+                        <span class="badge" [ngClass]="getSkillLevelBadgeClass(skill.skill_level)">
+                          {{ skill.skill_level }}
+                        </span>
+                        <span class="text-muted small ms-2">{{ skill.user_id.fullName }}</span>
+                        @if (skill.skill_score) {
+                          <span class="badge bg-secondary ms-2">{{ skill.skill_score }}%</span>
+                        }
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Assigned Pagination -->
+          @if (assignedTotalPages() > 1) {
+            <div class="card-footer bg-light border-top py-2">
+              <nav aria-label="Assigned pagination" class="d-flex justify-content-center">
+                <ul class="pagination pagination-sm mb-0">
+                  <li class="page-item" [class.disabled]="assignedPage() === 1">
+                    <button class="page-link" (click)="onAssignedPageChange(assignedPage() - 1)">
+                      <i class="bi bi-chevron-left"></i>
+                    </button>
+                  </li>
+                  <li class="page-item active">
+                    <span class="page-link">{{ assignedPage() }}/{{ assignedTotalPages() }}</span>
+                  </li>
+                  <li class="page-item" [class.disabled]="assignedPage() === assignedTotalPages()">
+                    <button class="page-link" (click)="onAssignedPageChange(assignedPage() + 1)">
+                      <i class="bi bi-chevron-right"></i>
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+</div>

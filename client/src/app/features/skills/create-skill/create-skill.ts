@@ -17,11 +17,16 @@ import { Router, RouterLink } from '@angular/router';
 import { SkillService } from '../../../core/services/skill.service';
 import { UserService } from '../../../core/services/user.service';
 import { SkillCategoryService } from '../../../core/services/skill-category.service';
+import { CompanySkillCategoryService } from '../../../core/services/company-skill-category.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AlertService } from '../../../core/services/alert.service';
-import { forkJoin } from 'rxjs';
 import { User } from '../../../shared/interfaces/user.interface';
-import { SkillCategory } from '../../../shared/interfaces/skill-category.interface';
+import { SkillCategory, CompanySkillCategoryMapping } from '../../../shared/interfaces/skill-category.interface';
+
+interface CategoryOption {
+  _id: string;
+  name: string;
+}
 
 @Component({
   selector: 'app-create-skill',
@@ -47,6 +52,9 @@ export class CreateSkill implements OnInit {
   private readonly categoryService =
     inject(SkillCategoryService);
 
+  private readonly companySkillCategoryService =
+    inject(CompanySkillCategoryService);
+
   private readonly auth =
     inject(AuthService);
 
@@ -55,22 +63,16 @@ export class CreateSkill implements OnInit {
 
   users = signal<User[]>([]);
 
-  categories = signal<SkillCategory[]>([]);
+  categories = signal<CategoryOption[]>([]);
 
   readonly form =
     this.fb.nonNullable.group({
 
-      cat_id: ['', Validators.required],
+      categoryId: ['', Validators.required],
 
-      user_id: ['', Validators.required],
+      name: ['', Validators.required],
 
-      skill_name: ['', Validators.required],
-
-      skill_desc: [''],
-
-      skill_level: [1 as 1 | 2 | 3 | 4, Validators.required],
-
-      skill_score: [0]
+      description: ['']
 
     });
 
@@ -85,29 +87,90 @@ export class CreateSkill implements OnInit {
       return;
     }
 
-    const userId = this.auth.user()?._id;
+    this.loadCategories();
 
-    // For admins/company, allow user selection
-    if (userId) {
-      this.form.patchValue({ user_id: userId });
+  }
+
+  private loadCategories(): void {
+    const role = this.auth.role();
+
+    if (role === 'company') {
+      this.loadCompanyCategories();
+    } else {
+      this.loadAdminCategories();
     }
+  }
 
-    forkJoin({
-      users: this.userService.getUsers(),
-      categories: this.categoryService.getAll()
-    }).subscribe({
-
-      next: ({ users, categories }) => {
-
-        this.users.set(users.data);
-        this.categories.set(categories.data);
-
+  private loadAdminCategories(): void {
+    this.categoryService.getAll().subscribe({
+      next: (response) => {
+        console.log('Categories response:', response);
+        // Backend returns { categories: [...], total, page, limit }
+        if (response.data && response.data.categories && Array.isArray(response.data.categories)) {
+          this.categories.set(response.data.categories);
+          console.log('Categories loaded:', response.data.categories.length);
+        } else if (response.data && Array.isArray(response.data)) {
+          // Fallback for direct array response
+          this.categories.set(response.data);
+          console.log('Categories loaded (direct array):', response.data.length);
+        } else {
+          console.warn('Unexpected category response structure:', response);
+          this.alertService.warning('Categories loaded but with unexpected format');
+        }
       },
-
-      error: console.error
-
+      error: (err) => {
+        console.error('Failed to load categories:', err);
+        this.alertService.error('Failed to load skill categories');
+      }
     });
+  }
 
+  private loadCompanyCategories(): void {
+    // Load both company own categories and selected admin categories
+    Promise.all([
+      this.companySkillCategoryService.getAll().toPromise(),
+      this.categoryService.getAll({ limit: 100 }).toPromise()
+    ]).then(([mappingsResponse, categoriesResponse]) => {
+      const mappings = mappingsResponse?.data as CompanySkillCategoryMapping[] || [];
+      const result = categoriesResponse?.data as any || {};
+      let allCategories: SkillCategory[] = [];
+      
+      if (Array.isArray(result)) {
+        allCategories = result;
+      } else if (result.categories && Array.isArray(result.categories)) {
+        allCategories = result.categories;
+      }
+
+      // Build combined list of categories accessible to company
+      const accessibleCategories: CategoryOption[] = [];
+
+      // Add company's own categories
+      const ownCats = allCategories.filter((cat: any) => cat.createdType === 'COMPANY');
+      ownCats.forEach((cat: any) => {
+        accessibleCategories.push({
+          _id: cat._id,
+          name: cat.name
+        });
+      });
+
+      // Add selected admin categories
+      const adminMappings = mappings.filter((m: any) => m.mappingId);
+      adminMappings.forEach((mapping: any) => {
+        const adminCat = allCategories.find((c: any) => c._id.toString() === mapping.categoryId);
+        if (adminCat) {
+          accessibleCategories.push({
+            _id: mapping.categoryId,
+            name: adminCat.name
+          });
+        }
+      });
+
+      this.categories.set(accessibleCategories);
+      console.log('Company categories loaded:', accessibleCategories.length);
+    }).catch((err) => {
+      console.error('Failed to load company categories:', err);
+      this.alertService.error('Failed to load skill categories');
+    });
   }
 
   isEmployee(): boolean {

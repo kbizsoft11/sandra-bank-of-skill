@@ -88,4 +88,32 @@ export class SkillService {
 
   }
 
+  bulkDeleteSkills(skillIds: string[]) {
+    return this.http.post(
+      `${API_CONFIG.BASE_URL}/skills/bulk/remove`,
+      { skillIds }
+    );
+  }
+
+  bulkMoveSkills(skillIds: string[], categoryId: string) {
+    return this.http.post(
+      `${API_CONFIG.BASE_URL}/skills/bulk/move`,
+      { skillIds, targetCategoryId: categoryId }
+    );
+  }
+
+  bulkArchiveSkills(skillIds: string[]) {
+    return this.http.patch(
+      `${API_CONFIG.BASE_URL}/skills/bulk/archive`,
+      { skillIds, archived: true }
+    );
+  }
+
+  bulkUpdateStatus(skillIds: string[], status: 'active' | 'inactive') {
+    return this.http.patch(
+      `${API_CONFIG.BASE_URL}/skills/bulk/status`,
+      { skillIds, status }
+    );
+  }
+
 }

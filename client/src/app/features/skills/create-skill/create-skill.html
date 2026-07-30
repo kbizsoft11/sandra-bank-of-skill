@@ -19,10 +19,10 @@
     <div class="mb-3">
 
       <label class="form-label">
-        Category
+        Category <span class="text-danger">*</span>
       </label>
 
-      <select formControlName="cat_id" class="form-select">
+      <select formControlName="categoryId" class="form-select">
 
         <option value="">
           Select Category
@@ -32,7 +32,7 @@
 
         <option [value]="category._id">
 
-          {{category.cat_name}}
+          {{category.name}}
 
         </option>
 
@@ -40,47 +40,25 @@
 
       </select>
 
+      @if (form.get('categoryId')?.invalid && form.get('categoryId')?.touched) {
+        <p class="mt-2 small text-danger">Category is required</p>
+      }
+
     </div>
-
-    <!-- User (hidden for employees as they can only create skills for themselves) -->
-
-    @if (!isEmployee()) {
-      <div class="mb-3">
-
-        <label class="form-label">
-          User
-        </label>
-
-        <select formControlName="user_id" class="form-select">
-
-          <option value="">
-            Select User
-          </option>
-
-          @for(user of users(); track user._id){
-
-          <option [value]="user._id">
-
-            {{user.fullName}}
-
-          </option>
-
-          }
-
-        </select>
-
-      </div>
-    }
 
     <!-- Skill Name -->
 
     <div class="mb-3">
 
       <label class="form-label">
-        Skill Name
+        Skill Name <span class="text-danger">*</span>
       </label>
 
-      <input type="text" formControlName="skill_name" class="form-control">
+      <input type="text" formControlName="name" class="form-control" placeholder="e.g., JavaScript, Project Management">
+
+      @if (form.get('name')?.invalid && form.get('name')?.touched) {
+        <p class="mt-2 small text-danger">Skill name is required</p>
+      }
 
     </div>
 
@@ -92,50 +70,7 @@
         Description
       </label>
 
-      <textarea rows="4" formControlName="skill_desc" class="form-control">
-      </textarea>
-
-    </div>
-
-    <!-- Level -->
-
-    <div class="mb-3">
-
-      <label class="form-label">
-        Skill Level
-      </label>
-
-      <select formControlName="skill_level" class="form-select">
-
-        <option [value]="1">
-          Beginner
-        </option>
-
-        <option [value]="2">
-          Intermediate
-        </option>
-
-        <option [value]="3">
-          Advanced
-        </option>
-
-        <option [value]="4">
-          Expert
-        </option>
-
-      </select>
-
-    </div>
-
-    <!-- Score -->
-
-    <div class="mb-3">
-
-      <label class="form-label">
-        Skill Score
-      </label>
-
-      <input type="number" formControlName="skill_score" class="form-control">
+      <textarea rows="4" formControlName="description" class="form-control" placeholder="Provide a brief description of this skill..."></textarea>
 
     </div>
 
@@ -147,7 +82,7 @@
 
       </a>
 
-      <button type="submit" class="btn btn-primary px-4">
+      <button type="submit" [disabled]="form.invalid" class="btn btn-primary px-4">
 
         Save
 

@@ -6,6 +6,9 @@ node_modules/
 dist/
 coverage/
 
+# Markdowns
+*.md
+
 # Environment
 .env
 .env.*

@@ -143,4 +143,47 @@ export class AlertService {
       title: message
     });
   }
+
+  /**
+   * Show select category dialog
+   */
+  selectCategory(categories: string[] | { id: string; name: string }[]): Promise<string | null> {
+    let options: Record<string, string> = {};
+
+    if (Array.isArray(categories) && categories.length > 0) {
+      if (typeof categories[0] === 'string') {
+        // Old format: string array
+        options = (categories as string[]).reduce((acc, cat) => {
+          acc[cat] = cat;
+          return acc;
+        }, {} as Record<string, string>);
+      } else {
+        // New format: { id, name } array
+        options = (categories as any[]).reduce((acc, cat) => {
+          acc[cat.id] = cat.name;
+          return acc;
+        }, {} as Record<string, string>);
+      }
+    }
+
+    return Swal.fire({
+      title: 'Select Target Category',
+      input: 'select',
+      inputOptions: options,
+      inputPlaceholder: 'Choose a category',
+      showCancelButton: true,
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Move',
+      cancelButtonText: 'Cancel',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Please select a category';
+        }
+        return null;
+      }
+    }).then((result) => {
+      return result.isConfirmed ? result.value : null;
+    });
+  }
 }

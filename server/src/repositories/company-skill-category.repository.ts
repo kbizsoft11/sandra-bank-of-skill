@@ -14,7 +14,7 @@ export class CompanySkillCategoryRepository {
   }
 
   async findAllByCompany(companyId: string) {
-    return CompanySkillCategory.find({ companyId }).sort({ createdAt: -1 });
+    return CompanySkillCategory.find({ companyId }).lean().sort({ createdAt: -1 });
   }
 
   async findByCompanyAndCategory(companyId: string, skillCategoryId: string) {

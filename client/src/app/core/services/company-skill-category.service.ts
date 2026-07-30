@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { API_CONFIG } from '../config/api.config';
@@ -39,6 +39,29 @@ export class CompanySkillCategoryService {
   delete(id: string): Observable<ApiResponse<unknown>> {
     return this.http.delete<ApiResponse<unknown>>(
       `${API_CONFIG.BASE_URL}/company-skill-categories/${id}`
+    );
+  }
+
+  getAvailableAdminCategories(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Observable<ApiResponse<any>> {
+    let httpParams = new HttpParams();
+
+    if (params?.page) {
+      httpParams = httpParams.set('page', params.page.toString());
+    }
+    if (params?.limit) {
+      httpParams = httpParams.set('limit', params.limit.toString());
+    }
+    if (params?.search) {
+      httpParams = httpParams.set('search', params.search);
+    }
+
+    return this.http.get<ApiResponse<any>>(
+      `${API_CONFIG.BASE_URL}/company-skill-categories/available/admin`,
+      { params: httpParams }
     );
   }
 }

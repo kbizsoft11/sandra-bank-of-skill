@@ -1,0 +1,169 @@
+<div class="manage-categories-container">
+  <!-- Header -->
+  <div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2>Manage Skill Categories</h2>
+        <p class="text-muted mt-2">
+          Enable or disable skill categories for your organization. Only enabled categories will be visible to your employees.
+        </p>
+      </div>
+      <div class="action-buttons">
+        <button class="btn btn-outline-primary" (click)="resetToDefault()" title="Reset to default (enable all)">
+          <i class="bi bi-arrow-counterclockwise"></i> Reset to Default
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="filters-section mb-4">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search categories..."
+            [ngModel]="searchFilter()"
+            (ngModelChange)="searchFilter.set($event)"
+          />
+        </div>
+      </div>
+      <div class="col-md-6 text-end">
+        <button class="btn btn-sm btn-success me-2" (click)="enableAll()" [disabled]="loading()">
+          <i class="bi bi-check-all"></i> Enable All
+        </button>
+        <button class="btn btn-sm btn-danger" (click)="disableAll()" [disabled]="loading()">
+          <i class="bi bi-x-lg"></i> Disable All
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-section mb-4">
+    <ul class="nav nav-tabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          [class.active]="selectedTab() === 'all'"
+          (click)="selectedTab.set('all')"
+          type="button"
+        >
+          All Categories
+          <span class="badge bg-secondary ms-2">{{ getTabCount('all') }}</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          [class.active]="selectedTab() === 'enabled'"
+          (click)="selectedTab.set('enabled')"
+          type="button"
+        >
+          Enabled
+          <span class="badge bg-success ms-2">{{ getTabCount('enabled') }}</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          [class.active]="selectedTab() === 'disabled'"
+          (click)="selectedTab.set('disabled')"
+          type="button"
+        >
+          Disabled
+          <span class="badge bg-danger ms-2">{{ getTabCount('disabled') }}</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3 text-muted">Loading categories...</p>
+  </div>
+
+  <!-- Categories List -->
+  <div *ngIf="!loading()" class="categories-grid">
+    <!-- Empty State -->
+    <div *ngIf="filteredCategories.length === 0" class="empty-state text-center py-5">
+      <div class="empty-state-icon mb-3">
+        <i class="bi bi-inbox"></i>
+      </div>
+      <h5>No categories found</h5>
+      <p class="text-muted">
+        {{
+          searchFilter()
+            ? 'No categories match your search.'
+            : selectedTab() === 'enabled'
+            ? 'No enabled categories.'
+            : 'No disabled categories.'
+        }}
+      </p>
+    </div>
+
+    <!-- Categories Cards -->
+    <div class="row">
+      <div class="col-lg-6 col-xl-4" *ngFor="let category of filteredCategories">
+        <div class="category-card" [class.disabled]="!category.enabled">
+          <div class="category-card-header">
+            <div class="category-info">
+              <h6 class="category-name">{{ category.categoryName }}</h6>
+              <p class="category-description text-muted">
+                {{ category.description || 'No description' }}
+              </p>
+            </div>
+            <div class="category-status">
+              <span
+                class="badge"
+                [class.bg-success]="category.enabled"
+                [class.bg-secondary]="!category.enabled"
+              >
+                {{ category.enabled ? 'Enabled' : 'Disabled' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="category-card-body">
+            <div class="toggle-switch">
+              <input
+                type="checkbox"
+                class="toggle-input"
+                [id]="'toggle-' + category.categoryId"
+                [checked]="category.enabled"
+                [disabled]="category.loading"
+                (change)="toggleCategory(category)"
+              />
+              <label [for]="'toggle-' + category.categoryId" class="toggle-label">
+                <span *ngIf="category.loading" class="spinner-border spinner-border-sm me-2"></span>
+                <span>{{ category.enabled ? 'Enabled' : 'Disabled' }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Info -->
+  <div class="summary-info mt-5 p-3 bg-light rounded">
+    <h6 class="mb-3">
+      <i class="bi bi-info-circle"></i> Category Management Info
+    </h6>
+    <ul class="small text-muted mb-0">
+      <li>
+        <strong>Enabled Categories:</strong> {{ getTabCount('enabled') }} out of
+        {{ getTabCount('all') }}
+      </li>
+      <li><strong>Impact:</strong> Only enabled categories will appear in your organization's skill database.</li>
+      <li><strong>Employees:</strong> Employees can only have skills from enabled categories.</li>
+      <li><strong>Questionnaires:</strong> Questionnaires will respect enabled category settings.</li>
+    </ul>
+  </div>
+</div>

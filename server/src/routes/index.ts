@@ -4,6 +4,8 @@ import userRouter from './user.route';
 import authRouter from './auth.route';
 import skillCategoryRoutes from "./skill-category.route";
 import skillRoutes from "./skill.route";
+import skillUserRoutes from "./skill-user.route";
+import companyCategoryRoutes from "./company-category.route";
 import questionnaireRoutes from "./questionnaire.route";
 import dashboardRoutes from "./dashboard.route";
 import adminGlobalSearchRoutes from "./admin-global-search.route";
@@ -37,9 +39,10 @@ router.use('/company-skill-categories', authenticate, companySkillCategoryRoutes
 router.use('/organisations', authenticate, organisationRouter);
 router.use('/admin/system-settings', authenticate, systemSettingsRouter);
 router.use("/skills", authenticate, skillRoutes);
+router.use("/skill-users", authenticate, skillUserRoutes);
+router.use("/company-categories", authenticate, companyCategoryRoutes);
 router.use("/questionnaires", authenticate, questionnaireRoutes);
 router.use("/roles", roleRoutes);
 router.use("/company-notifications", companyNotificationRoutes)
-// router.use("/skills", authenticate, allowRoles('admin'), skillRoutes);
 
 export default router;

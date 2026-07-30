@@ -1,22 +1,35 @@
 import { z } from 'zod';
 
 export const createSkillCategorySchema = z.object({
-  cat_name: z
+  name: z
     .string()
-    .min(1, 'Category name is required'),
+    .min(1, 'Category name is required')
+    .max(100, 'Category name cannot exceed 100 characters'),
 
-  cat_desc: z
+  description: z
     .string()
+    .max(500, 'Description cannot exceed 500 characters')
     .optional(),
+
+  status: z
+    .enum(['active', 'inactive'])
+    .optional()
+    .default('active'),
 });
 
 export const updateSkillCategorySchema = z.object({
-  cat_name: z
+  name: z
     .string()
     .min(1, 'Category name is required')
+    .max(100, 'Category name cannot exceed 100 characters')
     .optional(),
 
-  cat_desc: z
+  description: z
     .string()
+    .max(500, 'Description cannot exceed 500 characters')
+    .optional(),
+
+  status: z
+    .enum(['active', 'inactive'])
     .optional(),
 });

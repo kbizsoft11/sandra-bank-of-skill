@@ -11,11 +11,12 @@ import { DocumentService } from '../../core/services/document.service';
 import { DocumentRequirementService } from '../../core/services/document-requirement.service';
 import { AlertService } from '../../core/services/alert.service';
 import { API_CONFIG } from '../../core/config/api.config';
+import { MySkillsTabComponent } from './my-skills-tab/my-skills-tab';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MySkillsTabComponent],
   templateUrl: './profile.html',
   styleUrl: './profile.scss'
 })

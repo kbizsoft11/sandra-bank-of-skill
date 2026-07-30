@@ -132,12 +132,12 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       icon: 'bi bi-building-fill',
       roles: ['admin'],
     },
-    {
-      label: 'All Users',
-      path: 'users-admin',
-      icon: 'bi bi-people-fill',
-      roles: ['admin'],
-    },
+    // {
+    //   label: 'All Users',
+    //   path: 'users-admin',
+    //   icon: 'bi bi-people-fill',
+    //   roles: ['admin'],
+    // },
     {
       label: 'Employees',
       path: 'users',

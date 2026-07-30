@@ -5,35 +5,56 @@ export interface Skill {
 
   _id: string;
 
-  cat_id: SkillCategory;
+  name: string;
 
-  user_id: User;
+  description?: string;
 
-  skill_name: string;
+  categoryId: string | SkillCategory;
+
+  createdBy: string | User;
+
+  createdType: 'ADMIN' | 'COMPANY';
+
+  companyId?: string;
+
+  archived: boolean;
+
+  status: 'active' | 'inactive';
+
+  createdAt: string;
+
+  updatedAt: string;
+
+  // Legacy fields for backward compatibility
+  cat_id?: SkillCategory;
+
+  user_id?: User;
+
+  skill_name?: string;
 
   skill_desc?: string;
 
-  skill_level: 1 | 2 | 3 | 4;
+  skill_level?: 1 | 2 | 3 | 4;
 
   skill_score?: number;
 
-  created_at: string;
+  created_at?: string;
 
 }
 
 export interface CreateSkill {
 
-  cat_id: string;
+  cat_id?: string; // Legacy
 
-  user_id: string;
+  categoryId?: string;
 
-  skill_name: string;
+  skill_name?: string; // Legacy
 
-  skill_desc?: string;
+  name?: string;
 
-  skill_level: 1 | 2 | 3 | 4;
+  skill_desc?: string; // Legacy
 
-  skill_score?: number;
+  description?: string;
 
 }
 

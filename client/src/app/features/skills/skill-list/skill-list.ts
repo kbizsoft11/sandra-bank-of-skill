@@ -2,17 +2,21 @@ import {
   Component,
   inject,
   OnInit,
-  signal
+  signal,
+  computed
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 import { SkillService } from '../../../core/services/skill.service';
+import { SkillCategoryService } from '../../../core/services/skill-category.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { AuthService } from '../../../core/services/auth.service';
 
 import { Skill } from '../../../shared/interfaces/skill.interface';
+import { SkillCategory } from '../../../shared/interfaces/skill-category.interface';
 
 import { TableActions } from '../../../shared/components/table-actions/table-actions';
 
@@ -22,33 +26,71 @@ import { TableActions } from '../../../shared/components/table-actions/table-act
   imports: [
     CommonModule,
     RouterLink,
-    TableActions
+    TableActions,
+    FormsModule
   ],
   templateUrl: './skill-list.html'
 })
 export class SkillList implements OnInit {
 
-  private readonly service =
-    inject(SkillService);
+  private readonly service = inject(SkillService);
+  private readonly categoryService = inject(SkillCategoryService);
+  private readonly alertService = inject(AlertService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
-  private readonly alertService =
-    inject(AlertService);
+  readonly auth = inject(AuthService);
 
-  private readonly router =
-    inject(Router);
-
-  private readonly route =
-    inject(ActivatedRoute);
-
-  readonly auth =
-    inject(AuthService);
-
-  skills = signal<Skill[]>([]);
+  // Data signals
+  currentSkills = signal<Skill[]>([]);
   employeeId = signal<string | null>(null);
   isViewingEmployeeSkills = signal<boolean>(false);
 
-  ngOnInit(): void {
+  // Bulk selection signals
+  selectedSkillIds = signal<Set<string>>(new Set());
+  selectAll = signal<boolean>(false);
 
+  // Pagination signals
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(10);
+  totalSkills = signal<number>(0);
+
+  // Filter signals
+  searchTerm = signal<string>('');
+  selectedCategory = signal<string>('');
+  statusFilter = signal<string>('');
+  categoryList = signal<SkillCategory[]>([]);
+  categories = signal<string[]>([]);
+
+  // Loading signal
+  isLoading = signal<boolean>(false);
+
+  // Computed values
+  totalPages = computed(() => Math.ceil(this.totalSkills() / this.pageSize()));
+
+  // Computed: Check if all paginated skills are selected
+  areAllPaginatedSelected = computed(() => {
+    const paginated = this.currentSkills();
+    if (paginated.length === 0) return false;
+    return paginated.every(skill => this.selectedSkillIds().has(skill._id));
+  });
+
+  // Computed: Count of selected skills
+  selectedCount = computed(() => this.selectedSkillIds().size);
+
+  // Computed: Get category name by ID
+  getCategoryNameById = computed(() => {
+    const cats = this.categoryList();
+    return (id: string) => {
+      const cat = cats.find((c: any) => c._id === id || c.id === id);
+      return cat?.name || id || 'Unknown';
+    };
+  });
+
+  // Expose Math to template
+  Math = Math;
+
+  ngOnInit(): void {
     // Check if we're viewing a specific employee's skills
     const userId = this.route.snapshot.params['id'];
     if (userId) {
@@ -56,31 +98,93 @@ export class SkillList implements OnInit {
       this.isViewingEmployeeSkills.set(true);
     }
 
+    this.loadCategories();
     this.loadSkills();
+  }
 
+  loadCategories(): void {
+    // Load all categories available in the system
+    this.categoryService.getAll({ limit: 100 }).subscribe({
+      next: (response) => {
+        // Response can be either an array or { categories, pagination }
+        const result = response?.data as any;
+        let categories: SkillCategory[] = [];
+
+        if (Array.isArray(result)) {
+          categories = result;
+        } else if (result?.categories && Array.isArray(result.categories)) {
+          categories = result.categories;
+        } else if (result?.categories) {
+          categories = [result.categories];
+        }
+
+        this.categoryList.set(categories);
+        
+        // Extract category IDs for the categories signal
+        const categoryIds = categories
+          .map((cat: any) => cat._id || cat.id)
+          .filter(Boolean);
+        this.categories.set(categoryIds);
+      },
+      error: (err) => {
+        console.error('Failed to load categories:', err);
+        this.categoryList.set([]);
+        this.categories.set([]);
+      }
+    });
   }
 
   loadSkills(): void {
-
+    this.isLoading.set(true);
     const employeeId = this.employeeId();
-    const query = this.isViewingEmployeeSkills() && employeeId
-      ? { user_id: employeeId }
-      : undefined;
+    
+    // Build query parameters with pagination and filters
+    const query: any = {
+      page: this.currentPage(),
+      limit: this.pageSize(),
+    };
 
-    this.service
-      .getSkills(query)
-      .subscribe({
+    if (this.searchTerm()) {
+      query.search = this.searchTerm();
+    }
 
-        next: (response) => {
+    if (this.selectedCategory()) {
+      query.categoryId = this.selectedCategory();
+    }
 
-          this.skills.set(
-            response.data.skills
-          );
+    if (this.statusFilter()) {
+      query.status = this.statusFilter();
+    }
 
+    if (this.isViewingEmployeeSkills() && employeeId) {
+      query.user_id = employeeId;
+    }
+
+    this.service.getSkills(query).subscribe({
+      next: (response) => {
+        const result = response?.data as any || {};
+        
+        // Handle both response formats:
+        // Backend returns { skills, total, page, limit }
+        // OR { skills, pagination: { total, page, limit } }
+        const skills = result.skills || [];
+        let total = result.total;
+        if (total === undefined && result.pagination) {
+          total = result.pagination.total;
         }
+        total = total || 0;
+        
+        this.currentSkills.set(skills);
+        this.totalSkills.set(total);
 
-      });
-
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error(err);
+        this.alertService.error('Failed to load skills');
+        this.isLoading.set(false);
+      }
+    });
   }
 
   getPageTitle(): string {
@@ -115,18 +219,16 @@ export class SkillList implements OnInit {
   }
 
   canModifySkills(): boolean {
-    // For employees, disable all skill modifications since skills come from questionnaires
     const role = this.auth.role();
-    
+
     if (role === 'employee') {
-      return false; // Employees cannot manually create/edit/delete skills
+      return false;
     }
-    
-    // Only show add/edit/delete if not viewing employee skills and user is admin/company
+
     if (this.isViewingEmployeeSkills()) {
       return false;
     }
-    
+
     return role === 'admin' || role === 'company';
   }
 
@@ -136,45 +238,308 @@ export class SkillList implements OnInit {
     return `/${rolePrefix}/users`;
   }
 
+  getCategoryName(skill: Skill): string {
+    if (typeof skill.categoryId === 'string') {
+      return skill.categoryId;
+    }
+    return (skill.categoryId as any)?.name || 'Unknown';
+  }
+
+  onSearch(value: string): void {
+    this.searchTerm.set(value);
+    this.currentPage.set(1);
+    this.loadSkills();
+  }
+
+  onCategoryChange(categoryId: string): void {
+    this.selectedCategory.set(categoryId);
+    this.currentPage.set(1);
+    this.loadSkills();
+  }
+
+  onStatusChange(status: string): void {
+    this.statusFilter.set(status);
+    this.currentPage.set(1);
+    this.loadSkills();
+  }
+
+  onPageChange(page: number): void {
+    const total = this.totalPages();
+    if (page >= 1 && page <= Math.max(1, total)) {
+      this.currentPage.set(page);
+      this.loadSkills();
+    }
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadSkills();
+  }
+
+  resetFilters(): void {
+    this.searchTerm.set('');
+    this.selectedCategory.set('');
+    this.statusFilter.set('');
+    this.currentPage.set(1);
+    this.loadSkills();
+  }
+
+  toggleSkillStatus(skill: Skill): void {
+    const newStatus = skill.status === 'active' ? 'inactive' : 'active';
+    const statusText = newStatus === 'active' ? 'activate' : 'deactivate';
+
+    this.alertService.confirm(
+      `${statusText.charAt(0).toUpperCase() + statusText.slice(1)} "${skill.name}"?`,
+      `Are you sure you want to ${statusText} this skill?`
+    ).then((confirmed) => {
+      if (confirmed) {
+        this.service.bulkUpdateStatus([skill._id], newStatus).subscribe({
+          next: () => {
+            this.loadSkills();
+            this.alertService.toast(`Skill ${statusText}d successfully`, 'success');
+          },
+          error: (err) => {
+            console.error(err);
+            this.alertService.error(`Failed to ${statusText} skill. Please try again.`);
+          }
+        });
+      }
+    });
+  }
+
+  getPageNumbers(): number[] {
+    const totalPages = this.totalPages();
+    const currentPage = this.currentPage();
+    const maxVisible = 5;
+    const result: number[] = [];
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        result.push(i);
+      }
+    } else {
+      result.push(1);
+
+      let start = Math.max(2, currentPage - 1);
+      let end = Math.min(totalPages - 1, currentPage + 1);
+
+      if (currentPage <= 3) {
+        end = 4;
+      } else if (currentPage >= totalPages - 2) {
+        start = totalPages - 3;
+      }
+
+      if (start > 2) {
+        result.push(-1);
+      }
+
+      for (let i = start; i <= end; i++) {
+        result.push(i);
+      }
+
+      if (end < totalPages - 1) {
+        result.push(-1);
+      }
+
+      result.push(totalPages);
+    }
+
+    return result;
+  }
+
   editSkill(skill: Skill): void {
     const role = this.auth.role();
     const rolePrefix = role || 'admin';
 
     if (role === 'employee') {
-      this.router.navigate([
-        `/${rolePrefix}/my-skills`,
-        skill._id,
-        'edit'
-      ]);
+      this.router.navigate([`/${rolePrefix}/my-skills`, skill._id, 'edit']);
     } else {
-      this.router.navigate([
-        `/${rolePrefix}/skills`,
-        skill._id,
-        'edit'
-      ]);
+      this.router.navigate([`/${rolePrefix}/skills`, skill._id, 'edit']);
     }
-
   }
 
   deleteSkill(skill: Skill): void {
-
-    this.alertService.confirmDelete(skill.skill_name).then((confirmed) => {
+    this.alertService.confirmDelete(skill.name).then((confirmed) => {
       if (confirmed) {
-        this.service
-          .deleteSkill(skill._id)
-          .subscribe({
-            next: () => {
-              this.loadSkills();
-              this.alertService.toast('Skill deleted successfully', 'success');
-            },
-            error: (err) => {
-              console.error(err);
-              this.alertService.error('Failed to delete skill. Please try again.');
-            }
-          });
+        this.service.deleteSkill(skill._id).subscribe({
+          next: () => {
+            this.loadSkills();
+            this.alertService.toast('Skill deleted successfully', 'success');
+          },
+          error: (err) => {
+            console.error(err);
+            this.alertService.error('Failed to delete skill. Please try again.');
+          }
+        });
       }
     });
-
   }
 
+  // Bulk selection methods
+  toggleSkillSelection(skillId: string): void {
+    const selected = new Set(this.selectedSkillIds());
+    if (selected.has(skillId)) {
+      selected.delete(skillId);
+    } else {
+      selected.add(skillId);
+    }
+    this.selectedSkillIds.set(selected);
+    console.log('Selected skills:', Array.from(selected), 'Count:', selected.size);
+  }
+
+  toggleSelectAll(): void {
+    const paginated = this.currentSkills();
+    if (this.areAllPaginatedSelected()) {
+      // Deselect all on current page
+      const selected = new Set(this.selectedSkillIds());
+      paginated.forEach(skill => selected.delete(skill._id));
+      this.selectedSkillIds.set(selected);
+      this.selectAll.set(false);
+    } else {
+      // Select all on current page
+      const selected = new Set(this.selectedSkillIds());
+      paginated.forEach(skill => selected.add(skill._id));
+      this.selectedSkillIds.set(selected);
+      this.selectAll.set(true);
+    }
+  }
+
+  isSkillSelected(skillId: string): boolean {
+    return this.selectedSkillIds().has(skillId);
+  }
+
+  clearSelection(): void {
+    this.selectedSkillIds.set(new Set());
+    this.selectAll.set(false);
+  }
+
+  getSelectedSkillIds(): string[] {
+    return Array.from(this.selectedSkillIds());
+  }
+
+  onBulkDelete(): void {
+    const count = this.selectedCount();
+    this.alertService.confirm(
+      `Delete ${count} skill(s)?`,
+      `Are you sure you want to permanently delete ${count} selected skill(s)? This action cannot be undone.`
+    ).then((confirmed) => {
+      if (confirmed) {
+        const skillIds = this.getSelectedSkillIds();
+        this.service.bulkDeleteSkills(skillIds).subscribe({
+          next: () => {
+            this.clearSelection();
+            this.loadSkills();
+            this.alertService.toast(`${count} skill(s) deleted successfully`, 'success');
+          },
+          error: (err) => {
+            console.error(err);
+            this.alertService.error('Failed to delete skills. Please try again.');
+          }
+        });
+      }
+    });
+  }
+
+  onBulkMoveToCategory(): void {
+    const count = this.selectedCount();
+    const availableCategories = this.categoryList();
+    
+    if (availableCategories.length === 0) {
+      this.alertService.warning('No categories available. Please create at least one category first.');
+      return;
+    }
+
+    // Map categories to { id, name } format for the alert service
+    const categoryOptions = availableCategories.map((cat: any) => ({
+      id: cat._id,
+      name: cat.name
+    }));
+
+    this.alertService.selectCategory(categoryOptions).then((targetCategoryId: string | null) => {
+      if (targetCategoryId) {
+        const skillIds = this.getSelectedSkillIds();
+        this.service.bulkMoveSkills(skillIds, targetCategoryId).subscribe({
+          next: () => {
+            this.clearSelection();
+            this.loadSkills();
+            this.alertService.toast(`${count} skill(s) moved successfully`, 'success');
+          },
+          error: (err) => {
+            console.error(err);
+            this.alertService.error('Failed to move skills. Please try again.');
+          }
+        });
+      }
+    });
+  }
+
+  onBulkArchive(): void {
+    const count = this.selectedCount();
+    this.alertService.confirm(
+      `Archive ${count} skill(s)?`,
+      `Are you sure you want to archive ${count} selected skill(s)? You can restore them later.`
+    ).then((confirmed) => {
+      if (confirmed) {
+        const skillIds = this.getSelectedSkillIds();
+        this.service.bulkArchiveSkills(skillIds).subscribe({
+          next: () => {
+            this.clearSelection();
+            this.loadSkills();
+            this.alertService.toast(`${count} skill(s) archived successfully`, 'success');
+          },
+          error: (err) => {
+            console.error(err);
+            this.alertService.error('Failed to archive skills. Please try again.');
+          }
+        });
+      }
+    });
+  }
+
+  onBulkSetActive(): void {
+    const count = this.selectedCount();
+    this.alertService.confirm(
+      `Mark ${count} skill(s) as Active?`,
+      `Are you sure you want to mark ${count} selected skill(s) as active?`
+    ).then((confirmed) => {
+      if (confirmed) {
+        const skillIds = this.getSelectedSkillIds();
+        this.service.bulkUpdateStatus(skillIds, 'active').subscribe({
+          next: () => {
+            this.clearSelection();
+            this.loadSkills();
+            this.alertService.toast(`${count} skill(s) marked as active successfully`, 'success');
+          },
+          error: (err) => {
+            console.error(err);
+            this.alertService.error('Failed to update skill status. Please try again.');
+          }
+        });
+      }
+    });
+  }
+
+  onBulkSetInactive(): void {
+    const count = this.selectedCount();
+    this.alertService.confirm(
+      `Mark ${count} skill(s) as Inactive?`,
+      `Are you sure you want to mark ${count} selected skill(s) as inactive?`
+    ).then((confirmed) => {
+      if (confirmed) {
+        const skillIds = this.getSelectedSkillIds();
+        this.service.bulkUpdateStatus(skillIds, 'inactive').subscribe({
+          next: () => {
+            this.clearSelection();
+            this.loadSkills();
+            this.alertService.toast(`${count} skill(s) marked as inactive successfully`, 'success');
+          },
+          error: (err) => {
+            console.error(err);
+            this.alertService.error('Failed to update skill status. Please try again.');
+          }
+        });
+      }
+    });
+  }
 }

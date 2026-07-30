@@ -1,62 +1,572 @@
-<div class="rounded-4 border bg-white shadow-sm overflow-hidden">
-  <div class="border-bottom px-4 py-3">
-    <h2 class="h5 fw-semibold mb-1 text-dark">Skills Category</h2>
-    <p class="mb-0 small text-secondary">Set custom labels for admin skill categories for your company without changing the original admin names.</p>
-  </div>
+<div class="container-fluid py-4">
 
-  <div class="p-4">
-    <div class="table-responsive">
-      <table class="table align-middle mb-0">
-        <thead>
-          <tr class="table-light">
-            <th class="px-3 py-3 text-uppercase small fw-semibold text-secondary">Original Name</th>
-            <th class="px-3 py-3 text-uppercase small fw-semibold text-secondary">Company Label</th>
-            <th class="px-3 py-3 text-uppercase small fw-semibold text-secondary">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (category of categories(); track category.categoryId) {
-            <tr>
-              <td class="px-3 py-3">
-                <span class="fw-semibold text-dark">{{ category.originalName }}</span>
-              </td>
-              <td class="px-3 py-3">
-                <span class="text-secondary">{{ category.displayName }}</span>
-              </td>
-              <td class="px-3 py-3">
-                <button type="button" class="btn btn-outline-primary btn-sm" (click)="openEditModal(category)">
-                  Edit
-                </button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 fw-semibold mb-1">Skill Categories</h1>
+      <p class="text-secondary mb-0">Manage your company's skill categories</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-info" (click)="openManageSkillsModal()">
+        <i class="bi bi-sliders me-2"></i>Manage My Skills
+      </button>
+      <button class="btn btn-primary" (click)="openSelectAdminModal()">
+        <i class="bi bi-plus-circle me-2"></i>Select Admin Category
+      </button>
+      <button class="btn btn-success" (click)="openCreateModal()">
+        <i class="bi bi-plus-circle me-2"></i>Create Category
+      </button>
     </div>
   </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="card shadow-sm">
+      <div class="card-body text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Owned Categories Section -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-light">
+        <h5 class="mb-0">Company Categories</h5>
+      </div>
+      @if (ownCategories().length === 0) {
+        <div class="card-body text-center text-secondary py-4">
+          <p>No company categories created yet. <a href="#" (click)="openCreateModal(); $event.preventDefault()">Create one now</a></p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="px-4 py-3">Name</th>
+                <th class="px-4 py-3">Description</th>
+                <th class="px-4 py-3 text-center">Status</th>
+                <th class="px-4 py-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (category of ownCategories(); track category._id) {
+                <tr>
+                  <td class="px-4 py-3">
+                    <span class="fw-medium">{{ category.name }}</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <span class="text-secondary">{{ category.description || '-' }}</span>
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    <span class="badge" [ngClass]="category.status === 'active' ? 'bg-success' : 'bg-secondary'">
+                      {{ category.status === 'active' ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    <div class="d-flex gap-2 justify-content-center">
+                      <button class="btn btn-sm btn-outline-primary" title="View skills in this category" (click)="viewCategorySkills(category)">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-info" (click)="openEditModal(category)">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger" (click)="deleteCategory(category)">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <!-- Selected Admin Categories Section -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-light">
+        <h5 class="mb-0">Selected Admin Categories</h5>
+      </div>
+      @if (companyCategoryMappings().length === 0) {
+        <div class="card-body text-center text-secondary py-4">
+          <p>No admin categories selected yet. <a href="#" (click)="openSelectAdminModal(); $event.preventDefault()">Select one now</a></p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="px-4 py-3">Category Name</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (mapping of companyCategoryMappings(); track mapping.categoryId) {
+                <tr>
+                  <td class="px-4 py-3">
+                    <div>
+                      <span class="fw-medium">{{ mapping.displayName }}</span>
+                      <span class="text-muted ms-2">
+                        ({{ getSkillCountForMapping(mapping) }} skill(s))
+                      </span>
+                      @if (mapping.displayName !== mapping.originalName) {
+                        <br>
+                        <small class="text-muted">{{ mapping.originalName }}</small>
+                      }
+                    </div>
+                  </td>
+                  <td class="px-4 py-3">
+                    <span class="badge bg-info">Admin Category</span>
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    <div class="d-flex gap-2 justify-content-center">
+                      <button class="btn btn-sm btn-outline-primary" title="View skills in this category" (click)="viewCategorySkills(mapping)">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger" (click)="removeMapping(mapping._id)">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
 </div>
 
-@if (showModal()) {
+<!-- Select Admin Category Modal -->
+@if (showSelectAdminModal()) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Browse & Select Admin Categories</h5>
+          <button type="button" class="btn-close" (click)="closeSelectAdminModal()"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Search Bar -->
+          <div class="mb-3">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Search categories..."
+              [(ngModel)]="adminModalSearchTerm"
+              (input)="onAdminModalSearch()"
+            />
+          </div>
+
+          <!-- Loading State -->
+          @if (adminModalIsLoading()) {
+            <div class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          }
+
+          <!-- Categories List -->
+          @if (!adminModalIsLoading() && adminModalCategories().length > 0) {
+            <div class="list-group">
+              @for (category of adminModalCategories(); track category._id) {
+                <div class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                      <h6 class="mb-1">{{ category.name }}</h6>
+                      <p class="mb-0 small text-muted">{{ category.description || 'No description' }}</p>
+                    </div>
+                    <div class="ms-2">
+                      @if (category.isSelected) {
+                        <span class="badge bg-success">Selected</span>
+                      } @else {
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-primary"
+                          (click)="selectAdminCategory(category)"
+                        >
+                          Select
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Pagination -->
+            @if (adminModalTotalPages() > 1) {
+              <nav class="mt-3">
+                <ul class="pagination mb-0">
+                  <li class="page-item" [class.disabled]="adminModalPage() === 1">
+                    <button
+                      class="page-link"
+                      (click)="previousAdminModalPage()"
+                      [disabled]="adminModalPage() === 1"
+                    >
+                      <i class="bi bi-chevron-left"></i>
+                      Previous
+                    </button>
+                  </li>
+
+                  @for (page of getAdminModalPageNumbers(); track page) {
+                    @if (page !== -1) {
+                      <li class="page-item" [class.active]="page === adminModalPage()">
+                        <button class="page-link" (click)="goToAdminModalPage(page)">
+                          {{ page }}
+                        </button>
+                      </li>
+                    } @else {
+                      <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                      </li>
+                    }
+                  }
+
+                  <li class="page-item" [class.disabled]="adminModalPage() === adminModalTotalPages()">
+                    <button
+                      class="page-link"
+                      (click)="nextAdminModalPage()"
+                      [disabled]="adminModalPage() === adminModalTotalPages()"
+                    >
+                      Next
+                      <i class="bi bi-chevron-right"></i>
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            }
+          }
+
+          <!-- No Results -->
+          @if (!adminModalIsLoading() && adminModalCategories().length === 0) {
+            <p class="text-muted text-center py-4">No categories found.</p>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeSelectAdminModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Create Category Modal -->
+@if (showCreateModal()) {
   <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Edit Company Label</h5>
-          <button type="button" class="btn-close" (click)="closeModal()"></button>
+          <h5 class="modal-title">Create Company Category</h5>
+          <button type="button" class="btn-close" (click)="closeCreateModal()"></button>
         </div>
-        <form [formGroup]="editForm" (ngSubmit)="saveLabel()">
+        <form [formGroup]="createForm" (ngSubmit)="saveNewCategory()">
           <div class="modal-body">
-            <label class="form-label">Company Label</label>
-            <input type="text" class="form-control" formControlName="displayName" placeholder="Enter company label">
-            @if (displayNameControl.invalid && displayNameControl.touched) {
-              <div class="text-danger small mt-2">Label is required.</div>
-            }
+            <div class="mb-3">
+              <label class="form-label">Category Name *</label>
+              <input type="text" class="form-control" formControlName="name" placeholder="Enter category name">
+              @if (createForm.get('name')?.invalid && createForm.get('name')?.touched) {
+                <div class="text-danger small mt-1">Name is required.</div>
+              }
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" formControlName="description" rows="3" placeholder="Enter description"></textarea>
+            </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Cancel</button>
+            <button type="button" class="btn btn-secondary" (click)="closeCreateModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Edit Category Modal -->
+@if (showEditModal() && selectedCategory()) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Category</h5>
+          <button type="button" class="btn-close" (click)="closeEditModal()"></button>
+        </div>
+        <form [formGroup]="editForm" (ngSubmit)="saveCategory()">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Category Name *</label>
+              <input type="text" class="form-control" formControlName="name" placeholder="Enter category name">
+              @if (editForm.get('name')?.invalid && editForm.get('name')?.touched) {
+                <div class="text-danger small mt-1">Name is required.</div>
+              }
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" formControlName="description" rows="3" placeholder="Enter description"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeEditModal()">Cancel</button>
             <button type="submit" class="btn btn-primary">Save</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Manage My Skills Modal - Drag & Drop -->
+@if (showManageSkillsModal()) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-xl" style="max-width: 1200px;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-sliders me-2"></i>Manage My Skills - Move to Categories
+          </h5>
+          <button type="button" class="btn-close" (click)="closeManageSkillsModal()"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Info -->
+          <div class="alert alert-info mb-3">
+            <i class="bi bi-info-circle me-2"></i>
+            Drag skills from the left to move them to a category on the right. Use search to filter large lists.
+          </div>
+
+          <div class="row g-3">
+            <!-- Available Skills (Left Side) -->
+            <div class="col-lg-6">
+              <div class="card">
+                <!-- Skills Header with Search and Stats -->
+                <div class="card-header bg-light">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-semibold mb-0">
+                      <i class="bi bi-list-task me-2"></i>My Skills
+                      <span class="badge bg-secondary">{{ filteredCompanySkills().length }}</span>
+                    </h6>
+                    <div class="dropdown">
+                      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-sort-down me-1"></i>Sort
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" (click)="setSkillSort('name')">By Name (A-Z)</a></li>
+                        <li><a class="dropdown-item" (click)="setSkillSort('category')">By Category</a></li>
+                        <li><a class="dropdown-item" (click)="setSkillSort('status')">By Status</a></li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <!-- Search Skills -->
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white">
+                      <i class="bi bi-search"></i>
+                    </span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Search skills..."
+                      [value]="skillSearchTerm()"
+                      (input)="skillSearchTerm.set($any($event).target.value); onSkillSearch()"
+                    />
+                    <button class="btn btn-outline-secondary" (click)="skillSearchTerm.set(''); onSkillSearch()" [disabled]="!skillSearchTerm()" type="button">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Skills List -->
+                <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                  @if (paginatedCompanySkills().length === 0) {
+                    <div class="p-4 text-center text-secondary">
+                      <p class="mb-0">
+                        @if (skillSearchTerm()) {
+                          No skills match your search
+                        } @else {
+                          No skills to manage
+                        }
+                      </p>
+                    </div>
+                  } @else {
+                    <div class="list-group list-group-flush">
+                      @for (skill of paginatedCompanySkills(); track skill._id) {
+                        <div
+                          class="list-group-item p-3 cursor-move"
+                          draggable="true"
+                          (dragstart)="onDragStart($event, skill)"
+                          (dragend)="onDragEnd($event)"
+                          style="background-color: #f8f9fa; cursor: move; border-bottom: 1px solid #dee2e6;"
+                          [style.opacity]="draggedSkill() && draggedSkill()._id === skill._id ? '0.5' : '1'"
+                        >
+                          <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                              <h6 class="mb-1">{{ skill.name }}</h6>
+                              <div class="small">
+                                @if (skill.category?.name) {
+                                  <span class="badge bg-info-subtle text-info-emphasis">{{ skill.category.name }}</span>
+                                }
+                                <span class="badge" [ngClass]="skill.status === 'active' ? 'bg-success' : 'bg-secondary'" style="margin-left: 5px;">
+                                  {{ skill.status === 'active' ? 'Active' : 'Inactive' }}
+                                </span>
+                              </div>
+                            </div>
+                            <i class="bi bi-arrows-move text-secondary" style="font-size: 1.2rem; margin-left: 10px;"></i>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Skills Pagination -->
+                @if (skillsTotalPages() > 1) {
+                  <div class="card-footer bg-light">
+                    <nav aria-label="Skills pagination" class="mb-0">
+                      <ul class="pagination pagination-sm mb-0 justify-content-center">
+                        <li class="page-item" [class.disabled]="skillsCurrentPage() === 1">
+                          <button class="page-link" (click)="skillsCurrentPage.set(1)" [disabled]="skillsCurrentPage() === 1">
+                            First
+                          </button>
+                        </li>
+                        <li class="page-item" [class.disabled]="skillsCurrentPage() === 1">
+                          <button class="page-link" (click)="skillsCurrentPage.update(p => p - 1)" [disabled]="skillsCurrentPage() === 1">
+                            Prev
+                          </button>
+                        </li>
+                        <li class="page-item active">
+                          <span class="page-link small">
+                            {{ skillsCurrentPage() }} / {{ skillsTotalPages() }}
+                          </span>
+                        </li>
+                        <li class="page-item" [class.disabled]="skillsCurrentPage() === skillsTotalPages()">
+                          <button class="page-link" (click)="skillsCurrentPage.update(p => p + 1)" [disabled]="skillsCurrentPage() === skillsTotalPages()">
+                            Next
+                          </button>
+                        </li>
+                        <li class="page-item" [class.disabled]="skillsCurrentPage() === skillsTotalPages()">
+                          <button class="page-link" (click)="skillsCurrentPage.set(skillsTotalPages())" [disabled]="skillsCurrentPage() === skillsTotalPages()">
+                            Last
+                          </button>
+                        </li>
+                      </ul>
+                    </nav>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Target Categories (Right Side) -->
+            <div class="col-lg-6">
+              <div class="card">
+                <!-- Categories Header with Search -->
+                <div class="card-header bg-light">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-semibold mb-0">
+                      <i class="bi bi-folder me-2"></i>Target Categories
+                      <span class="badge bg-secondary">{{ filteredCategories().length }}</span>
+                    </h6>
+                  </div>
+
+                  <!-- Search Categories -->
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white">
+                      <i class="bi bi-search"></i>
+                    </span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Search categories..."
+                      [value]="categorySearchTerm()"
+                      (input)="categorySearchTerm.set($any($event).target.value); onCategorySearch()"
+                    />
+                    <button class="btn btn-outline-secondary" (click)="categorySearchTerm.set(''); onCategorySearch()" [disabled]="!categorySearchTerm()" type="button">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Categories List -->
+                <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                  @if (filteredCategories().length === 0) {
+                    <div class="p-4 text-center text-secondary">
+                      <p class="mb-0">
+                        @if (categorySearchTerm()) {
+                          No categories match your search
+                        } @else {
+                          No categories created yet
+                        }
+                      </p>
+                    </div>
+                  } @else {
+                    <div class="list-group list-group-flush">
+                      @for (category of filteredCategories(); track category._id) {
+                        <div
+                          class="list-group-item p-3"
+                          [style.background-color]="draggedSkill() && dragOverCategoryId() === category._id ? '#e7f3ff' : '#f8f9fa'"
+                          [style.border-left]="dragOverCategoryId() === category._id ? '4px solid #0d6efd' : '4px solid transparent'"
+                          (dragover)="onDragOver($event, category._id)"
+                          (dragleave)="onDragLeave($event)"
+                          (drop)="onDrop($event, category)"
+                          style="cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: center;"
+                        >
+                          <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                              <h6 class="mb-1">{{ category.name }}</h6>
+                              <small class="text-muted">{{ category.description || 'No description' }}</small>
+                              <div class="mt-1 small">
+                                <span class="text-secondary">
+                                  <i class="bi bi-list-task me-1"></i>
+                                  {{ getSkillCountInCategory(category._id) }} skill(s)
+                                </span>
+                              </div>
+                            </div>
+                            @if (draggedSkill() && dragOverCategoryId() === category._id) {
+                              <span class="badge bg-primary ms-2">
+                                <i class="bi bi-arrow-down"></i> Drop here
+                              </span>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Footer -->
+          <div class="mt-3 p-3 bg-light rounded-2">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <small class="text-secondary">Total Skills</small>
+                <div class="h5 mb-0">{{ companySkillsForManage().length }}</div>
+              </div>
+              <div class="col-md-3">
+                <small class="text-secondary">Visible Skills</small>
+                <div class="h5 mb-0">{{ filteredCompanySkills().length }}</div>
+              </div>
+              <div class="col-md-3">
+                <small class="text-secondary">Categories</small>
+                <div class="h5 mb-0">{{ ownCategories().length }}</div>
+              </div>
+              <div class="col-md-3">
+                <small class="text-secondary">Matching Categories</small>
+                <div class="h5 mb-0">{{ filteredCategories().length }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeManageSkillsModal()">Close</button>
+        </div>
       </div>
     </div>
   </div>

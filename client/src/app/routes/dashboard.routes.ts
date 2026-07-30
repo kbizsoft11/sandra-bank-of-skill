@@ -68,16 +68,16 @@ export const dashboardRoutes: Routes = [
       import('../features/admin-companies/employee-skills').then((c) => c.EmployeeSkills),
   },
 
-  // Admin routes - User management (ALL USERS - Admin only)
-  {
-    path: 'users-admin',
-    canActivate: [roleGuard],
-    data: { roles: ['admin'] },
-    loadComponent: () =>
-      import('../features/admin-users/admin-users-list/admin-users-list').then(
-        (c) => c.AdminUsersList,
-      ),
-  },
+  // Admin routes - User management (ALL USERS - Admin only) - DISABLED
+  // {
+  //   path: 'users-admin',
+  //   canActivate: [roleGuard],
+  //   data: { roles: ['admin'] },
+  //   loadComponent: () =>
+  //     import('../features/admin-users/admin-users-list/admin-users-list').then(
+  //       (c) => c.AdminUsersList,
+  //     ),
+  // },
     {
         path: 'organisation/:organisationId/employee/:employeeId/skills',
         canActivate: [roleGuard],
@@ -92,29 +92,29 @@ export const dashboardRoutes: Routes = [
         loadComponent: () => import('../features/admin-companies/employee-profile/employee-profile').then(c => c.EmployeeProfile)
     },
 
-    // Admin routes - User management (ALL USERS - Admin only)
-    {
-        path: 'users-admin',
-        canActivate: [roleGuard],
-        data: { roles: ['admin'] },
-        loadComponent: () => import('../features/admin-users/admin-users-list/admin-users-list').then(c => c.AdminUsersList)
-    },
+    // Admin routes - User management (ALL USERS - Admin only) - DISABLED
+    // {
+    //     path: 'users-admin',
+    //     canActivate: [roleGuard],
+    //     data: { roles: ['admin'] },
+    //     loadComponent: () => import('../features/admin-users/admin-users-list/admin-users-list').then(c => c.AdminUsersList)
+    // },
 
-  {
-    path: 'users-admin/:id',
-    canActivate: [roleGuard],
-    data: { roles: ['admin'] },
-    loadComponent: () =>
-      import('../features/admin-users/view-user/view-user').then((c) => c.ViewUserComponent),
-  },
+  // {
+  //   path: 'users-admin/:id',
+  //   canActivate: [roleGuard],
+  //   data: { roles: ['admin'] },
+  //   loadComponent: () =>
+  //     import('../features/admin-users/view-user/view-user').then((c) => c.ViewUserComponent),
+  // },
 
-  {
-    path: 'users-admin/:id/edit',
-    canActivate: [roleGuard],
-    data: { roles: ['admin'] },
-    loadComponent: () =>
-      import('../features/admin-users/edit-user/edit-user').then((c) => c.EditUserComponent),
-  },
+  // {
+  //   path: 'users-admin/:id/edit',
+  //   canActivate: [roleGuard],
+  //   data: { roles: ['admin'] },
+  //   loadComponent: () =>
+  //     import('../features/admin-users/edit-user/edit-user').then((c) => c.EditUserComponent),
+  // },
 
   // Old Users routes - Company employees (kept for backward compatibility)
   {
@@ -203,12 +203,32 @@ export const dashboardRoutes: Routes = [
   },
 
   {
+    path: 'skill-categories/:id/skills',
+    canActivate: [roleGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () =>
+      import('../features/skill-categories/view-category-skills/view-category-skills').then(
+        (c) => c.ViewCategorySkills,
+      ),
+  },
+
+  {
     path: 'company-skill-categories',
     canActivate: [roleGuard],
     data: { roles: ['company'] },
     loadComponent: () =>
       import('../features/company-skill-categories/company-skill-category-list/company-skill-category-list').then(
         (c) => c.CompanySkillCategoryList,
+      ),
+  },
+
+  {
+    path: 'manage-categories',
+    canActivate: [roleGuard],
+    data: { roles: ['company'] },
+    loadComponent: () =>
+      import('../features/company-skill-categories/manage-categories/manage-categories').then(
+        (c) => c.ManageCategoriesComponent,
       ),
   },
 

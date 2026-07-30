@@ -11,6 +11,7 @@ import {
 const router = Router();
 
 router.get('/', allowRoles('company'), controller.getAll);
+router.get('/available/admin', allowRoles('company'), controller.getAvailableAdminCategories);
 router.post('/', allowRoles('company'), validate(createCompanySkillCategorySchema), controller.create);
 router.put('/:id', allowRoles('company'), validate(updateCompanySkillCategorySchema), controller.update);
 router.delete('/:id', allowRoles('company'), controller.delete);

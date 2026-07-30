@@ -1,353 +1,292 @@
-<div class="company-skills-container">
+<div class="container-fluid py-4">
 
-  <!-- Page Header -->
-  <div class="page-header">
+  <!-- Header Section -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
-      <h2>
+      <h2 class="h4 fw-semibold mb-0 text-dark">
         <i class="bi bi-lightbulb-fill me-2"></i>
-        Skill Management
+        Company Skills
       </h2>
-      <p class="text-muted">
-        Assign employee skills, update proficiency, and review company-wide results.
+      <p class="mt-1 mb-0 small text-secondary">
+        Manage and view all skills in your company
       </p>
     </div>
-    <a class="btn btn-primary" [routerLink]="['/company', 'company-skills', 'create']">
-      <i class="bi bi-plus-lg me-2"></i>
-      Assign Skill
+    <a class="btn btn-primary btn-sm px-3" [routerLink]="['/company', 'company-skills', 'create']">
+      <i class="bi bi-plus-lg"></i> Create Skill
     </a>
   </div>
 
-  <section *ngIf="hasSkills()" class="overview-cards">
-    <div class="overview-card">
-      <span class="overview-icon bg-primary-subtle text-primary-emphasis"><i class="bi bi-collection-fill"></i></span>
-      <span class="overview-label">Total skills</span>
-      <strong>{{ totalSkills() }}</strong>
-      <small>Unique skill categories tracked</small>
-    </div>
-    <div class="overview-card">
-      <span class="overview-icon bg-info-subtle text-info-emphasis"><i class="bi bi-diagram-3-fill"></i></span>
-      <span class="overview-label">Skill assignments</span>
-      <strong>{{ totalSkillAssignments() }}</strong>
-      <small>Employee skill records across the company</small>
-    </div>
-    <div class="overview-card">
-      <span class="overview-icon bg-secondary-subtle text-secondary-emphasis"><i class="bi bi-graph-up"></i></span>
-      <span class="overview-label">Average score</span>
-      <strong>{{ averageSkillScore() }}</strong>
-      <small>Weighted skill score across assignments</small>
-    </div>
-    <div class="overview-card">
-      <span class="overview-icon bg-warning-subtle text-warning-emphasis"><i class="bi bi-star-fill"></i></span>
-      <span class="overview-label">Top category</span>
-      <strong>{{ topCategory() }}</strong>
-      <small>Most represented skill area</small>
-    </div>
-  </section>
+  <!-- Filters Section -->
+  <div class="rounded-4 border bg-white shadow-sm overflow-hidden mb-4">
+    <div class="px-4 py-3 border-bottom bg-light">
+      <div class="row g-3">
+        <!-- Category Filter -->
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold text-secondary">Category</label>
+          <select class="form-select form-select-sm" 
+            [value]="selectedCategoryFilter()"
+            (change)="onCategoryFilterChange($event)">
+            <option value="">All Categories</option>
+            @for (category of availableCategories(); track getCategoryId(category)) {
+              <option [value]="getCategoryId(category)">
+                {{ getCategoryDisplayName(category) }}
+              </option>
+            }
+          </select>
+        </div>
 
-  <!-- Search Bar -->
-  <div class="search-bar">
-    <div class="input-group">
-      <input
-        type="text"
-        class="form-control"
-        placeholder="Search by skill name or category..."
-        [value]="searchTerm()"
-        (input)="onSearchChange($event)"
-      />
-      <span class="input-group-text">
-        <i class="bi bi-search"></i>
-      </span>
+        <!-- Status Filter -->
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold text-secondary">Status</label>
+          <select class="form-select form-select-sm" 
+            [value]="selectedStatusFilter()"
+            (change)="onStatusFilterChange($event)">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+
+        <!-- Search -->
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold text-secondary">Search</label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white border-end-0">
+              <i class="bi bi-search"></i>
+            </span>
+            <input 
+              type="text" 
+              class="form-control border-start-0" 
+              placeholder="Search skills..."
+              [value]="searchTerm()"
+              (input)="onSearchChange($event)"
+            >
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Loading State -->
-  <div *ngIf="isLoading()" class="text-center py-5">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
+  @if (isLoading()) {
+    <div class="rounded-4 border bg-white shadow-sm p-4 text-center">
+      <div class="spinner-border spinner-border-sm text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2 text-secondary">Loading skills...</p>
     </div>
-    <p class="mt-3 text-muted">Loading company skills...</p>
-  </div>
-
-  <!-- Skills Table -->
-  <div *ngIf="!isLoading() && hasSkills()" class="skills-table-card">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
-          <tr>
-            <th (click)="sortBy('skill_name')">
-              Skill Name
-              <i class="bi" [ngClass]="getSortIcon('skill_name')"></i>
-            </th>
-            <th (click)="sortBy('category')">
-              Category
-              <i class="bi" [ngClass]="getSortIcon('category')"></i>
-            </th>
-            <th (click)="sortBy('averageScore')" class="text-center">
-              Avg Score
-              <i class="bi" [ngClass]="getSortIcon('averageScore')"></i>
-            </th>
-            <th (click)="sortBy('employeeCount')" class="text-end">
-              Employees
-              <i class="bi" [ngClass]="getSortIcon('employeeCount')"></i>
-            </th>
-            <th class="text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let skill of paginatedSkills()">
-            <td data-label="Skill Name">
-              <span class="skill-name">{{ skill.skill_name }}</span>
-            </td>
-            <td data-label="Category">
-              <span class="badge bg-info-subtle text-info-emphasis">
-                {{ skill.category.cat_name }}
-              </span>
-            </td>
-            <td data-label="Avg Score" class="text-center">
-              <span class="badge bg-secondary-subtle text-secondary-emphasis">
-                {{ skill.averageScore | number:'1.0-1' }}
-              </span>
-            </td>
-            <td data-label="Employees" class="text-end">
-              <span class="badge bg-primary-subtle text-primary-emphasis fs-6">
-                {{ skill.employeeCount }}
-              </span>
-            </td>
-            <td data-label="Actions" class="text-center">
-              <button
-                class="btn btn-sm btn-outline-primary"
-                (click)="viewEmployees(skill)"
-                title="View employees with this skill"
-              >
-                <i class="bi bi-people-fill me-1"></i>
-                View Employees
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  } @else if (!hasSkills()) {
+    <!-- Empty State -->
+    <div class="rounded-4 border bg-white shadow-sm p-4 text-center text-secondary">
+      <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.5;"></i>
+      <p class="mt-3 mb-0">No skills found. Click "Create Skill" to create your first skill.</p>
     </div>
-
-    <!-- Pagination -->
-    <div *ngIf="totalPages() > 1" class="pagination-container">
-      <div class="pagination-info">
-        Showing {{ ((currentPage() - 1) * pageSize()) + 1 }} to
-        {{ Math.min(currentPage() * pageSize(), filteredSkills().length) }} of
-        {{ filteredSkills().length }} skills
+  } @else {
+    <!-- Skills Table with Pagination -->
+    <div class="rounded-4 border bg-white shadow-sm overflow-hidden">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0" #skillsTable>
+          <thead>
+            <tr class="table-light">
+              <th class="px-4 py-3 text-center" style="width: 5%;">
+                <span class="cursor-pointer" (click)="sortBy('type')" title="Click to sort">
+                  Type <i class="bi" [ngClass]="'bi-' + getSortIcon('type')"></i>
+                </span>
+              </th>
+              <th class="px-4 py-3" style="width: 22%;">
+                <span class="cursor-pointer" (click)="sortBy('name')" title="Click to sort">
+                  Skill Name <i class="bi" [ngClass]="'bi-' + getSortIcon('name')"></i>
+                </span>
+              </th>
+              <th class="px-4 py-3" style="width: 18%;">
+                <span class="cursor-pointer" (click)="sortBy('category')" title="Click to sort">
+                  Category <i class="bi" [ngClass]="'bi-' + getSortIcon('category')"></i>
+                </span>
+              </th>
+              <th class="px-4 py-3" style="width: 28%;">Description</th>
+              <th class="px-4 py-3 text-center" style="width: 8%;">
+                <span class="cursor-pointer" (click)="sortBy('status')" title="Click to sort">
+                  Status <i class="bi" [ngClass]="'bi-' + getSortIcon('status')"></i>
+                </span>
+              </th>
+              <th class="px-4 py-3 text-center" style="width: 12%;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (skill of paginatedSkills(); track skill._id) {
+              <tr [class.table-info]="skill.createdType === 'COMPANY'" class="border-bottom">
+                <td class="px-4 py-3 text-center">
+                  @if (skill.createdType === 'COMPANY') {
+                    <span class="badge bg-info-subtle text-info-emphasis" title="Company Created">
+                      <i class="bi bi-building"></i>
+                    </span>
+                  } @else {
+                    <span class="badge bg-warning-subtle text-warning-emphasis" title="Admin Created">
+                      <i class="bi bi-star-fill"></i>
+                    </span>
+                  }
+                </td>
+                <td class="px-4 py-3">
+                  <span class="fw-medium text-dark">{{ skill.name }}</span>
+                </td>
+                <td class="px-4 py-3">
+                  <span [ngClass]="skill.createdType === 'COMPANY' ? 'badge bg-info-subtle text-info-emphasis' : 'badge bg-warning-subtle text-warning-emphasis'">
+                    {{ skill.category?.name || 'Unknown' }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-secondary">
+                  <small>{{ skill.description || '-' }}</small>
+                </td>
+                <td class="px-4 py-3 text-center">
+                  <span class="badge" [ngClass]="skill.status === 'active' ? 'bg-success' : 'bg-secondary'">
+                    {{ skill.status === 'active' ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-center">
+                  <div class="d-flex gap-1 justify-content-center" style="flex-wrap: nowrap; white-space: nowrap; overflow-x: auto;">
+                    @if (skill.createdType === 'COMPANY') {
+                      <!-- Company skills: full management -->
+                      <button 
+                        type="button"
+                        class="btn btn-sm"
+                        [class]="skill.status === 'active' ? 'btn-danger' : 'btn-success'"
+                        (click)="toggleSkillStatus(skill)"
+                        [title]="skill.status === 'active' ? 'Deactivate skill' : 'Activate skill'"
+                        style="flex-shrink: 0; padding: 0.35rem 0.5rem;">
+                        @if (skill.status === 'active') {
+                          <i class="bi bi-eye-slash"></i>
+                        } @else {
+                          <i class="bi bi-eye"></i>
+                        }
+                      </button>
+                      <button 
+                        type="button"
+                        class="btn btn-sm btn-outline-primary"
+                        [routerLink]="['/company', 'company-skills', skill._id, 'edit']"
+                        title="Edit skill"
+                        style="flex-shrink: 0; padding: 0.35rem 0.5rem;">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button 
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="deleteSkill(skill)"
+                        title="Delete skill"
+                        style="flex-shrink: 0; padding: 0.35rem 0.5rem;">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    } @else {
+                      <!-- Admin skills: view only -->
+                      <button 
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        [routerLink]="['/skills', skill._id]"
+                        title="View skill details"
+                        style="flex-shrink: 0; padding: 0.35rem 0.5rem;">
+                        <i class="bi bi-eye"></i> View
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
 
-      <nav aria-label="Skills pagination">
-        <ul class="pagination mb-0">
-          <li class="page-item" [class.disabled]="currentPage() === 1">
-            <button
-              class="page-link"
-              (click)="previousPage()"
-              [disabled]="currentPage() === 1"
-            >
-              <i class="bi bi-chevron-left"></i>
-              <span class="btn-label">Previous</span>
-            </button>
-          </li>
-
-          <li
-            *ngFor="let page of getPageNumbers()"
-            class="page-item"
-            [class.active]="page === currentPage()"
-            [class.disabled]="page === -1"
-          >
-            <button
-              *ngIf="page !== -1"
-              class="page-link"
-              (click)="goToPage(page)"
-            >
-              {{ page }}
-            </button>
-            <span *ngIf="page === -1" class="page-link">...</span>
-          </li>
-
-          <li
-            class="page-item"
-            [class.disabled]="currentPage() === totalPages()"
-          >
-            <button
-              class="page-link"
-              (click)="nextPage()"
-              [disabled]="currentPage() === totalPages()"
-            >
-              <span class="btn-label">Next</span>
-              <i class="bi bi-chevron-right"></i>
-            </button>
-          </li>
-        </ul>
-      </nav>
-    </div>
-  </div>
-
-  <!-- Empty State -->
-  <div *ngIf="!isLoading() && !hasSkills()" class="empty-state">
-    <i class="bi bi-inbox"></i>
-    <h4>No Skills Found</h4>
-    <p>There are no skills recorded in your organization yet.</p>
-  </div>
-
-</div>
-
-<!-- Employees Modal -->
-<div
-  *ngIf="showEmployeesModal()"
-  class="modal fade show d-block"
-  tabindex="-1"
-  role="dialog"
-  (click)="closeModal()"
->
-  <div class="modal-dialog modal-dialog-centered modal-lg" role="document" (click)="$event.stopPropagation()">
-    <div class="modal-content">
-
-      <!-- Modal Header -->
-      <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="bi bi-people-fill me-2"></i>
-          Employees with skill: <strong>{{ selectedSkill()!.skill_name }}</strong>
-        </h5>
-        <button
-          type="button"
-          class="btn-close"
-          (click)="closeModal()"
-          aria-label="Close"
-        ></button>
-      </div>
-
-      <!-- Modal Body -->
-      <div class="modal-body">
-
-        <!-- Category Badge -->
-        <div *ngIf="selectedSkill()" class="mb-3">
-          <span class="badge bg-info-subtle text-info-emphasis fs-6">
-            <i class="bi bi-diagram-3-fill me-1"></i>
-            {{ selectedSkill()!.category.cat_name }}
-          </span>
-          <span class="badge bg-primary-subtle text-primary-emphasis fs-6 ms-2">
-            <i class="bi bi-people-fill me-1"></i>
-            {{ selectedSkill()!.employeeCount }} employee{{ selectedSkill()!.employeeCount !== 1 ? 's' : '' }}
-          </span>
-        </div>
-
-        <!-- Loading State -->
-        <div *ngIf="isLoadingEmployees()" class="text-center py-4">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
+      <!-- Pagination Section - Always Show -->
+      <div class="px-4 py-3 border-top bg-light" style="min-height: 80px;">
+        <!-- Items Per Page Selector and Info -->
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap">
+          <div class="d-flex align-items-center gap-2">
+            <label class="small text-secondary fw-semibold mb-0">Items per page:</label>
+            <select 
+              class="form-select form-select-sm"
+              [value]="pageSize()"
+              (change)="onPageSizeChange(+$any($event.target).value)"
+              style="width: auto; min-width: 70px;">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
           </div>
-          <p class="mt-3 text-muted">Loading employees...</p>
+          <div class="small text-secondary">
+            Showing <strong>{{ (currentPage() - 1) * pageSize() + 1 }}-{{ Math.min(currentPage() * pageSize(), filteredAndSortedSkills().length) }}</strong> of <strong>{{ filteredAndSortedSkills().length }}</strong> skills
+          </div>
         </div>
 
-        <!-- Employees Table -->
-        <div *ngIf="!isLoadingEmployees() && skillEmployees().length > 0">
-          <div class="table-responsive">
-            <table class="table table-hover employees-table mb-0">
-              <thead>
-                <tr>
-                  <th>Employee Name</th>
-                  <th>Department</th>
-                  <th>Location</th>
-                  <th>Skill Level</th>
-                  <th>Status</th>
-                  <th class="text-end">Skill Score</th>
-                  <th class="text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let employee of skillEmployees()">
-                  <td data-label="Employee Name">
-                    <div class="employee-name-cell">
-                      {{ employee.fullName }}
-                    </div>
-                    <small class="text-muted d-block">{{ employee.email }}</small>
-                    <small *ngIf="employee.title" class="text-muted d-block">
-                      {{ employee.title }}
-                    </small>
-                  </td>
-                  <td data-label="Department">
-                    <span *ngIf="employee.department" class="badge bg-secondary-subtle text-secondary-emphasis">
-                      {{ employee.department }}
-                    </span>
-                    <span *ngIf="!employee.department" class="text-muted">—</span>
-                  </td>
-                  <td data-label="Location">
-                    <span *ngIf="employee.location" class="location-text" [title]="employee.location">
-                      <i class="bi bi-geo-alt-fill me-1"></i>
-                      {{ employee.location }}
-                    </span>
-                    <span *ngIf="!employee.location" class="text-muted">—</span>
-                  </td>
-                  <td data-label="Skill Level">
-                    <span
-                      class="badge"
-                      [ngClass]="getSkillLevelClass(employee.skill_level)"
-                    >
-                      {{ employee.skill_level }}
-                    </span>
-                  </td>
-                  <td data-label="Status">
-                    <span class="badge" [class]="getVerificationBadgeClass(employee.skill_score)">
-                      {{ getVerificationStatus(employee.skill_score) }}
-                    </span>
-                  </td>
-                  <td data-label="Skill Score" class="text-end">
-                    <span class="badge bg-secondary-subtle text-secondary-emphasis">
-                      {{ employee.skill_score }}/100
-                    </span>
-                  </td>
-                  <td data-label="Actions" class="text-center">
-                    <button
-                      class="btn btn-sm btn-outline-secondary"
-                      (click)="editEmployeeSkill(employee.skillId)"
-                      [disabled]="!employee.skillId"
-                    >
-                      Edit
+        <!-- Pagination Controls -->
+        @if (totalPages() > 1) {
+          <nav aria-label="Skills Pagination" class="mb-2">
+            <ul class="pagination pagination-sm mb-0 justify-content-center flex-wrap">
+              <li class="page-item" [class.disabled]="currentPage() === 1">
+                <button 
+                  class="page-link" 
+                  (click)="goToPage(1)"
+                  [disabled]="currentPage() === 1"
+                  title="First page">
+                  <i class="bi bi-chevron-double-left"></i>
+                </button>
+              </li>
+
+              <li class="page-item" [class.disabled]="currentPage() === 1">
+                <button 
+                  class="page-link" 
+                  (click)="previousPage()"
+                  [disabled]="currentPage() === 1">
+                  Previous
+                </button>
+              </li>
+
+              @for (page of getPageNumbers(); track page) {
+                @if (page === -1) {
+                  <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                  </li>
+                } @else {
+                  <li class="page-item" [class.active]="page === currentPage()">
+                    <button 
+                      class="page-link" 
+                      (click)="goToPage(page)">
+                      {{ page }}
                     </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  </li>
+                }
+              }
+
+              <li class="page-item" [class.disabled]="currentPage() === totalPages()">
+                <button 
+                  class="page-link" 
+                  (click)="nextPage()"
+                  [disabled]="currentPage() === totalPages()">
+                  Next
+                </button>
+              </li>
+
+              <li class="page-item" [class.disabled]="currentPage() === totalPages()">
+                <button 
+                  class="page-link" 
+                  (click)="goToPage(totalPages())"
+                  [disabled]="currentPage() === totalPages()"
+                  title="Last page">
+                  <i class="bi bi-chevron-double-right"></i>
+                </button>
+              </li>
+            </ul>
+          </nav>
+
+          <!-- Page Indicator -->
+          <div class="text-center small text-secondary">
+            Page <strong>{{ currentPage() }}</strong> of <strong>{{ totalPages() }}</strong>
           </div>
-        </div>
-
-        <!-- No Employees State -->
-        <div *ngIf="!isLoadingEmployees() && skillEmployees().length === 0" class="no-employees">
-          <i class="bi bi-inbox"></i>
-          <p class="mb-0">No employees found with this skill.</p>
-        </div>
-
-        <div *ngIf="!isLoadingEmployees() && skillEmployees().length > 0" class="history-summary">
-          <h5>Recent updates</h5>
-          <p class="text-muted">Skill assignments are shown by latest created date.</p>
-          <ul>
-            <li *ngFor="let historyItem of skillEmployees() | slice:0:3">
-              <strong>{{ historyItem.fullName }}</strong>
-              <span>updated on {{ historyItem.createdAt | date:'medium' }}</span>
-            </li>
-          </ul>
-        </div>
-
+        } @else if (filteredAndSortedSkills().length > 0) {
+          <div class="text-center small text-muted">
+            Showing all {{ filteredAndSortedSkills().length }} skill(s) on 1 page
+          </div>
+        }
       </div>
-
-      <!-- Modal Footer -->
-      <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          (click)="closeModal()"
-        >
-          Close
-        </button>
-      </div>
-
     </div>
-  </div>
-</div>
+  }
 
-<!-- Modal Backdrop -->
-<div
-  *ngIf="showEmployeesModal()"
-  class="modal-backdrop fade show"
-></div>
+</div>

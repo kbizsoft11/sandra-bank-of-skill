@@ -82,24 +82,63 @@ export class CompanySkillCategoryService {
   }
 
   async getCompanyCategories(companyId: string) {
-    const [adminCategories, companyMappings] = await Promise.all([
-      this.skillCategoryRepository.findAll(),
-      this.repository.findAllByCompany(companyId),
+    return this.repository.findAllByCompany(companyId);
+  }
+
+  async getAdminCategories(page: number = 1, limit: number = 10, search: string = '') {
+    const skip = (page - 1) * limit;
+    
+    const query: any = { createdType: 'ADMIN' };
+    if (search) {
+      query.name = { $regex: search, $options: 'i' };
+    }
+
+    const [categories, total] = await Promise.all([
+      this.skillCategoryRepository.find(query, skip, limit),
+      this.skillCategoryRepository.countByQuery(query)
     ]);
 
-    const mappingByCategoryId = new Map(
-      companyMappings.map((mapping: any) => [mapping.skillCategoryId, mapping])
-    );
+    return {
+      categories,
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit)
+    };
+  }
 
-    return adminCategories.map((category: any) => {
-      const mapping = mappingByCategoryId.get(category._id.toString());
+  async getAvailableAdminCategoriesForCompany(
+    companyId: string,
+    page: number = 1,
+    limit: number = 10,
+    search: string = ''
+  ) {
+    const skip = (page - 1) * limit;
+    
+    const query: any = { createdType: 'ADMIN' };
+    if (search) {
+      query.name = { $regex: search, $options: 'i' };
+    }
 
-      return {
-        categoryId: category._id.toString(),
-        originalName: category.cat_name,
-        displayName: mapping?.displayName || category.cat_name,
-        mappingId: mapping?._id?.toString(),
-      };
-    });
+    const [categories, total, selectedMappings] = await Promise.all([
+      this.skillCategoryRepository.find(query, skip, limit),
+      this.skillCategoryRepository.countByQuery(query),
+      this.repository.findAllByCompany(companyId)
+    ]);
+
+    const selectedCategoryIds = new Set(selectedMappings.map((m: any) => m.skillCategoryId));
+
+    const categoriesWithStatus = categories.map((cat: any) => ({
+      ...cat.toObject?.() || cat,
+      isSelected: selectedCategoryIds.has(cat._id.toString())
+    }));
+
+    return {
+      categories: categoriesWithStatus,
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit)
+    };
   }
 }

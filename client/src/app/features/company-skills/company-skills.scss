@@ -238,6 +238,37 @@ $shadow: 0 2px 8px rgba(0, 0, 0, .1);
 .btn-label { display: none; }
 
 // ============================================
+// Sortable headers & pagination
+// ============================================
+.cursor-pointer {
+  cursor: pointer;
+  transition: color 0.2s ease;
+  user-select: none;
+
+  &:hover {
+    color: #0d6efd;
+  }
+}
+
+// ============================================
+// Action buttons - keep in single line
+// ============================================
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow-x: auto;
+
+  .btn {
+    flex-shrink: 0;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.85rem;
+  }
+}
+
+// ============================================
 // Modal — fits the viewport on a phone, scrolls
 // its body instead of the whole page
 // ============================================

@@ -23,96 +23,255 @@
 
     @if (canModifySkills()) {
       <a [routerLink]="getCreateRoute()" class="btn btn-primary btn-sm px-3">
-        Add Skill
+        <i class="bi bi-plus-lg"></i> Add Skill
       </a>
     }
 
   </div>
 
-  <div class="table-responsive">
+  <!-- Filters Section -->
+  <div class="px-4 py-3 border-bottom bg-light">
 
-    <table class="table align-middle mb-0">
+    <!-- Bulk Actions Toolbar (shown when skills are selected) -->
+    @if (selectedCount() > 0) {
+      <div class="alert alert-info d-flex align-items-center justify-content-between mb-3" role="alert">
+        <div>
+          <strong>{{ selectedCount() }} skill(s) selected</strong>
+        </div>
+        <div class="d-flex gap-2">
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline-primary"
+            (click)="onBulkMoveToCategory()"
+            title="Move selected skills to another category">
+            <i class="bi bi-arrow-left-right"></i> Move to Category
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline-success"
+            (click)="onBulkSetActive()"
+            title="Mark selected skills as active">
+            <i class="bi bi-check-circle"></i> Mark Active
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline-warning"
+            (click)="onBulkSetInactive()"
+            title="Mark selected skills as inactive">
+            <i class="bi bi-x-circle"></i> Mark Inactive
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline-danger"
+            (click)="onBulkDelete()"
+            title="Permanently delete selected skills">
+            <i class="bi bi-trash"></i> Delete
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline-secondary"
+            (click)="clearSelection()"
+            title="Clear all selections">
+            <i class="bi bi-x"></i> Clear
+          </button>
+        </div>
+      </div>
+    }
 
-      <thead>
+    <div class="row g-3">
+      <!-- Search -->
+      <div class="col-md-6">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search"></i>
+          </span>
+          <input 
+            type="text" 
+            class="form-control border-start-0" 
+            placeholder="Search skills..."
+            [value]="searchTerm()"
+            (input)="onSearch($any($event.target).value)"
+          >
+        </div>
+      </div>
 
-        <tr class="table-light">
+      <!-- Category Filter -->
+      <div class="col-md-3">
+        <select class="form-select form-select-sm" 
+          [value]="selectedCategory()"
+          (change)="onCategoryChange($any($event.target).value)">
+          <option value="">All Categories</option>
+          @for(cat of categoryList(); track cat._id) {
+            <option [value]="cat._id">{{ cat.name }}</option>
+          }
+        </select>
+      </div>
 
-          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
-            Skill
-          </th>
+      <!-- Status Filter -->
+      <div class="col-md-3">
+        <select class="form-select form-select-sm" 
+          [value]="statusFilter()"
+          (change)="onStatusChange($any($event.target).value)">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
 
-          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
-            Category
-          </th>
+      <!-- Reset Button -->
+      <div class="col-md-2">
+        <button 
+          type="button" 
+          class="btn btn-outline-secondary btn-sm w-100"
+          (click)="resetFilters()"
+          [disabled]="!searchTerm() && !selectedCategory() && !statusFilter()">
+          <i class="bi bi-arrow-clockwise"></i> Reset
+        </button>
+      </div>
+    </div>
 
-          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
-            Employee
-          </th>
+    <!-- Results Info -->
+    <div class="mt-2 small text-muted">
+      Showing 
+      <strong>{{ currentSkills().length > 0 ? (currentPage() - 1) * pageSize() + 1 : 0 }}</strong>
+      to
+      <strong>{{ Math.min(currentPage() * pageSize(), totalSkills()) }}</strong>
+      of
+      <strong>{{ totalSkills() }}</strong>
+      skill(s)
+    </div>
 
-          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
-            Level
-          </th>
+  </div>
 
-          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
-            Score
-          </th>
-
-          <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary">
-            Actions
-          </th>
-
-        </tr>
-
-      </thead>
-
-      <tbody>
-
-        @if (skills().length === 0) {
-          <tr>
-            <td colspan="6" class="px-4 py-4 text-center text-secondary">
-              @if (auth.role() === 'employee') {
-                <p class="mb-0">No skills yet. Complete a questionnaire to add skills.</p>
-                <p class="small text-muted mb-0 mt-2">Skills are automatically generated from questionnaire responses.</p>
-              } @else {
-                <p class="mb-0">No skills found. Click "Add Skill" to create your first skill.</p>
-              }
-            </td>
-          </tr>
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="px-4 py-4 text-center">
+      <div class="spinner-border spinner-border-sm text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  } @else if (currentSkills().length === 0) {
+    <!-- Empty State -->
+    <div class="px-4 py-4 text-center text-secondary">
+      @if (totalSkills() === 0) {
+        @if (auth.role() === 'employee') {
+          <p class="mb-0">No skills yet. Complete a questionnaire to add skills.</p>
+          <p class="small text-muted mb-0 mt-2">Skills are automatically generated from questionnaire responses.</p>
         } @else {
-          @for(skill of skills(); track skill._id){
+          <p class="mb-0">No skills found. Click "Add Skill" to create your first skill.</p>
+        }
+      } @else {
+        <p class="mb-0">No skills match your filters.</p>
+        <button class="btn btn-link btn-sm" (click)="resetFilters()">Clear filters</button>
+      }
+    </div>
+  } @else {
+    <!-- Data Table -->
+    <div class="table-responsive">
 
-          <tr>
+      <table class="table align-middle mb-0">
 
-            <td class="px-4 py-3">
-              {{ skill.skill_name }}
+        <thead>
+
+          <tr class="table-light">
+
+            <th class="px-4 py-3" style="width: 40px; text-align: center;">
+              <div class="form-check">
+                <input 
+                  type="checkbox" 
+                  id="selectAllCheckbox"
+                  class="form-check-input"
+                  [checked]="areAllPaginatedSelected()"
+                  (change)="toggleSelectAll()"
+                  [disabled]="currentSkills().length === 0"
+                  title="Select all on this page">
+              </div>
+            </th>
+
+            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 25%">
+              Skill Name
+            </th>
+
+            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 20%">
+              Category
+            </th>
+
+            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 35%">
+              Description
+            </th>
+
+            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 10%; text-align: center;">
+              Status
+            </th>
+
+            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 10%; text-align: center;">
+              Actions
+            </th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          @for(skill of currentSkills(); track skill._id) {
+
+          <tr class="border-bottom" [class.table-light]="isSkillSelected(skill._id)">
+
+            <td class="px-4 py-3" style="text-align: center;">
+              <div class="form-check">
+                <input 
+                  type="checkbox"
+                  class="form-check-input"
+                  [id]="'skill-' + skill._id"
+                  [checked]="isSkillSelected(skill._id)"
+                  (change)="toggleSkillSelection(skill._id)">
+              </div>
             </td>
 
             <td class="px-4 py-3">
-              {{ skill.cat_id.cat_name }}
+              <span class="fw-medium text-dark">{{ skill.name }}</span>
+            </td>
+
+            <td class="px-4 py-3">
+              <span class="badge bg-info-subtle text-info-emphasis">
+                {{ getCategoryName(skill) }}
+              </span>
             </td>
 
             <td class="px-4 py-3 text-secondary">
-              {{ skill?.user_id?.fullName }}
+              <small>{{ skill.description || '-' }}</small>
             </td>
 
-            <td class="px-4 py-3">
-              {{ skill.skill_level }}
+            <td class="px-4 py-3 text-center">
+              <span class="badge" [ngClass]="skill.status === 'active' ? 'bg-success' : 'bg-secondary'">
+                {{ skill.status === 'active' ? 'Active' : 'Inactive' }}
+              </span>
             </td>
 
-            <td class="px-4 py-3">
-              {{ skill.skill_score }}
-            </td>
-
-            <td class="px-4 py-3">
+            <td class="px-4 py-3 text-center">
 
               @if (canModifySkills()) {
-                <app-table-actions
-                  [actions]="['edit','delete']"
-                  (edit)="editSkill(skill)"
-                  (delete)="deleteSkill(skill)">
-                </app-table-actions>
+                <div class="d-flex gap-1 justify-content-center">
+                  <button 
+                    type="button"
+                    (click)="toggleSkillStatus(skill)"
+                    [class]="skill.status === 'active' ? 'btn btn-sm btn-danger' : 'btn btn-sm btn-success'"
+                    [title]="skill.status === 'active' ? 'Deactivate skill' : 'Activate skill'">
+                    @if (skill.status === 'active') {
+                      <i class="bi bi-eye-slash"></i>
+                    } @else {
+                      <i class="bi bi-eye"></i>
+                    }
+                  </button>
+                  <app-table-actions
+                    [actions]="['edit','delete']"
+                    (edit)="editSkill(skill)"
+                    (delete)="deleteSkill(skill)">
+                  </app-table-actions>
+                </div>
               } @else {
-                <span class="text-muted small">Read-only</span>
+                <span class="text-muted small">-</span>
               }
 
             </td>
@@ -120,12 +279,92 @@
           </tr>
 
           }
-        }
 
-      </tbody>
+        </tbody>
 
-    </table>
+      </table>
 
-  </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex align-items-center justify-content-between px-4 py-3 border-top bg-light">
+
+      <div class="d-flex align-items-center gap-2">
+        <label class="small text-secondary mb-0">Items per page:</label>
+        <select 
+          class="form-select form-select-sm" 
+          style="width: 80px;"
+          [value]="pageSize()"
+          (change)="onPageSizeChange(+$any($event.target).value)">
+          <option [value]="5">5</option>
+          <option [value]="10">10</option>
+          <option [value]="25">25</option>
+          <option [value]="50">50</option>
+        </select>
+      </div>
+
+      <nav aria-label="Pagination Navigation">
+        <ul class="pagination pagination-sm mb-0">
+
+          <li class="page-item" [class.disabled]="currentPage() === 1 || totalPages() === 0">
+            <button 
+              class="page-link" 
+              (click)="onPageChange(1)"
+              [disabled]="currentPage() === 1 || totalPages() === 0">
+              First
+            </button>
+          </li>
+
+          <li class="page-item" [class.disabled]="currentPage() === 1 || totalPages() === 0">
+            <button 
+              class="page-link" 
+              (click)="onPageChange(currentPage() - 1)"
+              [disabled]="currentPage() === 1 || totalPages() === 0">
+              Previous
+            </button>
+          </li>
+
+          <!-- Page Numbers -->
+          @for(page of this.getPageNumbers(); track page) {
+            @if (page === -1) {
+              <li class="page-item disabled">
+                <span class="page-link">...</span>
+              </li>
+            } @else {
+              <li class="page-item" [class.active]="page === currentPage()">
+                <button 
+                  class="page-link" 
+                  (click)="onPageChange(page)"
+                  [class.active]="page === currentPage()">
+                  {{ page }}
+                </button>
+              </li>
+            }
+          }
+
+          <li class="page-item" [class.disabled]="currentPage() === totalPages() || totalPages() === 0">
+            <button 
+              class="page-link" 
+              (click)="onPageChange(currentPage() + 1)"
+              [disabled]="currentPage() === totalPages() || totalPages() === 0">
+              Next
+            </button>
+          </li>
+
+          <li class="page-item" [class.disabled]="currentPage() === totalPages() || totalPages() === 0">
+            <button 
+              class="page-link" 
+              (click)="onPageChange(totalPages())"
+              [disabled]="currentPage() === totalPages() || totalPages() === 0">
+              Last
+            </button>
+          </li>
+
+        </ul>
+      </nav>
+
+    </div>
+
+  }
 
 </div>

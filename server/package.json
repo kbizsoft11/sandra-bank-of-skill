@@ -9,7 +9,10 @@
     "start": "node dist/server.js",
     "seed": "tsx scripts/seed.ts",
     "seed:demo": "tsx scripts/seed.ts",
-    "fix-onboarding": "tsx src/scripts/fix-employee-onboarding.ts"
+    "fix-onboarding": "tsx src/scripts/fix-employee-onboarding.ts",
+    "migrate": "tsx src/scripts/runMigration.ts run",
+    "migrate:report": "tsx src/scripts/runMigration.ts report",
+    "migrate:rollback": "tsx src/scripts/runMigration.ts rollback"
   },
   "keywords": [],
   "author": "",

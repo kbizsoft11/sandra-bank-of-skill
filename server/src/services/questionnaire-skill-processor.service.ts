@@ -2,20 +2,30 @@ import { QuestionnaireResponseModel } from "../models/questionnaire-response.mod
 import { QuestionnaireModel } from "../models/questionnaire.model";
 import { QuestionAnswerModel } from "../models/question-answer.model";
 import { Skill } from "../models/skill.model";
+import { SkillUser } from "../models/skillUser.model";
 import { SkillCategory } from "../models/skillCategory.model";
 import { ApiError } from "../utils/api-error";
 import { StatusCodes } from "http-status-codes";
+import skillUserRepository from "../repositories/skillUser.repository";
 
 /**
- * Service to process questionnaire responses and automatically create/update employee skills
+ * Service to process questionnaire responses and automatically create SkillUser records
+ * 
+ * This service:
+ * 1. Reads completed questionnaire responses
+ * 2. Extracts skill questions and answers
+ * 3. Creates/updates SkillUser records (normalized schema)
+ * 4. Links questionnaire response via questionnaireId
  */
 class QuestionnaireSkillProcessorService {
   /**
-   * Process a completed questionnaire response and create/update employee skills
+   * Process a completed questionnaire response and create/update SkillUser records
    * @param responseId - The questionnaire response ID
    */
   async processQuestionnaireResponse(responseId: string): Promise<void> {
     try {
+      console.log(`\n🔄 [QUESTIONNAIRE SKILL PROCESSOR] Processing response: ${responseId}`);
+
       // Get the questionnaire response
       const response = await QuestionnaireResponseModel.findById(responseId);
       if (!response) {
@@ -24,7 +34,7 @@ class QuestionnaireSkillProcessorService {
 
       // Only process completed questionnaires
       if (response.status !== "completed") {
-        console.log(`Questionnaire response ${responseId} is not completed yet. Status: ${response.status}`);
+        console.log(`⏭️  Questionnaire response ${responseId} is not completed yet. Status: ${response.status}`);
         return;
       }
 
@@ -36,7 +46,7 @@ class QuestionnaireSkillProcessorService {
 
       // Get skill category for the questionnaire
       if (!questionnaire.skillCategoryId) {
-        console.log(`Questionnaire ${questionnaire._id} does not have a skill category. Skipping skill creation.`);
+        console.log(`⏭️  Questionnaire ${questionnaire._id} does not have a skill category. Skipping skill creation.`);
         return;
       }
 
@@ -57,6 +67,8 @@ class QuestionnaireSkillProcessorService {
         questionnaire.questions.map(q => [q.questionId, q])
       );
 
+      console.log(`📋 Processing ${answeredQuestions.length} answered questions`);
+
       // Process each answered question
       const skillsToCreate: Array<{
         skillName: string;
@@ -71,7 +83,7 @@ class QuestionnaireSkillProcessorService {
         const question = questionMap.get(answer.questionId);
 
         if (!question) {
-          console.log(`Question ${answer.questionId} not found in questionnaire`);
+          console.log(`❌ Question ${answer.questionId} not found in questionnaire`);
           continue;
         }
 
@@ -86,12 +98,12 @@ class QuestionnaireSkillProcessorService {
 
         // Validate skill level and interest level
         if (!skillLevel || skillLevel < 1 || skillLevel > 5) {
-          console.log(`Invalid skill level for question ${answer.questionId}: ${skillLevel}`);
+          console.log(`❌ Invalid skill level for question ${answer.questionId}: ${skillLevel}`);
           continue;
         }
 
         if (!interestLevel || interestLevel < 1 || interestLevel > 5) {
-          console.log(`Invalid interest level for question ${answer.questionId}: ${interestLevel}`);
+          console.log(`❌ Invalid interest level for question ${answer.questionId}: ${interestLevel}`);
           continue;
         }
 
@@ -104,95 +116,109 @@ class QuestionnaireSkillProcessorService {
         });
       }
 
-      // Create or update skills for the employee
+      console.log(`✅ Found ${skillsToCreate.length} skills to create/update`);
+
+      // Create or update SkillUser records for each skill
       for (const skillData of skillsToCreate) {
-        await this.createOrUpdateSkill(
+        await this.createOrUpdateSkillUser(
           response.employeeId,
-          skillCategory._id.toString(),
           skillData.skillName,
           skillData.skillLevel,
           skillData.interestLevel,
-          response._id.toString(),
+          responseId, // questionnaire response ID
           skillData.skillId
         );
       }
 
       console.log(
-        `Successfully processed questionnaire response ${responseId} and created/updated ${skillsToCreate.length} skills`
+        `✅ Successfully processed questionnaire response ${responseId} and created/updated ${skillsToCreate.length} SkillUser records\n`
       );
     } catch (error: any) {
-      console.error(`Error processing questionnaire response ${responseId}:`, error);
+      console.error(`❌ Error processing questionnaire response ${responseId}:`, error);
       throw error;
     }
   }
 
   /**
-   * Create or update a skill for an employee from questionnaire response
+   * Create or update a SkillUser record from questionnaire response
+   * 
+   * NEW NORMALIZED APPROACH:
+   * - Finds or creates a Skill document (if not already existing)
+   * - Creates/updates SkillUser record with userId, skillId, score, level, questionnaireId
    */
-  private async createOrUpdateSkill(
-    employeeId: string,
-    categoryId: string,
+  private async createOrUpdateSkillUser(
+    userId: string,
     skillName: string,
     skillLevel: number,
     interestLevel: number,
-    responseId: string,
+    questionnaireResponseId: string,
     skillId?: string
   ): Promise<void> {
     try {
-      // Check if skill already exists for this employee and category
-      const existingSkill = await Skill.findOne({
-        user_id: employeeId as any,
-        cat_id: categoryId as any,
-        skill_name: skillName,
-      });
+      console.log(`  📝 Processing skill: ${skillName} (level: ${skillLevel}, interest: ${interestLevel})`);
 
       // Map skill level (1-5) to skill level string
       const skillLevelMap: { [key: number]: string } = {
-        1: "beginner",
-        2: "intermediate",
-        3: "advanced",
-        4: "expert",
-        5: "expert", // Map 5 to expert as well
+        1: "Beginner",
+        2: "Intermediate",
+        3: "Advanced",
+        4: "Expert",
+        5: "Expert",
       };
 
-      const skillLevelString = skillLevelMap[skillLevel] || "beginner";
+      const skillLevelString = skillLevelMap[skillLevel] || "Beginner";
 
       // Calculate skill score based on skill level (each level = 20%)
       const skillScore = Math.min(100, skillLevel * 20);
 
-      if (existingSkill) {
-        // Update existing skill
-        existingSkill.skill_level = skillLevelString;
-        existingSkill.skill_score = skillScore;
-        existingSkill.interest_level = interestLevel;
-        existingSkill.isFromQuestionnaire = true;
-        existingSkill.questionnaireResponseId = responseId as any;
-        await existingSkill.save();
+      // Step 1: Ensure Skill exists (if skillId provided, use it; otherwise find/create)
+      let skill: any;
 
-        console.log(
-          `Updated existing skill: ${skillName} for employee ${employeeId} with level ${skillLevel} and interest ${interestLevel}`
-        );
+      if (skillId) {
+        // Use provided skillId
+        skill = await Skill.findById(skillId);
+        if (!skill) {
+          console.warn(`  ⚠️  Skill with ID ${skillId} not found, creating new skill: ${skillName}`);
+          skill = await Skill.create({
+            name: skillName,
+            description: `Created from questionnaire response`,
+            createdBy: userId, // User who created this
+            createdType: 'COMPANY', // From questionnaire (company-created)
+            status: 'active',
+          });
+        }
       } else {
-        // Create new skill
-        const newSkill = new Skill({
-          cat_id: categoryId,
-          user_id: employeeId,
-          skill_name: skillName,
-          skill_level: skillLevelString,
-          skill_score: skillScore,
-          interest_level: interestLevel,
-          isFromQuestionnaire: true,
-          questionnaireResponseId: responseId,
-        });
-
-        await newSkill.save();
-
-        console.log(
-          `Created new skill: ${skillName} for employee ${employeeId} with level ${skillLevel} and interest ${interestLevel}`
-        );
+        // Find or create skill by name
+        skill = await Skill.findOne({ name: skillName });
+        if (!skill) {
+          console.log(`  ✏️  Creating new skill: ${skillName}`);
+          skill = await Skill.create({
+            name: skillName,
+            description: `Created from questionnaire response`,
+            createdBy: userId,
+            createdType: 'COMPANY',
+            status: 'active',
+          });
+        }
       }
+
+      // Step 2: Create or update SkillUser record
+      const skillUserData = {
+        userId,
+        skillId: skill._id,
+        score: skillScore,
+        level: skillLevelString,
+        questionnaireId: questionnaireResponseId,
+        lastAssessedAt: new Date(),
+      };
+
+      // Upsert SkillUser (create if not exists, update if exists)
+      const skillUser = await skillUserRepository.upsert(skillUserData);
+
+      console.log(`  ✅ SkillUser record created/updated: ${skillName} -> ${skillLevelString} (${skillScore}%)`);
+
     } catch (error: any) {
-      console.error(`Error creating/updating skill ${skillName}:`, error);
+      console.error(`  ❌ Error creating/updating SkillUser for ${skillName}:`, error.message);
       throw error;
     }
   }
@@ -201,8 +227,15 @@ class QuestionnaireSkillProcessorService {
    * Reprocess a questionnaire response (useful for corrections or updates)
    */
   async reprocessQuestionnaireResponse(responseId: string): Promise<void> {
-    // Delete existing skills created from this response
-    await Skill.deleteMany({ questionnaireResponseId: responseId as any });
+    console.log(`\n🔄 [REPROCESS] Reprocessing questionnaire response: ${responseId}`);
+    
+    // Delete existing SkillUser records created from this response
+    // (identified by questionnaireId matching the response ID)
+    const deletedCount = await SkillUser.deleteMany({ 
+      questionnaireId: responseId 
+    });
+
+    console.log(`🗑️  Deleted ${deletedCount.deletedCount} existing SkillUser records`);
 
     // Process the response again
     await this.processQuestionnaireResponse(responseId);

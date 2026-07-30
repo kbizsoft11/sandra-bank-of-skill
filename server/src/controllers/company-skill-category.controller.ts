@@ -76,6 +76,27 @@ class CompanySkillCategoryController {
       'Company skill category mapping deleted successfully.'
     );
   });
+
+  getAvailableAdminCategories = asyncHandler(async (req: Request, res: Response) => {
+    const companyId = this.getCompanyId(req);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = (req.query.search as string) || '';
+
+    const result = await this.service.getAvailableAdminCategoriesForCompany(
+      companyId,
+      page,
+      limit,
+      search
+    );
+
+    return sendResponse(
+      res,
+      StatusCodes.OK,
+      'Available admin categories fetched successfully.',
+      result
+    );
+  });
 }
 
 export default new CompanySkillCategoryController();

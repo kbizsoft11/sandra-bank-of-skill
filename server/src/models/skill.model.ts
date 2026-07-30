@@ -1,91 +1,93 @@
 import { Schema, model, Document } from "mongoose";
 
+export type CreatedType = 'ADMIN' | 'COMPANY';
+
 export interface ISkill extends Document {
-  cat_id: Schema.Types.ObjectId;
-  user_id: Schema.Types.ObjectId;
-  skill_name: string;
-  skill_desc?: string;
-  skill_level: string;
-  skill_score: number;
-  interest_level?: number;
-  isFromQuestionnaire?: boolean;
-  questionnaireResponseId?: Schema.Types.ObjectId;
-  created_at: Date;
+  name: string;
+  description?: string;
+  categoryId: Schema.Types.ObjectId;
+  createdBy: Schema.Types.ObjectId; // User ID who created it
+  createdType: CreatedType; // ADMIN or COMPANY
+  companyId?: Schema.Types.ObjectId; // null for ADMIN, filled for COMPANY
+  archived: boolean;
+  status: 'active' | 'inactive';
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const skillSchema = new Schema<ISkill>(
   {
-    cat_id: {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      index: true,
+    },
+
+    description: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+
+    categoryId: {
       type: Schema.Types.ObjectId,
-      ref: "SkillCategory",
+      ref: 'SkillCategory',
       required: true,
       index: true,
     },
 
-    user_id: {
+    createdBy: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
       index: true,
     },
 
-    skill_name: {
+    createdType: {
       type: String,
+      enum: ['ADMIN', 'COMPANY'],
+      default: 'ADMIN',
       required: true,
+      index: true,
     },
 
-    skill_desc: {
-      type: String,
-      trim: true,
-      default: "",
-      maxlength: 500,
+    companyId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Organisation',
+      default: null,
+      sparse: true,
+      index: true,
     },
 
-    skill_level: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    skill_score: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 100,
-    },
-
-    interest_level: {
-      type: Number,
-      min: 1,
-      max: 5,
-      required: false,
-    },
-
-    isFromQuestionnaire: {
+    archived: {
       type: Boolean,
       default: false,
+      index: true,
     },
 
-    questionnaireResponseId: {
-      type: Schema.Types.ObjectId,
-      ref: "QuestionnaireResponse",
-      required: false,
+    status: {
+      type: String,
+      enum: ['active', 'inactive'],
+      default: 'active',
       index: true,
     },
   },
   {
-    timestamps: {
-      createdAt: "created_at",
-      updatedAt: false,
-    },
-    versionKey: false,
+    timestamps: true,
   }
 );
 
-skillSchema.index({
-  cat_id: 1,
-  user_id: 1,
-  skill_name: 1,
-});
+// Composite index for duplicate checking
+skillSchema.index({ name: 1, createdType: 1, companyId: 1 }, { sparse: true });
+
+// Index for finding admin skills
+skillSchema.index({ createdType: 1, archived: 1 });
+
+// Index for company skills
+skillSchema.index({ companyId: 1, archived: 1 });
+
+// Index for finding skills by category
+skillSchema.index({ categoryId: 1, archived: 1 });
 
 export const Skill = model<ISkill>("Skill", skillSchema);
