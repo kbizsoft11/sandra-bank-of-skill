@@ -1,4 +1,4 @@
-<div class="questionnaire-container">
+<div class="my-questionnaire-page">
 
   <!-- Loading State -->
   @if (isLoading()) {
@@ -6,138 +6,184 @@
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
-      <p class="mt-3">Loading your assessment...</p>
+      <p class="mt-3">Loading your assessments...</p>
     </div>
   } @else {
 
-    <!-- Header Section -->
-    <div class="questionnaire-header">
-      <div class="header-top">
-        <div class="user-avatar">{{ getUserInitials() }}</div>
-        <div class="header-text">
-          <span class="header-eyebrow">My Assessment</span>
-          <h1 class="header-title">{{ questionnaire()?.title }}</h1>
+    @if (completedAllQuestionnaires()) {
+      <div class="completion-summary">
+        <div class="summary-header">
+          <div class="summary-icon">
+            <i class="bi bi-clipboard-check"></i>
+          </div>
+          <div>
+            <h1>All assessments completed</h1>
+            <p>You have finished all questionnaires for your role. Great work!</p>
+          </div>
         </div>
-        <div class="progress-ring" [style.--progress]="progress().percentComplete">
-          <svg viewBox="0 0 80 80">
-            <circle class="ring-bg" cx="40" cy="40" r="34"></circle>
-            <circle class="ring-fill" cx="40" cy="40" r="34"></circle>
-          </svg>
-          <span class="ring-value">{{ progress().percentComplete }}%</span>
-        </div>
-      </div>
 
-      @if (questionnaire()?.description) {
-        <p class="header-description">{{ questionnaire()?.description }}</p>
-      }
-
-      <div class="progress-info">
-        <i class="bi bi-clipboard-check"></i>
-        <span>
-          You have <strong>{{ progress().pending }}</strong>
-          {{ progress().pending === 1 ? 'skill' : 'skills' }} left to review
-        </span>
-      </div>
-    </div>
-
-    <!-- Question Area -->
-    <div class="question-area">
-
-      @if (currentQuestion()) {
-        <div
-          class="question-card"
-          [class.answered]="showAnsweredAnimation()"
-          [class.saving]="isSaving()">
-
-          <!-- Question Header -->
-          <div class="question-header">
-            <div class="skill-icon">
-              <i class="bi bi-star-fill"></i>
-            </div>
-            <h2 class="question-title">{{ currentQuestion()!.questionText }}</h2>
-            <div class="question-number">
-              {{ progress().answered + 1 }} / {{ progress().total }}
+        <div class="summary-stats">
+          <div class="stat-card">
+            <span class="stat-icon"><i class="bi bi-check-circle-fill"></i></span>
+            <div class="stat-content">
+              <strong>{{ completedAllQuestionnaires().questionnaires.length }}</strong>
+              <span>Assessments completed</span>
             </div>
           </div>
+          <div class="stat-card">
+            <span class="stat-icon"><i class="bi bi-calendar-event"></i></span>
+            <div class="stat-content">
+              <strong>Completed</strong>
+              <span>{{ completedAllQuestionnaires().completedAt | date:'short' }}</span>
+            </div>
+          </div>
+        </div>
 
-          <!-- Question Description -->
-          @if (currentQuestion()!.skillDescription) {
-            <p class="question-description">{{ currentQuestion()!.skillDescription }}</p>
+        <div class="completed-list">
+          @for (item of completedAllQuestionnaires().questionnaires; track item._id) {
+            <div class="completed-item">
+              <div class="item-check"><i class="bi bi-check-circle-fill text-success"></i></div>
+              <div class="item-info">
+                <strong>{{ item.title }}</strong>
+                <span>{{ item.description }}</span>
+              </div>
+            </div>
           }
+        </div>
 
-          <!-- Rating Sections -->
-          <div class="rating-sections">
-
-            <!-- Skill Level -->
-            <div class="rating-section">
-              <label class="rating-label">
-                <i class="bi bi-gear-fill"></i>
-                Skill Level
-              </label>
-              <div class="rating-list">
-                @for (option of skillLevelOptions; track option.value) {
-                  <button
-                    type="button"
-                    class="rating-row"
-                    [class.selected]="selectedSkillLevel() === option.value"
-                    [class.na]="option.value === 0"
-                    [disabled]="isSaving()"
-                    (click)="selectSkillLevel(option.value)">
-                    <span class="rating-radio">{{ option.value === 0 ? 'N/A' : option.value }}</span>
-                    <span class="rating-text">{{ option.label }}</span>
-                  </button>
-                }
-              </div>
-            </div>
-
-            <!-- Interest Level -->
-            <div class="rating-section">
-              <label class="rating-label">
-                <i class="bi bi-heart-fill"></i>
-                Interest Level
-              </label>
-              <div class="rating-list">
-                @for (option of interestLevelOptions; track option.value) {
-                  <button
-                    type="button"
-                    class="rating-row"
-                    [class.selected]="selectedInterestLevel() === option.value"
-                    [class.na]="option.value === 0"
-                    [disabled]="isSaving()"
-                    (click)="selectInterestLevel(option.value)">
-                    <span class="rating-radio">{{ option.value === 0 ? 'N/A' : option.value }}</span>
-                    <span class="rating-text">{{ option.label }}</span>
-                  </button>
-                }
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Saving Indicator -->
-          @if (isSaving()) {
-            <div class="saving-indicator">
+        <div class="summary-actions">
+          <button class="btn btn-primary" type="button" (click)="retakeAllQuestionnaires()" [disabled]="isRetaking()">
+            @if (isRetaking()) {
               <span class="spinner-border spinner-border-sm me-2"></span>
-              <span>Saving your answer...</span>
+            }
+            Retake all assessments
+          </button>
+          <button class="btn btn-outline-secondary" type="button" (click)="router.navigate(['/employee/dashboard'])">
+            Back to dashboard
+          </button>
+        </div>
+      </div>
+
+    } @else if (currentQuestionnaire()) {
+      <div class="assessment-shell">
+
+        <!-- Left nav panel -->
+        <aside class="nav-panel">
+          <div class="nav-panel-section">
+            <h3><i class="bi bi-list"></i> Navigate my assessment</h3>
+            <div class="category-list">
+              @for (item of navItems(); track item.id) {
+                <button
+                  type="button"
+                  class="category-item"
+                  [class.active]="currentQuestionnaireIndex() === item.index"
+                  (click)="moveToQuestionnaire(item.index)">
+                  <span class="category-name">{{ item.label }}</span>
+                  <span class="category-count">{{ item.count }} skills</span>
+                </button>
+              }
             </div>
-          }
-
-        </div>
-      } @else {
-        <!-- No more questions -->
-        <div class="completion-card">
-          <div class="completion-icon">
-            <i class="bi bi-check-circle-fill"></i>
           </div>
-          <h2 class="completion-title">All Done! 🎉</h2>
-          <p class="completion-text">
-            You've completed all questions. Redirecting to your dashboard...
-          </p>
-        </div>
-      }
+        </aside>
 
-    </div>
+        <!-- Main content -->
+        <main class="content-panel">
+          <div class="content-header">
+            <i class="bi bi-geo-alt-fill"></i>
+            <h1>{{ currentQuestionnaire()?.categoryTitle || currentQuestionnaire()?.title }}</h1>
+          </div>
 
+          <div class="skill-list">
+            @if (pendingQuestions().length > 0) {
+              @for (q of pendingQuestions(); track q.questionId) {
+                <article class="skill-card" [class.saving]="answersMap()[q.questionId]?.isSaving">
+                  <div class="skill-card-header">
+                    <div class="skill-title-group">
+                      <i class="bi bi-star-fill"></i>
+                      <h2>{{ q.questionText }}</h2>
+                    </div>
+                  </div>
+
+                  @if (q.skillDescription) {
+                    <p class="skill-description">{{ q.skillDescription }}</p>
+                  }
+
+                  <div class="rating-columns">
+                    <div class="rating-column">
+                      <h3>Skill Level</h3>
+                      <ul class="rating-options">
+                        @for (option of skillLevelOptions; track option.value) {
+                          <li>
+                            <button
+                              type="button"
+                              class="rating-option"
+                              [class.selected]="answersMap()[q.questionId]?.skillLevel === option.value"
+                              [disabled]="answersMap()[q.questionId]?.isSaving || (answersMap()[q.questionId]?.answered && showCompletedSkills())"
+                              (click)="selectSkillLevelFor(q.questionId, option.value)">
+                              <span class="option-circle">
+                                @if (answersMap()[q.questionId]?.skillLevel === option.value && !answersMap()[q.questionId]?.skillPrefilled) {
+                                  <i class="bi bi-check-lg"></i>
+                                } @else {
+                                  {{ option.value === 0 ? 'N/A' : option.value }}
+                                }
+                              </span>
+                              <span class="option-label">{{ option.label }}</span>
+                            </button>
+                          </li>
+                        }
+                      </ul>
+                    </div>
+
+                    <div class="rating-column">
+                      <h3>Interest Level</h3>
+                      <ul class="rating-options">
+                        @for (option of interestLevelOptions; track option.value) {
+                          <li>
+                            <button
+                              type="button"
+                              class="rating-option"
+                              [class.selected]="answersMap()[q.questionId]?.interestLevel === option.value"
+                              [disabled]="answersMap()[q.questionId]?.isSaving || (answersMap()[q.questionId]?.answered && showCompletedSkills())"
+                              (click)="selectInterestLevelFor(q.questionId, option.value)">
+                              <span class="option-circle">
+                                @if (answersMap()[q.questionId]?.interestLevel === option.value && !answersMap()[q.questionId]?.interestPrefilled) {
+                                  <i class="bi bi-check-lg"></i>
+                                } @else {
+                                  {{ option.value === 0 ? 'N/A' : option.value }}
+                                }
+                              </span>
+                              <span class="option-label">{{ option.label }}</span>
+                            </button>
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  </div>
+
+                  @if (answersMap()[q.questionId]?.isSaving) {
+                    <div class="saving-indicator">
+                      <span class="spinner-border spinner-border-sm"></span>
+                      Saving your answer...
+                    </div>
+                  }
+                </article>
+              }
+            } @else {
+              <div class="completion-panel">
+                <div class="completion-icon">
+                  <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <h2>Assessment complete</h2>
+                <p>You have finished this questionnaire. The next one will start shortly.</p>
+              </div>
+            }
+          </div>
+        </main>
+      </div>
+    } @else {
+      <div class="empty-state">
+        <p>No active assessments found.</p>
+      </div>
+    }
   }
-
 </div>
