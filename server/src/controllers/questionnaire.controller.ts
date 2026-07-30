@@ -33,7 +33,7 @@ export const getAllQuestionnaires = asyncHandler(
         const categories = categoryIds.length > 0
             ? await SkillCategory.find({ _id: { $in: categoryIds } }).lean()
             : [];
-        const categoryMap = new Map(categories.map(c => [c._id.toString(), c.cat_name]));
+        const categoryMap = new Map(categories.map(c => [c._id.toString(), c.name]));
 
         const updatedQuestionnaires = questionnaires.map(q => {
             if (q.skillCategoryId && categoryMap.has(q.skillCategoryId.toString())) {
@@ -79,8 +79,8 @@ export const getQuestionnaireById = asyncHandler(
 
         if (questionnaire.skillCategoryId) {
             const category = await SkillCategory.findById(questionnaire.skillCategoryId).lean();
-            if (category?.cat_name) {
-                (questionnaire as any).title = category.cat_name;
+            if (category?.name) {
+                (questionnaire as any).title = category.name;
             }
         }
 
@@ -192,7 +192,7 @@ export const createQuestionnaire = asyncHandler(
         let categoryTitle: string | undefined;
         if (skillCategoryId) {
             const category = await SkillCategory.findById(skillCategoryId).lean();
-            categoryTitle = category?.cat_name;
+            categoryTitle = category?.name;
         }
 
         const questionnaire = await QuestionnaireModel.create({
@@ -262,8 +262,8 @@ export const updateQuestionnaire = asyncHandler(
 
             if (skillCategoryId) {
                 const category = await SkillCategory.findById(skillCategoryId).lean();
-                if (category?.cat_name) {
-                    questionnaire.title = category.cat_name;
+                if (category?.name) {
+                    questionnaire.title = category.name;
                 }
             }
         }
@@ -846,8 +846,8 @@ export const duplicateQuestionnaire = asyncHandler(
         let titleToUse = original.title ? `${original.title} (Copy)` : 'Duplicated Questionnaire';
         if (original.skillCategoryId) {
             const category = await SkillCategory.findById(original.skillCategoryId).lean();
-            if (category?.cat_name) {
-                titleToUse = `${category.cat_name} (Copy)`;
+            if (category?.name) {
+                titleToUse = `${category.name} (Copy)`;
             }
         }
 

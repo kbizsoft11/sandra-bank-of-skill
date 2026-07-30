@@ -10,9 +10,6 @@ class CompanyCategoryService {
    * Add admin category to company
    */
   async addCategory(data: CreateCompanyCategoryDto, companyId: string) {
-    const companyIdObjectId = new Schema.Types.ObjectId(companyId);
-    const categoryIdObjectId = new Schema.Types.ObjectId(data.categoryId);
-
     // Verify category exists
     const category = await skillCategoryRepository.findById(data.categoryId);
     if (!category) {
@@ -26,10 +23,9 @@ class CompanyCategoryService {
     }
 
     const mapping = await companyCategoryRepository.create({
-      ...data,
-      companyId: companyIdObjectId,
-      categoryId: categoryIdObjectId,
-    });
+      categoryId: new Schema.Types.ObjectId(data.categoryId),
+      companyId: new Schema.Types.ObjectId(companyId),
+    } as any);
 
     return mapping;
   }
@@ -137,7 +133,7 @@ class CompanyCategoryService {
         companyCategoryRepository.create({
           categoryId: cat._id,
           companyId: new Schema.Types.ObjectId(companyId),
-        })
+        } as any)
       )
     );
 

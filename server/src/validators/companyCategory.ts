@@ -19,3 +19,12 @@ export const companyCategoryIdParamSchema = z.object({
     .string()
     .regex(objectIdRegex, 'Invalid company category ID'),
 });
+
+export const bulkEnableDisableSchema = z.object({
+  companyId: z
+    .string()
+    .regex(objectIdRegex, 'Invalid company ID'),
+  categoryIds: z
+    .array(z.string().regex(objectIdRegex, 'Invalid category ID'))
+    .min(1, 'At least one category ID is required'),
+});

@@ -28,7 +28,11 @@ export class SkillUserRepository {
    * Find skill user by userId and skillId (unique combination)
    */
   async findByUserAndSkill(userId: string, skillId: string): Promise<ISkillUser | null> {
-    return SkillUser.findOne({ userId, skillId })
+    const Types = require('mongoose').Types;
+    return SkillUser.findOne({ 
+      userId: new Types.ObjectId(userId), 
+      skillId: new Types.ObjectId(skillId) 
+    } as any)
       .populate("userId", "fullName email")
       .populate({
         path: "skillId",
@@ -41,9 +45,10 @@ export class SkillUserRepository {
    * Find all skills for a user
    */
   async findByUser(userId: string, query: GetSkillUsersQueryDto = {}): Promise<{ skillUsers: ISkillUser[]; total: number }> {
+    const Types = require('mongoose').Types;
     const { page = 1, limit = 10, level } = query;
 
-    const filter: any = { userId };
+    const filter: any = { userId: new Types.ObjectId(userId) };
 
     if (level) {
       filter.level = level;
@@ -99,8 +104,9 @@ export class SkillUserRepository {
    * Upsert skill user (create or update if exists)
    */
   async upsert(userId: string, skillId: string, data: UpdateSkillUserDto): Promise<ISkillUser> {
+    const Types = require('mongoose').Types;
     const updated = await SkillUser.findOneAndUpdate(
-      { userId, skillId },
+      { userId: new Types.ObjectId(userId), skillId: new Types.ObjectId(skillId) },
       {
         $set: {
           ...data,
@@ -143,7 +149,8 @@ export class SkillUserRepository {
    * Delete all skills for a user (bulk delete)
    */
   async deleteByUser(userId: string): Promise<number> {
-    const result = await SkillUser.deleteMany({ userId }).exec();
+    const Types = require('mongoose').Types;
+    const result = await SkillUser.deleteMany({ userId: new Types.ObjectId(userId) }).exec();
     return result.deletedCount || 0;
   }
 
@@ -151,7 +158,8 @@ export class SkillUserRepository {
    * Get skills by questionnaire response
    */
   async findByQuestionnaire(questionnaireId: string): Promise<ISkillUser[]> {
-    return SkillUser.find({ questionnaireId })
+    const Types = require('mongoose').Types;
+    return SkillUser.find({ questionnaireId: new Types.ObjectId(questionnaireId) } as any)
       .populate("userId", "fullName email")
       .populate({
         path: "skillId",
@@ -164,14 +172,15 @@ export class SkillUserRepository {
    * Get user skills for enabled categories only (company perspective)
    */
   async findUserSkillsInEnabledCategories(userId: string, companyId: string): Promise<ISkillUser[]> {
+    const Types = require('mongoose').Types;
     const CompanyCategory = require("../models/companyCategory.model").CompanyCategory;
 
     // Get enabled categories for the company
-    const enabledCategories = await CompanyCategory.find({ companyId, enabled: true }).select("categoryId");
+    const enabledCategories = await CompanyCategory.find({ companyId: new Types.ObjectId(companyId), enabled: true } as any).select("categoryId");
     const categoryIds = enabledCategories.map((cc: any) => cc.categoryId);
 
     // Find skills in those categories
-    return SkillUser.find({ userId })
+    return SkillUser.find({ userId: new Types.ObjectId(userId) } as any)
       .populate({
         path: "skillId",
         match: { categoryId: { $in: categoryIds } },

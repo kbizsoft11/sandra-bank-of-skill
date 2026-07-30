@@ -335,8 +335,7 @@ export class SkillRepository {
   async updateCategoryForSkills(skillIds: string[], categoryId: string): Promise<any> {
     return Skill.updateMany(
       { _id: { $in: skillIds } },
-      { categoryId },
-      { new: true }
+      { categoryId }
     ).exec();
   }
 
@@ -353,8 +352,7 @@ export class SkillRepository {
   async bulkArchive(skillIds: string[], archived: boolean): Promise<any> {
     return Skill.updateMany(
       { _id: { $in: skillIds } },
-      { archived },
-      { new: true }
+      { archived }
     ).exec();
   }
 
@@ -364,8 +362,7 @@ export class SkillRepository {
   async bulkUpdateStatus(skillIds: string[], status: 'active' | 'inactive'): Promise<any> {
     return Skill.updateMany(
       { _id: { $in: skillIds } },
-      { status },
-      { new: true }
+      { status }
     ).exec();
   }
 }

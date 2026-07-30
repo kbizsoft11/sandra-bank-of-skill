@@ -74,7 +74,7 @@ class CompanyCategoryController {
    * GET /api/company-categories/:id
    */
   getById = asyncHandler(async (req: Request, res: Response) => {
-    const mapping = await companyCategoryService.getById(req.params.id);
+    const mapping = await companyCategoryService.getById(req.params.id as string);
 
     return sendResponse(
       res,
@@ -89,7 +89,7 @@ class CompanyCategoryController {
    * PATCH /api/company-categories/:id
    */
   update = asyncHandler(async (req: Request, res: Response) => {
-    const mapping = await companyCategoryService.update(req.params.id, req.body);
+    const mapping = await companyCategoryService.update(req.params.id as string, req.body);
 
     return sendResponse(
       res,
@@ -104,7 +104,7 @@ class CompanyCategoryController {
    * PATCH /api/company-categories/:id/enable
    */
   enable = asyncHandler(async (req: Request, res: Response) => {
-    const mapping = await companyCategoryService.enable(req.params.id);
+    const mapping = await companyCategoryService.enable(req.params.id as string);
 
     return sendResponse(
       res,
@@ -119,7 +119,7 @@ class CompanyCategoryController {
    * PATCH /api/company-categories/:id/disable
    */
   disable = asyncHandler(async (req: Request, res: Response) => {
-    const mapping = await companyCategoryService.disable(req.params.id);
+    const mapping = await companyCategoryService.disable(req.params.id as string);
 
     return sendResponse(
       res,
@@ -134,7 +134,7 @@ class CompanyCategoryController {
    * DELETE /api/company-categories/:id
    */
   delete = asyncHandler(async (req: Request, res: Response) => {
-    const result = await companyCategoryService.remove(req.params.id);
+    const result = await companyCategoryService.remove(req.params.id as string);
 
     return sendResponse(
       res,

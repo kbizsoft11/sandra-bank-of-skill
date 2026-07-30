@@ -7,6 +7,7 @@ import { SkillCategory } from "../models/skillCategory.model";
 import { ApiError } from "../utils/api-error";
 import { StatusCodes } from "http-status-codes";
 import skillUserRepository from "../repositories/skillUser.repository";
+import { Schema } from "mongoose";
 
 /**
  * Service to process questionnaire responses and automatically create SkillUser records
@@ -182,7 +183,7 @@ class QuestionnaireSkillProcessorService {
           skill = await Skill.create({
             name: skillName,
             description: `Created from questionnaire response`,
-            createdBy: userId, // User who created this
+            createdBy: new Schema.Types.ObjectId(userId), // User who created this
             createdType: 'COMPANY', // From questionnaire (company-created)
             status: 'active',
           });
@@ -195,7 +196,7 @@ class QuestionnaireSkillProcessorService {
           skill = await Skill.create({
             name: skillName,
             description: `Created from questionnaire response`,
-            createdBy: userId,
+            createdBy: new Schema.Types.ObjectId(userId),
             createdType: 'COMPANY',
             status: 'active',
           });
@@ -213,7 +214,7 @@ class QuestionnaireSkillProcessorService {
       };
 
       // Upsert SkillUser (create if not exists, update if exists)
-      const skillUser = await skillUserRepository.upsert(skillUserData);
+      const skillUser = await skillUserRepository.upsert(userId, skill._id.toString(), skillUserData);
 
       console.log(`  ✅ SkillUser record created/updated: ${skillName} -> ${skillLevelString} (${skillScore}%)`);
 
@@ -232,7 +233,7 @@ class QuestionnaireSkillProcessorService {
     // Delete existing SkillUser records created from this response
     // (identified by questionnaireId matching the response ID)
     const deletedCount = await SkillUser.deleteMany({ 
-      questionnaireId: responseId 
+      questionnaireId: new Schema.Types.ObjectId(responseId)
     });
 
     console.log(`🗑️  Deleted ${deletedCount.deletedCount} existing SkillUser records`);

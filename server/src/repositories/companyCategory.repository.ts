@@ -24,7 +24,11 @@ export class CompanyCategoryRepository {
    * Find mapping by company and category
    */
   async findByCompanyAndCategory(companyId: string, categoryId: string): Promise<ICompanyCategory | null> {
-    return CompanyCategory.findOne({ companyId, categoryId })
+    const Types = require('mongoose').Types;
+    return CompanyCategory.findOne({ 
+      companyId: new Types.ObjectId(companyId), 
+      categoryId: new Types.ObjectId(categoryId) 
+    } as any)
       .populate("categoryId", "name description")
       .exec();
   }
@@ -33,9 +37,10 @@ export class CompanyCategoryRepository {
    * Get all categories for a company
    */
   async findByCompany(companyId: string, query: GetCompanyCategoriesQueryDto = {}): Promise<{ categories: ICompanyCategory[]; total: number; page: number; limit: number }> {
+    const Types = require('mongoose').Types;
     const { page = 1, limit = 10, enabled, createdType, search } = query;
 
-    const filter: any = { companyId };
+    const filter: any = { companyId: new Types.ObjectId(companyId) };
 
     if (enabled !== undefined) {
       filter.enabled = enabled;
@@ -88,7 +93,7 @@ export class CompanyCategoryRepository {
       );
 
       const results = await CompanyCategory.aggregate(pipeline);
-      categories = results.map((r: any) => ({
+      categories = (results.map((r: any) => ({
         _id: r._id,
         companyId: r.companyId,
         categoryId: r.categoryId,
@@ -96,7 +101,7 @@ export class CompanyCategoryRepository {
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
         category: r.category, // Include populated category
-      })) as ICompanyCategory[];
+      })) as unknown) as ICompanyCategory[];
     } else {
       [categories, total] = await Promise.all([
         CompanyCategory.find(filter)
@@ -121,7 +126,8 @@ export class CompanyCategoryRepository {
    * Get enabled categories for a company
    */
   async findEnabledByCompany(companyId: string): Promise<ICompanyCategory[]> {
-    return CompanyCategory.find({ companyId, enabled: true })
+    const Types = require('mongoose').Types;
+    return CompanyCategory.find({ companyId: new Types.ObjectId(companyId), enabled: true } as any)
       .populate("categoryId", "name description")
       .exec();
   }
@@ -147,7 +153,8 @@ export class CompanyCategoryRepository {
    * Delete all mappings for a company
    */
   async deleteByCompany(companyId: string): Promise<number> {
-    const result = await CompanyCategory.deleteMany({ companyId }).exec();
+    const Types = require('mongoose').Types;
+    const result = await CompanyCategory.deleteMany({ companyId: new Types.ObjectId(companyId) } as any).exec();
     return result.deletedCount || 0;
   }
 
@@ -155,7 +162,11 @@ export class CompanyCategoryRepository {
    * Check if mapping exists
    */
   async exists(companyId: string, categoryId: string): Promise<boolean> {
-    const count = await CompanyCategory.countDocuments({ companyId, categoryId });
+    const Types = require('mongoose').Types;
+    const count = await CompanyCategory.countDocuments({ 
+      companyId: new Types.ObjectId(companyId), 
+      categoryId: new Types.ObjectId(categoryId) 
+    } as any);
     return count > 0;
   }
 
@@ -163,8 +174,9 @@ export class CompanyCategoryRepository {
    * Bulk enable categories for company
    */
   async bulkEnable(companyId: string, categoryIds: string[]): Promise<number> {
+    const Types = require('mongoose').Types;
     const result = await CompanyCategory.updateMany(
-      { companyId, categoryId: { $in: categoryIds } },
+      { companyId: new Types.ObjectId(companyId), categoryId: { $in: categoryIds.map(id => new Types.ObjectId(id)) } } as any,
       { enabled: true }
     ).exec();
     return result.modifiedCount || 0;
@@ -174,8 +186,9 @@ export class CompanyCategoryRepository {
    * Bulk disable categories for company
    */
   async bulkDisable(companyId: string, categoryIds: string[]): Promise<number> {
+    const Types = require('mongoose').Types;
     const result = await CompanyCategory.updateMany(
-      { companyId, categoryId: { $in: categoryIds } },
+      { companyId: new Types.ObjectId(companyId), categoryId: { $in: categoryIds.map(id => new Types.ObjectId(id)) } } as any,
       { enabled: false }
     ).exec();
     return result.modifiedCount || 0;

@@ -26,11 +26,11 @@ async function fixQuestionnaireTitles() {
 
             const category = await SkillCategory.findById(questionnaire.skillCategoryId).lean();
 
-            if (category?.cat_name) {
+            if (category?.name) {
                 const oldTitle = questionnaire.title;
-                questionnaire.title = category.cat_name;
+                questionnaire.title = category.name;
                 await questionnaire.save();
-                console.log(`✅ Updated questionnaire ${questionnaire._id}: "${oldTitle}" -> "${category.cat_name}"`);
+                console.log(`✅ Updated questionnaire ${questionnaire._id}: "${oldTitle}" -> "${category.name}"`);
                 updatedCount++;
             }
         }

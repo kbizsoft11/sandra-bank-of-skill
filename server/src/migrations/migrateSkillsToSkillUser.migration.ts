@@ -122,10 +122,9 @@ export class SkillMigration {
    * Step 1: Migrate skill categories from old cat_id to new SkillCategory
    */
   private static async migrateCategories(): Promise<number> {
-    const OldSkill = Skill.collection.model;
-
+    // Use Skill model to get unique categories
     // Get unique categories from old skill documents
-    const uniqueCategories = await OldSkill.aggregate([
+    const uniqueCategories = await (Skill as any).aggregate([
       {
         $group: {
           _id: '$cat_id',
@@ -147,7 +146,7 @@ export class SkillMigration {
 
         if (!exists) {
           // Get a sample from old skills to get category name
-          const sample = await OldSkill.findOne({ cat_id: categoryId });
+          const sample = await (Skill as any).findOne({ cat_id: categoryId });
 
           if (sample) {
             // Create new category document
@@ -155,12 +154,11 @@ export class SkillMigration {
               _id: categoryId,
               name: sample.cat_name || `Category ${categoryId}`,
               description: sample.cat_desc || '',
-              createdBy: new Schema.Types.ObjectId(), // Will be assigned to first admin user
-              createdType: 'ADMIN',
-              companyId: null,
+              createdBy: new Schema.Types.ObjectId("000000000000000000000000"), // Will be assigned to first admin user
+              createdType: 'ADMIN' as any,
               archived: false,
-              status: 'active',
-            });
+              status: 'active' as any,
+            } as any);
 
             migratedCount++;
           }
@@ -179,10 +177,8 @@ export class SkillMigration {
    * Step 2: Create SkillUser records from old skill user data
    */
   private static async migrateUserSkills(): Promise<number> {
-    const OldSkill = Skill.collection.model;
-
     // Get all old skill documents with user_id
-    const oldSkills = await OldSkill.find({ user_id: { $exists: true, $ne: null } });
+    const oldSkills = await (Skill as any).find({ user_id: { $exists: true, $ne: null } });
 
     console.log(`  Found ${oldSkills.length} old skill records to migrate`);
 
@@ -249,10 +245,8 @@ export class SkillMigration {
    * Step 3: Update Skill documents - rename fields and remove user-specific data
    */
   private static async updateSkillDocuments(): Promise<number> {
-    const OldSkill = Skill.collection.model;
-
     // Update all skill documents
-    const result = await OldSkill.updateMany(
+    const result = await (Skill as any).updateMany(
       {},
       [
         {
@@ -261,11 +255,10 @@ export class SkillMigration {
             name: '$skill_name',
             description: '$skill_desc',
             // Add new fields
-            createdBy: new Schema.Types.ObjectId(), // Will be assigned to first admin
+            createdBy: new Schema.Types.ObjectId("000000000000000000000000"), // Will be assigned to first admin
             createdType: 'ADMIN',
-            companyId: null,
             archived: false,
-            status: 'active',
+            status: 'active' as any,
           },
         },
         {

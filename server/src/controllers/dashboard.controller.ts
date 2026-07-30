@@ -419,7 +419,7 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
     // Calculate averages using actual numeric values from skill_score (which is set as level * 20)
     // If skill_score represents level * 20, then: level = skill_score / 20
     // But we also need to handle old skills that don't have skill_score
-    const skillLevels = skills.map(skill => {
+    const skillLevels = skills.map((skill: any): number => {
       // For new questionnaire-based skills, use skill_score to derive level
       if (skill.skill_score && skill.skill_score > 0) {
         return Math.min(5, Math.max(1, Math.round(skill.skill_score / 20)));
@@ -433,12 +433,12 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       : 0;
 
     // Calculate average interest level (1-5 scale)
-    const interestLevels = skills
-      .map(skill => skill.interest_level || 0)
-      .filter(level => level > 0);
+    const interestLevels = (skills as any)
+      .map((skill: any) => skill.interest_level || 0)
+      .filter((level: number) => level > 0);
 
     const averageInterestLevel = interestLevels.length > 0
-      ? interestLevels.reduce((total, level) => total + level, 0) / interestLevels.length
+      ? interestLevels.reduce((total: number, level: number) => total + level, 0) / interestLevels.length
       : 0;
 
     // Calculate total skill points (sum of all skill levels)
@@ -480,12 +480,12 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
         $group: {
           _id: '$category.cat_name',
           count: { $sum: 1 },
-          averageLevel: { $avg: '$skillLevelNumeric' },
-          totalPoints: { $sum: '$skillLevelNumeric' },
+          averageLevel: { $avg: '$skillLevelNumeric' } as any,
+          totalPoints: { $sum: '$skillLevelNumeric' } as any,
         },
       },
       {
-        $sort: { averageLevel: -1 },
+        $sort: { averageLevel: -1 } as any,
       },
       {
         $limit: 5,
@@ -494,12 +494,12 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
 
     // Get top skills by skill level (sorted highest to lowest)
     const topSkills = await Skill.find(userSkillFilter)
-      .select('skill_name skill_level skill_score interest_level')
-      .sort({ skill_score: -1, interest_level: -1 })
+      .select('name level score')
+      .sort({ score: -1, interest_level: -1 })
       .limit(10)
       .lean()
-      .then((skillsList) =>
-        skillsList.map((skill) => {
+      .then((skillsList: any) =>
+        skillsList.map((skill: any) => {
           // Calculate level from skill_score
           const levelFromScore = skill.skill_score && skill.skill_score > 0
             ? Math.min(5, Math.max(1, Math.round(skill.skill_score / 20)))
@@ -507,7 +507,7 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
           
           return {
             _id: skill._id,
-            skillName: skill.skill_name,
+            skillName: skill.skill_name || skill.name,
             skillLevel: levelFromScore,
             skillLevelLabel: getLevelLabel(skill.skill_level),
             interestLevel: skill.interest_level || 0,
@@ -520,19 +520,19 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       ...userSkillFilter,
       interest_level: { $gte: 1 }
     } as any)
-      .select('skill_name interest_level skill_level skill_score')
-      .sort({ interest_level: -1, skill_score: -1 })
+      .select('name interest_level level score')
+      .sort({ interest_level: -1, score: -1 })
       .limit(10)
       .lean()
-      .then((skillsList) =>
-        skillsList.map((skill) => {
+      .then((skillsList: any) =>
+        skillsList.map((skill: any) => {
           const levelFromScore = skill.skill_score && skill.skill_score > 0
             ? Math.min(5, Math.max(1, Math.round(skill.skill_score / 20)))
             : getLevelValue(skill.skill_level);
           
           return {
             _id: skill._id,
-            skillName: skill.skill_name,
+            skillName: skill.skill_name || skill.name,
             interestLevel: skill.interest_level || 0,
             skillLevel: levelFromScore,
             skillLevelLabel: getLevelLabel(skill.skill_level),
@@ -540,9 +540,9 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
         })
       );
 
-    const mySkills = skills.slice(0, 6).map((skill) => ({
+    const mySkills = skills.slice(0, 6).map((skill: any) => ({
       _id: skill._id,
-      skillName: skill.skill_name,
+      skillName: skill.skill_name || skill.name,
       currentLevel: getLevelLabel(skill.skill_level),
       targetLevel: getTargetLevel(skill.skill_level),
       progress: getProgressPercent(skill),
@@ -550,15 +550,15 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       skillScore: skill.skill_score ?? 0,
     }));
 
-    const skillGaps = skills
-      .filter((skill) => {
+    const skillGaps = (skills as any)
+      .filter((skill: any) => {
         const currentValue = getLevelValue(skill.skill_level);
         return currentValue < 4 && (skill.skill_score ?? 0) < 80;
       })
       .slice(0, 4)
-      .map((skill) => ({
+      .map((skill: any) => ({
         _id: skill._id,
-        skillName: skill.skill_name,
+        skillName: skill.skill_name || skill.name,
         currentLevel: getLevelLabel(skill.skill_level),
         targetLevel: getTargetLevel(skill.skill_level),
         progress: getProgressPercent(skill),
@@ -586,7 +586,7 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       });
     }
 
-    if (skills.some((skill) => (skill.skill_score ?? 0) < 80)) {
+    if (skills.some((skill: any) => (skill.skill_score ?? 0) < 80)) {
       pendingActions.push({
         title: 'Add evidence for your skills',
         description: 'Strengthen your current skills with more evidence or updated assessments.',
@@ -605,11 +605,11 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
     }
 
     const recentActivities = [
-      ...skills.slice(0, 4).map((skill) => ({
+      ...skills.slice(0, 4).map((skill: any) => ({
         type: 'skill',
-        title: `${skill.skill_name} updated`,
+        title: `${skill.skill_name || skill.name} updated`,
         description: `Current level ${getLevelLabel(skill.skill_level)} with ${skill.skill_score ?? 0}% confidence.`,
-        time: skill.created_at || new Date().toISOString(),
+        time: (skill.created_at || skill.createdAt || new Date().toISOString()) as string,
         icon: 'bi-lightbulb-fill',
       })),
       ...questionnaireResponses.slice(0, 4).map((response) => ({
@@ -624,15 +624,15 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       .slice(0, 6);
 
     const learningRecommendations = skillGaps.length
-      ? skillGaps.slice(0, 3).map((skill) => ({
+      ? skillGaps.slice(0, 3).map((skill: any) => ({
           title: `Advance ${skill.skillName}`,
           relatedSkill: skill.skillName,
           duration: skill.targetLevel === 'Expert' ? '6 hours' : '4 hours',
           type: skill.targetLevel === 'Expert' ? 'Specialist path' : 'Development plan',
         }))
-      : skills.slice(0, 3).map((skill) => ({
-          title: `Develop ${skill.skill_name}`,
-          relatedSkill: skill.skill_name,
+      : (skills as any).slice(0, 3).map((skill: any) => ({
+          title: `Develop ${skill.skill_name || skill.name}`,
+          relatedSkill: skill.skill_name || skill.name,
           duration: '4 hours',
           type: 'Recommended learning',
         }));
@@ -648,13 +648,13 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       })),
     };
 
-    const mySkillNames = await Skill.find(userSkillFilter).distinct('skill_name');
+    const mySkillNames = await Skill.find(userSkillFilter).distinct('name');
 
     const similarPeople = await Skill.aggregate([
       {
         $match: {
           user_id: { $ne: userObjectId },
-          skill_name: { $in: mySkillNames },
+          name: { $in: mySkillNames },
         } as any,
       },
       {
@@ -694,27 +694,27 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       ...userSkillFilter,
       interest_level: { $gte: 4 },
     } as any)
-      .select('skill_name skill_level skill_score interest_level')
-      .sort({ interest_level: -1, skill_score: 1 })
+      .select('name level score interest_level')
+      .sort({ interest_level: -1, score: 1 })
       .limit(20)
       .lean()
-      .then((skillsList) =>
+      .then((skillsList: any): any[] =>
         skillsList
-          .filter((skill) => {
+          .filter((skill: any) => {
             const levelFromScore = skill.skill_score && skill.skill_score > 0
               ? Math.round(skill.skill_score / 20)
               : getLevelValue(skill.skill_level);
             return levelFromScore <= 3; // Only skills at level 3 or below
           })
           .slice(0, 10)
-          .map((skill) => {
+          .map((skill: any) => {
             const levelFromScore = skill.skill_score && skill.skill_score > 0
               ? Math.min(5, Math.max(1, Math.round(skill.skill_score / 20)))
               : getLevelValue(skill.skill_level);
             
             return {
               _id: skill._id,
-              skillName: skill.skill_name,
+              skillName: skill.skill_name || skill.name,
               interestLevel: skill.interest_level || 0,
               skillLevel: levelFromScore,
               skillLevelLabel: getLevelLabel(skill.skill_level),
@@ -734,8 +734,8 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
         },
         summary: {
           totalSkills,
-          verifiedSkills: skills.filter((skill) => (skill.skill_score ?? 0) >= 80).length,
-          skillsInProgress: skills.filter((skill) => (skill.skill_score ?? 0) < 80).length,
+          verifiedSkills: (skills as any).filter((skill: any) => (skill.skill_score ?? 0) >= 80).length,
+          skillsInProgress: (skills as any).filter((skill: any) => (skill.skill_score ?? 0) < 80).length,
           profileCompletion: profileCompletionPercent,
           averageSkillLevel: parseFloat(averageSkillLevel.toFixed(2)),
           averageInterestLevel: parseFloat(averageInterestLevel.toFixed(2)),
@@ -937,7 +937,7 @@ export const getCompanyAssessments = async (req: Request, res: Response) => {
       success: true,
       data: {
         selfAssessment: {
-          lastCompletedAt: lastSelfSkill?.created_at || null,
+          lastCompletedAt: (lastSelfSkill as any)?.created_at || (lastSelfSkill?.createdAt) || null,
         },
         supervisorAssessment: {
           lastCompletedAt: null,

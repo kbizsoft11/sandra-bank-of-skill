@@ -1,9 +1,12 @@
 export interface CreateSkillCategoryDto {
-  cat_name: string;
-  cat_desc?: string;
+  name: string;
+  description?: string;
+  createdBy?: string; // Set by service
+  createdType?: string; // Set by service (ADMIN or COMPANY)
+  companyId?: string; // Set by service for COMPANY role
 }
 
 export interface UpdateSkillCategoryDto {
-  cat_name?: string;
-  cat_desc?: string;
+  name?: string;
+  description?: string;
 }

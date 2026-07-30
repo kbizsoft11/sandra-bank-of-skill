@@ -76,7 +76,7 @@ export const getAssignedQuestionnaires = asyncHandler(
             ? await SkillCategory.find({ _id: { $in: categoryIds } }).lean()
             : [];
 
-        const categoryMap = new Map(categories.map(cat => [cat._id.toString(), cat.cat_name]));
+        const categoryMap = new Map(categories.map(cat => [cat._id.toString(), cat.name]));
 
         const questionnaireMap = new Map(
             questionnaires.map(q => [q._id.toString(), q])

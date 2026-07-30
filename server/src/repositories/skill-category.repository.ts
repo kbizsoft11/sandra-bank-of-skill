@@ -7,7 +7,10 @@ export class SkillCategoryRepository {
   async create(
     payload: CreateSkillCategoryDto
   ) {
-    return SkillCategory.create(payload);
+    return SkillCategory.create({
+      ...payload,
+      createdBy: payload.createdBy ? new (require('mongoose')).Types.ObjectId(payload.createdBy) : undefined,
+    } as any);
   }
 
   async findAll(filters?: {

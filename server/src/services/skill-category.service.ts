@@ -17,11 +17,12 @@ export class SkillCategoryService {
     const createdType = userRole === "admin" ? "ADMIN" : "COMPANY";
     
     return this.repository.create({
-      ...payload,
+      name: payload.name,
+      description: payload.description,
       createdBy: userId,
       createdType,
       companyId: companyId
-    });
+    } as any);
   }
 
   getAll(filters?: {

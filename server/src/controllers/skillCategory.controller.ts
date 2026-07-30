@@ -70,7 +70,7 @@ class SkillCategoryController {
    * GET /api/skill-categories/:id
    */
   getById = asyncHandler(async (req: Request, res: Response) => {
-    const category = await skillCategoryService.getById(req.params.id);
+    const category = await skillCategoryService.getById(req.params.id as string);
 
     return sendResponse(
       res,
@@ -85,7 +85,7 @@ class SkillCategoryController {
    * PATCH /api/skill-categories/:id
    */
   update = asyncHandler(async (req: Request, res: Response) => {
-    const category = await skillCategoryService.update(req.params.id, req.body);
+    const category = await skillCategoryService.update(req.params.id as string, req.body);
 
     return sendResponse(
       res,
@@ -102,7 +102,7 @@ class SkillCategoryController {
   archive = asyncHandler(async (req: Request, res: Response) => {
     const { archived } = req.body;
 
-    const category = await skillCategoryService.setArchived(req.params.id, archived);
+    const category = await skillCategoryService.setArchived(req.params.id as string, archived);
 
     return sendResponse(
       res,
@@ -117,7 +117,7 @@ class SkillCategoryController {
    * DELETE /api/skill-categories/:id
    */
   delete = asyncHandler(async (req: Request, res: Response) => {
-    const result = await skillCategoryService.delete(req.params.id);
+    const result = await skillCategoryService.delete(req.params.id as string);
 
     return sendResponse(
       res,

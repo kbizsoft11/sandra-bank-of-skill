@@ -61,7 +61,7 @@ class SkillController {
    * GET /api/skills/:id
    */
   getById = asyncHandler(async (req: Request, res: Response) => {
-    const skill = await skillService.getById(req.params.id);
+    const skill = await skillService.getById(req.params.id as string);
 
     return sendResponse(
       res,
@@ -76,7 +76,7 @@ class SkillController {
    * GET /api/skills/category/:categoryId
    */
   getByCategory = asyncHandler(async (req: Request, res: Response) => {
-    const result = await skillService.getByCategory(req.params.categoryId, req.query as any);
+    const result = await skillService.getByCategory(req.params.categoryId as string, req.query as any);
 
     return sendResponse(
       res,
@@ -91,7 +91,7 @@ class SkillController {
    * GET /api/skills/category/:categoryId
    */
   getSkillsByCategory = asyncHandler(async (req: Request, res: Response) => {
-    const result = await skillService.getByCategory(req.params.categoryId, req.query as any);
+    const result = await skillService.getByCategory(req.params.categoryId as string, req.query as any);
 
     return sendResponse(
       res,
@@ -106,7 +106,7 @@ class SkillController {
    * GET /api/skills/category/:categoryId/unassigned
    */
   getUnassignedSkills = asyncHandler(async (req: Request, res: Response) => {
-    const result = await skillService.getUnassignedSkills(req.params.categoryId, req.query as any);
+    const result = await skillService.getUnassignedSkills(req.params.categoryId as string, req.query as any);
 
     return sendResponse(
       res,
@@ -173,7 +173,7 @@ class SkillController {
     const companyId = (req as any).user?.organisationId;
 
     const skill = await skillService.update(
-      req.params.id,
+      req.params.id as string,
       req.body,
       userRole,
       userRole === "company" ? companyId : undefined
@@ -194,7 +194,7 @@ class SkillController {
   archive = asyncHandler(async (req: Request, res: Response) => {
     const { archived } = req.body;
 
-    const skill = await skillService.setArchived(req.params.id, archived);
+    const skill = await skillService.setArchived(req.params.id as string, archived);
 
     return sendResponse(
       res,
@@ -245,7 +245,7 @@ class SkillController {
     const companyId = (req as any).user?.organisationId;
 
     const result = await skillService.delete(
-      req.params.id,
+      req.params.id as string,
       userRole,
       userRole === "company" ? companyId : undefined
     );

@@ -16,14 +16,7 @@ class SkillUserService {
       throw new ApiError(StatusCodes.NOT_FOUND, "Skill not found");
     }
 
-    const userIdObjectId = new Schema.Types.ObjectId(userId);
-    const skillIdObjectId = new Schema.Types.ObjectId(skillId);
-
-    const skillUser = await skillUserRepository.upsert(userId, skillId, {
-      ...data,
-      userId: userIdObjectId.toString(),
-      skillId: skillIdObjectId.toString(),
-    });
+    const skillUser = await skillUserRepository.upsert(userId, skillId, data);
 
     return skillUser;
   }

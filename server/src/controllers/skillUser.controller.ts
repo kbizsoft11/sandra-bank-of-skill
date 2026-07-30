@@ -33,7 +33,7 @@ class SkillUserController {
    */
   getByUser = asyncHandler(async (req: Request, res: Response) => {
     const result = await skillUserService.getByUser(
-      req.params.userId,
+      req.params.userId as string,
       req.query as any
     );
 
@@ -51,7 +51,7 @@ class SkillUserController {
    */
   getBySkill = asyncHandler(async (req: Request, res: Response) => {
     const result = await skillUserService.getBySkill(
-      req.params.skillId,
+      req.params.skillId as string,
       req.query as any
     );
 
@@ -68,7 +68,7 @@ class SkillUserController {
    * GET /api/skill-users/:id
    */
   getById = asyncHandler(async (req: Request, res: Response) => {
-    const skillUser = await skillUserService.getById(req.params.id);
+    const skillUser = await skillUserService.getById(req.params.id as string);
 
     return sendResponse(
       res,
@@ -83,7 +83,7 @@ class SkillUserController {
    * PATCH /api/skill-users/:id
    */
   update = asyncHandler(async (req: Request, res: Response) => {
-    const skillUser = await skillUserService.update(req.params.id, req.body);
+    const skillUser = await skillUserService.update(req.params.id as string, req.body);
 
     return sendResponse(
       res,
@@ -98,7 +98,7 @@ class SkillUserController {
    * DELETE /api/skill-users/:id
    */
   delete = asyncHandler(async (req: Request, res: Response) => {
-    const result = await skillUserService.delete(req.params.id);
+    const result = await skillUserService.delete(req.params.id as string);
 
     return sendResponse(
       res,
@@ -113,7 +113,7 @@ class SkillUserController {
    * GET /api/skill-users/questionnaire/:questionnaireId
    */
   getFromQuestionnaire = asyncHandler(async (req: Request, res: Response) => {
-    const skills = await skillUserService.getFromQuestionnaire(req.params.questionnaireId);
+    const skills = await skillUserService.getFromQuestionnaire(req.params.questionnaireId as string);
 
     return sendResponse(
       res,
@@ -135,7 +135,7 @@ class SkillUserController {
     }
 
     const skills = await skillUserService.getUserSkillsInEnabledCategories(
-      req.params.userId,
+      req.params.userId as string,
       companyId
     );
 

@@ -14,6 +14,8 @@ export interface UpdateSkillUserDto {
   level?: string;
   assessmentId?: string;
   lastAssessedAt?: Date;
+  userId?: string; // Optional, for upsert
+  skillId?: string; // Optional, for upsert
 }
 
 export interface SkillUserResponseDto {
