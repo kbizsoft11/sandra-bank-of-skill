@@ -418,6 +418,17 @@ export const dashboardRoutes: Routes = [
       ),
   },
 
+  // Admin Skill Category Analytics (Admin only)
+  {
+    path: 'admin-skill-category-analytics',
+    canActivate: [roleGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () =>
+      import('../features/admin-analytics/skill-category-analytics').then(
+        (c) => c.SkillCategoryAnalyticsComponent,
+      ),
+  },
+
   // Opportunities (Employee and Company)
   {
     path: 'opportunities',

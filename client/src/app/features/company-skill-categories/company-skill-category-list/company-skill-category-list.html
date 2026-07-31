@@ -109,9 +109,6 @@
                   <td class="px-4 py-3">
                     <div>
                       <span class="fw-medium">{{ mapping.displayName }}</span>
-                      <span class="text-muted ms-2">
-                        ({{ getSkillCountForMapping(mapping) }} skill(s))
-                      </span>
                       @if (mapping.displayName !== mapping.originalName) {
                         <br>
                         <small class="text-muted">{{ mapping.originalName }}</small>
@@ -335,12 +332,27 @@
           <button type="button" class="btn-close" (click)="closeManageSkillsModal()"></button>
         </div>
         <div class="modal-body">
+          <!-- Orphan Zone - Show only when dragging -->
+          @if (draggedSkill()) {
+            <div class="mb-3 p-4 border-3 border-warning rounded-3 text-center" style="border-style: dashed !important; background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.05) 100%); transition: all 0.3s ease;"
+              (dragover)="onDragOverOrphanZone($event)"
+              (dragleave)="onDragLeaveOrphanZone($event)"
+              (drop)="onDropOrphanZone($event)"
+              [style.background]="dragOverOrphanZone() ? 'linear-gradient(135deg, rgba(255, 193, 7, 0.3) 0%, rgba(255, 193, 7, 0.15) 100%)' : 'linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.05) 100%)'"
+              [style.border-color]="dragOverOrphanZone() ? '#ffc107' : 'rgba(255, 193, 7, 0.5)'"
+              [style.transform]="dragOverOrphanZone() ? 'scale(1.02)' : 'scale(1)'"
+            >
+              <i class="bi bi-trash3 text-warning mb-2" style="font-size: 2.5rem;"></i>
+              <h5 class="text-warning fw-bold mb-1">Drop Here to Make Orphan</h5>
+              <p class="mb-0 text-muted small">Remove skill from its category</p>
+            </div>
+          }
+          
           <!-- Info -->
           <div class="alert alert-info mb-3">
             <i class="bi bi-info-circle me-2"></i>
-            Drag skills from the left to move them to a category on the right. Use search to filter large lists.
+            Drag skills from the left to move them to a category on the right. Drag to the orphan zone above to remove from category.
           </div>
-
           <div class="row g-3">
             <!-- Available Skills (Left Side) -->
             <div class="col-lg-6">
@@ -363,7 +375,6 @@
                       </ul>
                     </div>
                   </div>
-                  
                   <!-- Search Skills -->
                   <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white">
@@ -381,7 +392,6 @@
                     </button>
                   </div>
                 </div>
-
                 <!-- Skills List -->
                 <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
                   @if (paginatedCompanySkills().length === 0) {
@@ -409,6 +419,11 @@
                             <div class="flex-grow-1">
                               <h6 class="mb-1">{{ skill.name }}</h6>
                               <div class="small">
+                                @if (!skill.category && !skill.categoryId) {
+                                  <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Orphan
+                                  </span>
+                                }
                                 @if (skill.category?.name) {
                                   <span class="badge bg-info-subtle text-info-emphasis">{{ skill.category.name }}</span>
                                 }
@@ -424,7 +439,6 @@
                     </div>
                   }
                 </div>
-
                 <!-- Skills Pagination -->
                 @if (skillsTotalPages() > 1) {
                   <div class="card-footer bg-light">
@@ -461,7 +475,6 @@
                 }
               </div>
             </div>
-
             <!-- Target Categories (Right Side) -->
             <div class="col-lg-6">
               <div class="card">
@@ -473,7 +486,6 @@
                       <span class="badge bg-secondary">{{ filteredCategories().length }}</span>
                     </h6>
                   </div>
-
                   <!-- Search Categories -->
                   <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white">
@@ -491,7 +503,6 @@
                     </button>
                   </div>
                 </div>
-
                 <!-- Categories List -->
                 <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
                   @if (filteredCategories().length === 0) {
@@ -541,8 +552,7 @@
               </div>
             </div>
           </div>
-
-          <!-- Stats Footer -->
+          <!-- Orphan Zone / Stats Footer -->
           <div class="mt-3 p-3 bg-light rounded-2">
             <div class="row g-3">
               <div class="col-md-3">
@@ -571,3 +581,4 @@
     </div>
   </div>
 }
+

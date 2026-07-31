@@ -155,6 +155,36 @@ export class SkillUserRepository {
   }
 
   /**
+   * Delete all skills by employee ID
+   */
+  async deleteByEmployeeId(employeeId: string): Promise<number> {
+    const Types = require('mongoose').Types;
+    const result = await SkillUser.deleteMany({ userId: new Types.ObjectId(employeeId) }).exec();
+    return result.deletedCount || 0;
+  }
+
+  /**
+   * Find skills by employee ID
+   */
+  async findByEmployeeId(employeeId: string): Promise<ISkillUser[]> {
+    const Types = require('mongoose').Types;
+    return SkillUser.find({ userId: new Types.ObjectId(employeeId) } as any)
+      .populate({
+        path: "skillId",
+        populate: { path: "categoryId", select: "name" },
+      })
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  /**
+   * Create bulk skill user relationships
+   */
+  async createBulk(data: CreateSkillUserDto[]): Promise<any[]> {
+    return SkillUser.insertMany(data);
+  }
+
+  /**
    * Get skills by questionnaire response
    */
   async findByQuestionnaire(questionnaireId: string): Promise<ISkillUser[]> {

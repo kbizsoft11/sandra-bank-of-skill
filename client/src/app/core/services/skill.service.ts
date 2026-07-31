@@ -80,6 +80,13 @@ export class SkillService {
 
   }
 
+  archiveSkill(id: string, archived: boolean = true) {
+    return this.http.patch(
+      `${API_CONFIG.BASE_URL}/skills/${id}/archive`,
+      { archived }
+    );
+  }
+
   deleteSkill(id: string) {
 
     return this.http.delete(

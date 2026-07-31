@@ -278,6 +278,7 @@ export class CompanyService {
       email: string;
       phone?: string;
       department?: string;
+      designationId?: string;
       designation?: string;
       team?: string;
       title?: string;
@@ -299,8 +300,10 @@ export class CompanyService {
     employeeId: string,
     payload: {
       fullName?: string;
+      email?: string;
       phone?: string;
       department?: string;
+      designationId?: string;
       designation?: string;
       team?: string;
       title?: string;

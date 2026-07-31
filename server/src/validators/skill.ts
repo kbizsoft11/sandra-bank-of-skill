@@ -31,8 +31,10 @@ export const updateSkillSchema = z.object({
     .optional(),
 
   categoryId: z
-    .string()
-    .regex(objectIdRegex, 'Invalid category ID')
+    .union([
+      z.string().regex(objectIdRegex, 'Invalid category ID'),
+      z.null()
+    ])
     .optional(),
 
   status: z

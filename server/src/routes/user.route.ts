@@ -197,6 +197,22 @@ router.patch(
     userController.setEmployeeStatus
 );
 
+router.patch(
+    '/bulk-update',
+    authenticate,
+    allowRoles('admin', 'company'),
+    validate(z.object({
+        employeeIds: z.array(z.string()),
+        updates: z.object({
+            department: z.string().optional(),
+            team: z.string().optional(),
+            jobRole: z.string().optional(),
+            status: z.string().optional(),
+        }),
+    })),
+    userController.bulkUpdateEmployees
+);
+
 router.post(
     '/:id/impersonate',
     authenticate,
@@ -211,6 +227,30 @@ router.post(
     allowRoles('admin'),
     validateParams(userIdParamSchema),
     userController.impersonateCompanyUser
+);
+
+// Employee skills routes - Company only
+router.get(
+    '/:id/skills',
+    authenticate,
+    allowRoles('admin', 'company'),
+    validateParams(userIdParamSchema),
+    userController.getEmployeeSkills
+);
+
+router.post(
+    '/:id/skills',
+    authenticate,
+    allowRoles('admin', 'company'),
+    validateParams(userIdParamSchema),
+    validate(z.object({ 
+      skills: z.array(z.object({
+        skillId: z.string(),
+        score: z.number().min(0).max(100).optional(),
+        level: z.string().optional()
+      }))
+    })),
+    userController.assignSkillsToEmployee
 );
 
 // Create user - Admin only (can create employees or companies)

@@ -123,7 +123,30 @@
               <tr>
                 <!-- Category Name -->
                 <td class="px-4 py-3">
-                  <span class="fw-medium text-dark">{{ category.name }}</span>
+                  <div>
+                    <span class="fw-medium text-dark d-block mb-2">{{ category.name }}</span>
+                    <!-- Skills badges shown directly -->
+                    <div class="d-flex flex-wrap gap-2">
+                      @if (getCategorySkillsList(category._id).length > 0) {
+                        @for (skill of getCategorySkillsList(category._id); track skill._id) {
+                          <div class="badge bg-info d-inline-flex align-items-center gap-2 px-2 py-1">
+                            <span class="small">{{ skill.name || skill.skill_name }}</span>
+                            <button
+                              type="button"
+                              (click)="removeSkillFromCategory(skill, category._id); $event.stopPropagation()"
+                              [disabled]="removingSkillId() === skill._id"
+                              class="btn-close btn-close-white p-0"
+                              style="width: 1rem; height: 1rem;"
+                              title="Make skill orphan"
+                              aria-label="Remove skill">
+                            </button>
+                          </div>
+                        }
+                      } @else {
+                        <span class="text-secondary small">No skills</span>
+                      }
+                    </div>
+                  </div>
                 </td>
 
                 <!-- Description (hidden on mobile) -->

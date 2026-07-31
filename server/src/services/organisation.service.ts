@@ -204,23 +204,46 @@ export const organisationService = {
     const pipeline: any[] = [
       { $match: matchStage },
 
-      // Lookup skills count
+      // Lookup skills count from SkillUser collection
+      {
+        $lookup: {
+          from: 'skillusers',
+          localField: '_id',
+          foreignField: 'userId',
+          as: 'skillUsers',
+        },
+      },
+
+      // Lookup skill details to check archived status
       {
         $lookup: {
           from: 'skills',
-          localField: '_id',
-          foreignField: 'user_id',
+          localField: 'skillUsers.skillId',
+          foreignField: '_id',
           as: 'skills',
         },
+      },
+
+      // Filter out archived skills
+      {
+        $addFields: {
+          skills: {
+            $filter: {
+              input: '$skills',
+              as: 'skill',
+              cond: { $eq: ['$$skill.archived', false] }
+            }
+          }
+        }
       },
 
       // Lookup designation from roles
       {
         $lookup: {
           from: 'roles',
-          let: { designationId: { $toObjectId: '$designationId' } },
+          let: { designationId: '$designationId' },
           pipeline: [
-            { $match: { $expr: { $eq: ['$_id', '$$designationId'] } } },
+            { $match: { $expr: { $eq: [{ $toString: '$_id' }, '$$designationId'] } } },
           ],
           as: 'designation',
         },
@@ -289,14 +312,39 @@ export const organisationService = {
       }
 
       const pipeline: any[] = [
-        // Match the employee - using ObjectId
-        { $match: { user_id: objectId } },
+        // Match the employee - using SkillUser collection
+        { $match: { userId: objectId } },
+
+        // Lookup skill details
+        {
+          $lookup: {
+            from: 'skills',
+            localField: 'skillId',
+            foreignField: '_id',
+            as: 'skill',
+          },
+        },
+
+        // Unwind skill
+        {
+          $unwind: {
+            path: '$skill',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+
+        // Filter archived skills
+        {
+          $match: {
+            'skill.archived': false,
+          },
+        },
 
         // Lookup skill category
         {
           $lookup: {
             from: 'skillcategories',
-            localField: 'cat_id',
+            localField: 'skill.categoryId',
             foreignField: '_id',
             as: 'category',
           },
@@ -314,21 +362,22 @@ export const organisationService = {
         {
           $project: {
             _id: 1,
-            skill_name: 1,
-            skill_level: 1,
-            skill_score: 1,
+            skill_name: '$skill.name',
+            skill_level: '$level',
+            skill_score: '$score',
             yearsOfExperience: {
               $cond: [
-                { $eq: ['$skill_level', 'Expert'] },
+                { $eq: ['$level', 'expert'] },
                 5,
-                { $cond: [{ $eq: ['$skill_level', 'Proficient'] }, 3, 1] },
+                { $cond: [{ $eq: ['$level', 'advanced'] }, 3, 1] },
               ],
             },
             category: {
               _id: '$category._id',
-              cat_name: '$category.cat_name',
+              cat_name: '$category.name',
             },
-            created_at: 1,
+            created_at: '$createdAt',
+            updatedAt: '$updatedAt',
           },
         },
 
@@ -336,7 +385,8 @@ export const organisationService = {
         { $sort: { created_at: -1 } },
       ];
 
-      const skills = await Skill.aggregate(pipeline);
+      const SkillUserModel = require('../models/skillUser.model').SkillUser;
+      const skills = await SkillUserModel.aggregate(pipeline);
       return skills;
     } catch (error) {
       console.error('Error getting employee skills:', error);

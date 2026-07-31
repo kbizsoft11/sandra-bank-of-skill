@@ -162,11 +162,30 @@ export const globalSearch = async (params: {
       },
       {
         $lookup: {
-          from: 'skills',
+          from: 'skillusers',
           localField: '_id',
-          foreignField: 'user_id',
+          foreignField: 'userId',
+          as: 'skillUsers',
+        },
+      },
+      {
+        $lookup: {
+          from: 'skills',
+          localField: 'skillUsers.skillId',
+          foreignField: '_id',
           as: 'skills',
         },
+      },
+      {
+        $addFields: {
+          skills: {
+            $filter: {
+              input: '$skills',
+              as: 'skill',
+              cond: { $eq: ['$$skill.archived', false] }
+            }
+          }
+        }
       },
       {
         $project: {

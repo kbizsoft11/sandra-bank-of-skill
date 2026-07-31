@@ -49,6 +49,24 @@
         placeholder="Enter phone number">
     </div>
 
+    <!-- Designation -->
+    <div class="col-md-6">
+      <label for="designationId" class="form-label">Designation</label>
+      <select
+        id="designationId"
+        class="form-select"
+        formControlName="designationId"
+        [disabled]="loadingDesignations()">
+        <option value="">-- Select Designation --</option>
+        @for (designation of designations(); track designation._id) {
+          <option [value]="designation._id">{{ designation.designationName }}</option>
+        }
+      </select>
+      @if (loadingDesignations()) {
+        <small class="text-muted d-block mt-1">Loading designations...</small>
+      }
+    </div>
+
     <!-- Password (only in create mode) -->
     @if (!isEditing()) {
       <div class="col-md-6">

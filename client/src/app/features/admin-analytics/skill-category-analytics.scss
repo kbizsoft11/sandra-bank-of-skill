@@ -1,0 +1,588 @@
+// ============================================
+// SKILL CATEGORY ANALYTICS - PROFESSIONAL DESIGN
+// ============================================
+
+// Color Palette
+$primary: #4966c8;
+$success: #20a36a;
+$info: #1976d2;
+$warning: #f0a33a;
+$danger: #dc3545;
+$dark: #212529;
+$light-gray: #f8f9fa;
+$border-gray: #e9ecef;
+$text-secondary: #6c757d;
+
+// ============================================
+// MAIN CONTAINER
+// ============================================
+.analytics-container {
+  padding: 2rem 0;
+  background: #ffffff;
+}
+
+// ============================================
+// HEADER SECTION
+// ============================================
+.analytics-header {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid $border-gray;
+
+  .header-icon {
+    width: 50px;
+    height: 50px;
+    background: $primary;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+  }
+
+  .page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: $dark;
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.95rem;
+    margin: 0.5rem 0 0 0;
+  }
+}
+
+// ============================================
+// STAT CARDS - SIMPLE & PROFESSIONAL
+// ============================================
+.stat-card {
+  background: white;
+  border: 1px solid $border-gray;
+  border-radius: 8px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $primary;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .stat-content {
+    flex: 1;
+
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.75rem;
+      color: $text-secondary;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0;
+      line-height: 1;
+    }
+  }
+
+  // Color Variants
+  &.card-primary {
+    .stat-label {
+      color: $primary;
+    }
+
+    .stat-value {
+      color: $primary;
+    }
+
+    .stat-icon {
+      background: $primary;
+    }
+  }
+
+  &.card-success {
+    .stat-label {
+      color: $success;
+    }
+
+    .stat-value {
+      color: $success;
+    }
+
+    .stat-icon {
+      background: $success;
+    }
+  }
+
+  &.card-info {
+    .stat-label {
+      color: $info;
+    }
+
+    .stat-value {
+      color: $info;
+    }
+
+    .stat-icon {
+      background: $info;
+    }
+  }
+
+  &.card-warning {
+    .stat-label {
+      color: $warning;
+    }
+
+    .stat-value {
+      color: $warning;
+    }
+
+    .stat-icon {
+      background: $warning;
+    }
+  }
+}
+
+// ============================================
+// CHART CARDS
+// ============================================
+.charts-section {
+  margin-bottom: 2rem;
+}
+
+.chart-card {
+  background: white;
+  border: 1px solid $border-gray;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .chart-header {
+    background: $light-gray;
+    padding: 1.5rem;
+    border-bottom: 1px solid $border-gray;
+
+    .chart-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: $dark;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      i {
+        color: $primary;
+        font-size: 1.25rem;
+      }
+    }
+  }
+
+  .chart-body {
+    padding: 1.5rem;
+  }
+}
+
+.table-section {
+  .chart-card {
+    .chart-body {
+      padding: 0;
+    }
+  }
+}
+
+// ============================================
+// DATA TABLE STYLES
+// ============================================
+.data-table {
+  margin-bottom: 0;
+
+  thead {
+    background: $light-gray;
+
+    th {
+      border: none;
+      border-bottom: 1px solid $border-gray;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: $text-secondary;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      padding: 1rem 1.25rem;
+      white-space: nowrap;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $border-gray;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: $light-gray;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      td {
+        padding: 1rem 1.25rem;
+        vertical-align: middle;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+// ============================================
+// BADGE STYLES FOR TABLE
+// ============================================
+.badge-stat {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.badge-primary {
+    background: rgba($primary, 0.1);
+    color: $primary;
+  }
+
+  &.badge-success {
+    background: rgba($success, 0.1);
+    color: $success;
+  }
+
+  &.badge-info {
+    background: rgba($info, 0.1);
+    color: $info;
+  }
+
+  &.badge-warning {
+    background: rgba($warning, 0.1);
+    color: $warning;
+  }
+}
+
+// ============================================
+// SCORE BAR
+// ============================================
+.score-bar {
+  display: inline-block;
+  height: 20px;
+  background: rgba($success, 0.15);
+  border-radius: 3px;
+  min-width: 40px;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: $success;
+    width: inherit;
+  }
+
+  .score-text {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0 0.5rem;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+// ============================================
+// LEVEL BADGES
+// ============================================
+.level-badges {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: white;
+  cursor: default;
+
+  &.level-expert {
+    background: $success;
+  }
+
+  &.level-advanced {
+    background: $primary;
+  }
+
+  &.level-intermediate {
+    background: $warning;
+  }
+
+  &.level-beginner {
+    background: #7545c2;
+  }
+}
+
+// ============================================
+// RANKING ITEMS
+// ============================================
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid $border-gray;
+
+  &:hover {
+    background-color: $light-gray;
+    margin: 0 -1.5rem;
+    padding: 1rem 1.5rem;
+  }
+
+  &.last {
+    border-bottom: none;
+  }
+
+  .ranking-number {
+    width: 40px;
+    height: 40px;
+    background: $primary;
+    color: white;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .ranking-content {
+    flex: 1;
+    min-width: 0;
+
+    .ranking-name {
+      margin: 0;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: $dark;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ranking-meta {
+      margin: 0.2rem 0 0 0;
+      font-size: 0.8rem;
+      color: $text-secondary;
+    }
+  }
+
+  .ranking-badge {
+    background: rgba($success, 0.1);
+    color: $success;
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+}
+
+// ============================================
+// GROWTH ITEMS
+// ============================================
+.growth-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid $border-gray;
+
+  &:hover {
+    background-color: $light-gray;
+    margin: 0 -1.5rem;
+    padding: 1rem 1.5rem;
+  }
+
+  &.last {
+    border-bottom: none;
+  }
+
+  .growth-date {
+    flex: 1;
+
+    .growth-name {
+      margin: 0;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: $dark;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .growth-meta {
+      display: block;
+      margin-top: 0.2rem;
+      font-size: 0.8rem;
+      color: $text-secondary;
+    }
+  }
+
+  .growth-assignments {
+    background: rgba($info, 0.1);
+    color: $info;
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+}
+
+// ============================================
+// RESPONSIVE DESIGN
+// ============================================
+@media (max-width: 768px) {
+  .analytics-container {
+    padding: 1rem 0;
+  }
+
+  .analytics-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+
+    .page-title {
+      font-size: 1.5rem;
+    }
+
+    p {
+      font-size: 0.9rem;
+    }
+  }
+
+  .stat-card {
+    padding: 1.5rem;
+
+    .stat-icon {
+      width: 50px;
+      height: 50px;
+      font-size: 1.5rem;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+    }
+  }
+
+  .chart-card {
+    .chart-header {
+      padding: 1rem;
+
+      .chart-title {
+        font-size: 0.95rem;
+      }
+    }
+
+    .chart-body {
+      padding: 1rem;
+    }
+  }
+
+  .data-table {
+    thead {
+      display: none;
+    }
+
+    tbody {
+      tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid $border-gray;
+        border-radius: 4px;
+        padding: 1rem;
+        background: white;
+
+        &:last-child {
+          border-bottom: 1px solid $border-gray;
+        }
+
+        td {
+          display: block;
+          text-align: left;
+          padding: 0.5rem 0;
+          border: none;
+          position: relative;
+          padding-left: 35%;
+
+          &:before {
+            content: attr(data-label);
+            position: absolute;
+            left: 0;
+            font-weight: 600;
+            color: $text-secondary;
+            width: 30%;
+            font-size: 0.75rem;
+          }
+        }
+      }
+    }
+  }
+
+  .ranking-item {
+    &:hover {
+      margin: 0;
+      padding: 1rem 0;
+    }
+  }
+
+  .growth-item {
+    &:hover {
+      margin: 0;
+      padding: 1rem 0;
+    }
+  }
+}

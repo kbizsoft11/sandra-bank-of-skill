@@ -7,6 +7,7 @@ import { QuestionnaireModel } from '../models/questionnaire.model';
 import { RoleModel } from '../models/role.model';
 import { ActivityModel } from '../models/activity.model';
 import { QuestionnaireResponseModel } from '../models/questionnaire-response.model';
+import { SkillUser } from '../models/skillUser.model';
 import * as AdminDashboardService from '../services/admin-dashboard.service';
 
 /**
@@ -137,14 +138,14 @@ export const getCompanyStats = async (req: Request, res: Response) => {
       organisationId,
     });
 
-    // Get skills count for company employees
+    // Get skills count for company employees - use SkillUser collection instead of Skill
     const employeeIds = await UserModel.find({
       organisationId,
       role: 'employee',
     }).distinct('_id');
 
-    const totalSkills = await Skill.countDocuments({
-      user_id: { $in: employeeIds as any },
+    const totalSkills = await SkillUser.countDocuments({
+      userId: { $in: employeeIds as any },
     });
 
     // Get recent employees
@@ -197,12 +198,17 @@ export const getCompanyStats = async (req: Request, res: Response) => {
       },
     ]);
 
-    // Get top employees by skill count
-    const topEmployees = await Skill.aggregate([
+    // Get top employees by skill count - from SkillUser collection
+    const topEmployees = await SkillUser.aggregate([
+      {
+        $match: {
+          userId: { $in: employeeIds },
+        },
+      },
       {
         $lookup: {
           from: 'users',
-          localField: 'user_id',
+          localField: 'userId',
           foreignField: '_id',
           as: 'user',
         },
@@ -211,14 +217,8 @@ export const getCompanyStats = async (req: Request, res: Response) => {
         $unwind: '$user',
       },
       {
-        $match: {
-          'user.organisationId': organisationId,
-          'user.role': 'employee',
-        },
-      },
-      {
         $group: {
-          _id: '$user_id',
+          _id: '$userId',
           fullName: { $first: '$user.fullName' },
           department: { $first: '$user.department' },
           location: { $first: '$user.location' },
@@ -242,28 +242,32 @@ export const getCompanyStats = async (req: Request, res: Response) => {
       },
     ]);
 
-    // Get top skills by employee count
-    const topSkills = await Skill.aggregate([
+    // Get top skills by employee count - from SkillUser collection
+    const topSkills = await SkillUser.aggregate([
       {
-        $lookup: {
-          from: 'users',
-          localField: 'user_id',
-          foreignField: '_id',
-          as: 'user',
+        $match: {
+          userId: { $in: employeeIds },
         },
       },
       {
-        $unwind: '$user',
+        $lookup: {
+          from: 'skills',
+          localField: 'skillId',
+          foreignField: '_id',
+          as: 'skill',
+        },
+      },
+      {
+        $unwind: '$skill',
       },
       {
         $match: {
-          'user.organisationId': organisationId,
-          'user.role': 'employee',
+          'skill.archived': false,
         },
       },
       {
         $group: {
-          _id: '$skill_name',
+          _id: '$skill.name',
           employeeCount: { $sum: 1 },
         },
       },

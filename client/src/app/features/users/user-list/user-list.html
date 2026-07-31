@@ -203,10 +203,10 @@
         </div>
       </ng-template>
 
-      <!-- Role badge -->
+      <!-- Designation -->
       <ng-template appTableCol="role" let-user>
-        <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-2 fw-medium">
-          {{ user.role }}
+        <span class="text-secondary small">
+          {{ user.designationName || user.designation?.designationName || '-' }}
         </span>
       </ng-template>
 
@@ -258,6 +258,20 @@
                       <i class="bi" [ngClass]="user.isActive ? 'bi-person-x-fill text-danger' : 'bi-person-check-fill text-success'"></i>
                       <span>{{ user.isActive ? 'Deactivate' : 'Activate' }}</span>
                     </button>
+                  </li>
+
+                  <li>
+                    <button type="button" class="dropdown-item d-flex align-items-center gap-2" (click)="openAssignSkillsModal(user)">
+                      <i class="bi bi-star-fill text-warning"></i>
+                      <span>Assign Skills</span>
+                    </button>
+                  </li>
+
+                  <li>
+                    <a [routerLink]="['/company/users', user._id, 'skills']" class="dropdown-item d-flex align-items-center gap-2">
+                      <i class="bi bi-eye text-info"></i>
+                      <span>View Skills</span>
+                    </a>
                   </li>
 
                   @if (user.isActive && user.accountStatus !== 'invited' && auth.role() === 'company') {
@@ -452,11 +466,11 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label fw-medium">Job Role</label>
+              <label class="form-label fw-medium">Designation</label>
               <select class="form-select" formControlName="jobRole">
                 <option value="">-- No Change --</option>
-                @for (role of jobRoles(); track role._id || role) {
-                  <option [value]="role._id || role">{{ role.name || role }}</option>
+                @for (role of jobRoles(); track role._id) {
+                  <option [value]="role._id">{{ role.name || role.designationName }}</option>
                 }
               </select>
             </div>
@@ -586,6 +600,193 @@
             } @else {
               <i class="bi bi-upload me-2"></i>
               <span>Import Employees</span>
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Assign Skills Modal -->
+@if (showAssignSkillsModal && selectedEmployeeForSkills) {
+  <div class="modal-backdrop fade show" (click)="closeAssignSkillsModal()"></div>
+  <div class="modal fade show d-block" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-fullwidth">
+      <div class="modal-content assign-skills-modal">
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title">Assign Skills</h5>
+            <p class="small text-muted mb-0">{{ selectedEmployeeForSkills.fullName }}</p>
+          </div>
+          <button type="button" class="btn-close" (click)="closeAssignSkillsModal()"></button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Search Skills -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold mb-2">Search Skills</label>
+            <div class="input-group">
+              <span class="input-group-text" style="border-color: #e0e0e0;">
+                <i class="bi bi-search"></i>
+              </span>
+              <input 
+                type="text" 
+                class="form-control" 
+                placeholder="Search by skill name or category..."
+                [(ngModel)]="skillSearchTerm"
+                (input)="filterSkills()"
+                style="border-color: #e0e0e0;">
+            </div>
+          </div>
+
+          <div class="row g-4">
+            <!-- Available Skills Column -->
+            <div class="col-lg-6">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-list-check text-primary"></i>
+                <label class="form-label fw-semibold mb-0">Available Skills</label>
+              </div>
+              
+              <div class="skills-list">
+                @if (filteredSkills().length === 0) {
+                  <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <p class="mb-0">No skills available</p>
+                  </div>
+                } @else {
+                  @for (skill of filteredSkills(); track skill._id) {
+                    <div class="skill-item" [class.selected]="isSkillSelected(skill._id)">
+                      <div class="form-check">
+                        <input 
+                          type="checkbox" 
+                          class="form-check-input" 
+                          [id]="'skill-' + skill._id"
+                          [checked]="isSkillSelected(skill._id)"
+                          (change)="toggleSkillSelection(skill._id)">
+                        <label class="form-check-label" [for]="'skill-' + skill._id">
+                          <strong>{{ skill.name }}</strong>
+                          @if (skill.category) {
+                            <small class="d-block">{{ skill.category.name }}</small>
+                          }
+                        </label>
+                      </div>
+                      
+                      @if (isSkillSelected(skill._id)) {
+                        <div class="skill-inputs mt-3">
+                          <div class="row g-2">
+                            <div class="col-6">
+                              <label class="form-label small fw-semibold mb-1">Score</label>
+                              <div class="input-group input-group-sm">
+                                <input 
+                                  type="number" 
+                                  class="form-control" 
+                                  min="0" 
+                                  max="100"
+                                  [value]="getSkillScore(skill._id)"
+                                  (change)="setSkillScore(skill._id, $any($event.target).value)">
+                                <span class="input-group-text">/100</span>
+                              </div>
+                            </div>
+                            <div class="col-6">
+                              <label class="form-label small fw-semibold mb-1">Level</label>
+                              <select class="form-select form-select-sm" 
+                                [value]="getSkillLevel(skill._id)"
+                                (change)="setSkillLevel(skill._id, $event)">
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                                <option value="expert">Expert</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+
+            <!-- Selected Skills Column -->
+            <div class="col-lg-6">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-check-circle text-success"></i>
+                <label class="form-label fw-semibold mb-0">
+                  Selected Skills 
+                  @if (selectedSkillsForEmployee().length > 0) {
+                    <span class="badge bg-success ms-2">{{ selectedSkillsForEmployee().length }}</span>
+                  }
+                </label>
+              </div>
+
+              @if (selectedSkillsForEmployee().length === 0) {
+                <div class="empty-state-dashed">
+                  <i class="bi bi-hand-index-thumb"></i>
+                  <p class="mb-0">Select skills from the left to add them</p>
+                </div>
+              } @else {
+                <div class="selected-skills-list">
+                  @for (skillId of selectedSkillsForEmployee(); track skillId) {
+                    <div class="selected-skill-item">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                          <strong class="d-block mb-2">{{ getSkillName(skillId) }}</strong>
+                          <div class="skill-details">
+                            <span class="detail-badge">
+                              <i class="bi bi-graph-up"></i>
+                              Score: {{ getSkillScore(skillId) }}/100
+                            </span>
+                            <span class="detail-badge">
+                              <i class="bi bi-award"></i>
+                              <span class="text-capitalize">{{ getSkillLevel(skillId) }}</span>
+                            </span>
+                          </div>
+                        </div>
+                        <button 
+                          type="button"
+                          class="btn btn-sm btn-outline-danger"
+                          (click)="toggleSkillSelection(skillId)"
+                          title="Remove skill">
+                          <i class="bi bi-x-lg"></i>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          @if (assignSkillsError) {
+            <div class="alert alert-danger mt-4">
+              <i class="bi bi-exclamation-circle-fill me-2"></i>
+              {{ assignSkillsError }}
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-light"
+            (click)="closeAssignSkillsModal()"
+            [disabled]="isAssigningSkills">
+            <i class="bi bi-x me-1"></i>
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="isAssigningSkills || selectedSkillsForEmployee().length === 0"
+            (click)="assignSkillsToEmployee()">
+            @if (isAssigningSkills) {
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              <span>Assigning...</span>
+            } @else {
+              <i class="bi bi-check-circle me-1"></i>
+              <span>Assign Skills</span>
             }
           </button>
         </div>

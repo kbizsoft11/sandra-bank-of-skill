@@ -40,7 +40,8 @@ const skillUserSchema = new Schema<ISkillUser>(
       type: String,
       required: true,
       trim: true,
-      enum: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
+      enum: ['beginner', 'intermediate', 'advanced', 'expert'],
+      lowercase: true,
     },
 
     assessmentId: {

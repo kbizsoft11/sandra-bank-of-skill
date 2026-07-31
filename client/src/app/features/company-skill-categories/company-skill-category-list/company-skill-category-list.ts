@@ -59,8 +59,11 @@ export class CompanySkillCategoryList implements OnInit {
   // Manage Skills Modal signals
   showManageSkillsModal = signal(false);
   companySkillsForManage = signal<any[]>([]);
+
+  // Drag and drop signals
   draggedSkill = signal<any | null>(null);
   dragOverCategoryId = signal<string | null>(null);
+  dragOverOrphanZone = signal(false);
 
   // Search and Filter
   skillSearchTerm = signal('');
@@ -71,7 +74,22 @@ export class CompanySkillCategoryList implements OnInit {
   skillsCurrentPage = signal(1);
   skillsPageSize = signal(10);
 
-  // Computed for filtered skills (company-created only for "My Skills")
+  readonly filteredCategories = computed(() => {
+    // ONLY show company-created categories (not admin categories)
+    let categories = [...this.ownCategories()];
+
+    // Search filter for categories
+    if (this.categorySearchTerm()) {
+      const searchLower = this.categorySearchTerm().toLowerCase();
+      return categories.filter(c => 
+        c.name.toLowerCase().includes(searchLower) ||
+        (c.description || '').toLowerCase().includes(searchLower)
+      );
+    }
+
+    return categories;
+  });
+
   readonly filteredCompanySkills = computed(() => {
     // Filter to show only company-created skills in the left panel
     let skills = this.companySkillsForManage().filter((s: any) => s.createdType === 'COMPANY');
@@ -85,9 +103,14 @@ export class CompanySkillCategoryList implements OnInit {
       );
     }
 
-    // Sort
+    // Sort - PRIMARY: by createdType (COMPANY first), SECONDARY: by selected column
     const sortBy = this.skillSortBy();
     skills.sort((a, b) => {
+      // Primary sort: COMPANY skills first
+      if (a.createdType === 'COMPANY' && b.createdType !== 'COMPANY') return -1;
+      if (a.createdType !== 'COMPANY' && b.createdType === 'COMPANY') return 1;
+      
+      // Secondary sort: by selected column
       if (sortBy === 'name') {
         return a.name.localeCompare(b.name);
       } else if (sortBy === 'category') {
@@ -112,41 +135,6 @@ export class CompanySkillCategoryList implements OnInit {
 
   readonly skillsTotalPages = computed(() => {
     return Math.ceil(this.filteredCompanySkills().length / this.skillsPageSize());
-  });
-
-  readonly filteredCategories = computed(() => {
-    // Include both company-created categories AND mapped admin categories
-    let categories = [...this.ownCategories()];
-    
-    // Also add admin categories that company has mapped
-    const mappedCategories = this.companyCategoryMappings()
-      .map(mapping => {
-        // Find the corresponding admin category
-        return this.adminCategories().find((c: any) => 
-          c._id === mapping.skillCategoryId
-        );
-      })
-      .filter((c): c is any => c !== undefined);
-    
-    // Combine and remove duplicates
-    const allCategories = [...categories, ...mappedCategories];
-    const uniqueIds = new Set<string>();
-    const uniqueCategories = allCategories.filter(c => {
-      if (uniqueIds.has(c._id)) return false;
-      uniqueIds.add(c._id);
-      return true;
-    });
-
-    // Search filter
-    if (this.categorySearchTerm()) {
-      const searchLower = this.categorySearchTerm().toLowerCase();
-      return uniqueCategories.filter(c => 
-        c.name.toLowerCase().includes(searchLower) ||
-        (c.description || '').toLowerCase().includes(searchLower)
-      );
-    }
-
-    return uniqueCategories;
   });
 
   ngOnInit(): void {
@@ -176,7 +164,9 @@ export class CompanySkillCategoryList implements OnInit {
 
       // Separate admin and company categories
       const own = allCategories.filter((cat: any) => cat.createdType === 'COMPANY');
+      const admin = allCategories.filter((cat: any) => cat.createdType === 'ADMIN');
       this.ownCategories.set(own);
+      this.adminCategories.set(admin);
       this.isLoading.set(false);
     }).catch(() => {
       this.alertService.error('Failed to load categories');
@@ -447,19 +437,20 @@ export class CompanySkillCategoryList implements OnInit {
   closeManageSkillsModal(): void {
     this.showManageSkillsModal.set(false);
     this.companySkillsForManage.set([]);
-    this.draggedSkill.set(null);
-    this.dragOverCategoryId.set(null);
     this.skillSearchTerm.set('');
     this.categorySearchTerm.set('');
+    this.draggedSkill.set(null);
+    this.dragOverCategoryId.set(null);
+    this.dragOverOrphanZone.set(false);
     this.skillsCurrentPage.set(1);
   }
 
   onSkillSearch(): void {
-    this.skillsCurrentPage.set(1);
+    this.skillsCurrentPage.set(1); // Reset to first page on search
   }
 
   onCategorySearch(): void {
-    // No pagination for categories, just filter
+    // Filter happens automatically via computed signal
   }
 
   setSkillSort(sortBy: 'name' | 'category' | 'status'): void {
@@ -537,12 +528,19 @@ export class CompanySkillCategoryList implements OnInit {
           console.log('data.skills:', data.skills);
           console.log('data keys:', Object.keys(data));
           
-          const allSkills = data.skills || data || [];
+          let allSkills = data.skills || data || [];
           console.log('✅ Skills extracted:', allSkills.length, 'skills');
           
           if (allSkills.length > 0) {
             console.log('First skill:', allSkills[0]);
           }
+          
+          // Sort by createdType: COMPANY first, then ADMIN
+          allSkills = allSkills.sort((a: any, b: any) => {
+            if (a.createdType === 'COMPANY' && b.createdType !== 'COMPANY') return -1;
+            if (a.createdType !== 'COMPANY' && b.createdType === 'COMPANY') return 1;
+            return 0;
+          });
           
           // Load ALL company-accessible skills (both company-created AND admin skills in accessible categories)
           this.companySkillsForManage.set(allSkills);
@@ -559,32 +557,112 @@ export class CompanySkillCategoryList implements OnInit {
     });
   }
 
+  getSkillsByCategory(categoryId: string): any[] {
+    return this.companySkillsForManage().filter(s => 
+      s.categoryId && (
+        (typeof s.categoryId === 'string' && s.categoryId === categoryId) ||
+        (typeof s.categoryId === 'object' && s.categoryId?._id === categoryId)
+      ) ||
+      (s.category && s.category._id === categoryId)
+    );
+  }
+
+  getOrphanSkills(): any[] {
+    return this.companySkillsForManage().filter(s => !s.categoryId && !s.category);
+  }
+
+  getVisibleCategoriesCount(): number {
+    // ONLY count company-created categories (not admin categories)
+    let categories = [...this.ownCategories()];
+
+    // Apply search filter if any
+    if (this.skillSearchTerm()) {
+      const searchLower = this.skillSearchTerm().toLowerCase();
+      return categories.filter(c => 
+        c.name.toLowerCase().includes(searchLower) ||
+        (c.description || '').toLowerCase().includes(searchLower)
+      ).length;
+    }
+
+    return categories.length;
+  }
+
+  removeSkillFromCategory(skill: any): void {
+    this.alertService.confirm(
+      'Remove from category?',
+      `"${skill.name}" will be removed from its category and become orphan.`,
+      'Yes, make orphan',
+      'Cancel'
+    ).then((confirmed) => {
+      if (confirmed) {
+        const updateData = { categoryId: null };
+        
+        this.skillService.updateSkill(skill._id, updateData as any).subscribe({
+          next: () => {
+            this.alertService.toast(
+              `"${skill.name}" made orphan successfully`,
+              'success'
+            );
+            this.loadCompanySkillsForManage();
+          },
+          error: (error) => {
+            console.error('Error making skill orphan:', error);
+            this.alertService.error('Failed to make skill orphan');
+          }
+        });
+      }
+    });
+  }
+
+  // Drag and Drop Methods
   onDragStart(event: DragEvent, skill: any): void {
     this.draggedSkill.set(skill);
     event.dataTransfer!.effectAllowed = 'move';
   }
 
   onDragEnd(event: DragEvent): void {
+    // Clear all drag states when drag ends (whether dropped or not)
     this.dragOverCategoryId.set(null);
+    this.dragOverOrphanZone.set(false);
+    this.draggedSkill.set(null); // Clear dragged skill to hide orphan zone
   }
 
   onDragOver(event: DragEvent, categoryId: string): void {
     event.preventDefault();
     event.dataTransfer!.dropEffect = 'move';
     this.dragOverCategoryId.set(categoryId);
+    this.dragOverOrphanZone.set(false); // Clear orphan zone highlight when over category
   }
 
   onDragLeave(event: DragEvent): void {
     this.dragOverCategoryId.set(null);
   }
 
+  onDragOverOrphanZone(event: DragEvent): void {
+    event.preventDefault();
+    event.dataTransfer!.dropEffect = 'move';
+    this.dragOverOrphanZone.set(true);
+    this.dragOverCategoryId.set(null); // Clear category highlight when over orphan zone
+  }
+
+  onDragLeaveOrphanZone(event: DragEvent): void {
+    this.dragOverOrphanZone.set(false);
+  }
+
   onDrop(event: DragEvent, targetCategory: any): void {
     event.preventDefault();
     event.stopPropagation();
-
     const skill = this.draggedSkill();
     if (!skill || !targetCategory) {
       this.alertService.error('Invalid drop operation');
+      return;
+    }
+
+    // Check if skill is already in this category
+    if (skill.categoryId === targetCategory._id || skill.category?._id === targetCategory._id) {
+      this.alertService.warning('Skill is already in this category');
+      this.draggedSkill.set(null);
+      this.dragOverCategoryId.set(null);
       return;
     }
 
@@ -604,11 +682,50 @@ export class CompanySkillCategoryList implements OnInit {
         this.loadCompanySkillsForManage();
       },
       error: (error) => {
-        console.error('Failed to move skill:', error);
-        this.alertService.error('Failed to move skill. Please try again.');
+        console.error('Error updating skill:', error);
+        this.alertService.error('Failed to move skill to category');
         this.draggedSkill.set(null);
         this.dragOverCategoryId.set(null);
       }
     });
   }
+
+  onDropOrphanZone(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const skill = this.draggedSkill();
+    if (!skill) {
+      this.alertService.error('Invalid drop operation');
+      return;
+    }
+
+    // Check if already orphan
+    if (!skill.categoryId && !skill.category) {
+      this.alertService.warning('Skill is already orphan');
+      this.draggedSkill.set(null);
+      this.dragOverOrphanZone.set(false);
+      return;
+    }
+
+    // Make skill orphan
+    const updateData = { categoryId: null };
+    this.skillService.updateSkill(skill._id, updateData as any).subscribe({
+      next: () => {
+        this.alertService.toast(
+          `"${skill.name}" made orphan successfully`,
+          'success'
+        );
+        this.draggedSkill.set(null);
+        this.dragOverOrphanZone.set(false);
+        this.loadCompanySkillsForManage();
+      },
+      error: (error) => {
+        console.error('Error making skill orphan:', error);
+        this.alertService.error('Failed to make skill orphan');
+        this.draggedSkill.set(null);
+        this.dragOverOrphanZone.set(false);
+      }
+    });
+  }
+
 }

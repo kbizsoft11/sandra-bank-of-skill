@@ -433,4 +433,17 @@ export class UserService {
       { params: httpParams }
     );
   }
+
+  getEmployeeSkills(employeeId: string): Observable<any> {
+    return this.http.get(
+      `${this.api}/${employeeId}/skills`
+    );
+  }
+
+  assignSkillsToEmployee(payload: { employeeId: string; skills: any[] }): Observable<any> {
+    return this.http.post(
+      `${this.api}/${payload.employeeId}/skills`,
+      { skills: payload.skills }
+    );
+  }
 }

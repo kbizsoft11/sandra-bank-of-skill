@@ -175,7 +175,7 @@
 
         <!-- Move Left Button -->
         <button
-          class="btn btn-warning w-100"
+          class="btn btn-warning w-100 mb-3"
           (click)="moveToLeft()"
           [disabled]="!canMoveLeft() || isMoving()"
           title="Remove selected skills from this category"
@@ -186,6 +186,22 @@
           } @else {
             <i class="bi bi-arrow-left-circle me-2"></i>
             Remove
+          }
+        </button>
+
+        <!-- Make Orphan Button (NEW) -->
+        <button
+          class="btn btn-outline-danger w-100 mb-3"
+          (click)="makeOrphan()"
+          [disabled]="!canMoveLeft() || isMoving()"
+          title="Make selected skills orphan (set categoryId to null)"
+        >
+          @if (isMoving()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Making...
+          } @else {
+            <i class="bi bi-x-circle me-2"></i>
+            Make Orphan
           }
         </button>
 

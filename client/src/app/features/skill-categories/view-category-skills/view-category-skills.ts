@@ -303,6 +303,40 @@ export class ViewCategorySkills implements OnInit {
     });
   }
 
+  makeOrphan(): void {
+    if (!this.canMoveLeft()) {
+      this.alertService.warning('Please select skills to make orphan.');
+      return;
+    }
+
+    const categoryId = this.route.snapshot.paramMap.get('id');
+    if (!categoryId) return;
+
+    this.alertService.confirm(
+      'Make selected skills orphan?',
+      `${this.selectedAssigned().length} skill(s) will be made orphan (categoryId set to null). They will no longer belong to any category.`,
+      'Yes, make orphan',
+      'Cancel'
+    ).then((confirmed) => {
+      if (confirmed) {
+        this.isMoving.set(true);
+        this.skillCategoryService.removeSkills(this.selectedAssigned()).subscribe({
+          next: () => {
+            this.alertService.success(`${this.selectedAssigned().length} skill(s) made orphan successfully`);
+            this.selectedAssigned.set([]);
+            this.isMoving.set(false);
+            this.loadSkills(categoryId);
+          },
+          error: (err) => {
+            console.error('Error making skills orphan:', err);
+            this.alertService.error('Failed to make skills orphan');
+            this.isMoving.set(false);
+          },
+        });
+      }
+    });
+  }
+
   backToCategories(): void {
     this.router.navigate(['/admin/skill-categories']);
   }

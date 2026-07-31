@@ -5,7 +5,7 @@ export type CreatedType = 'ADMIN' | 'COMPANY';
 export interface ISkill extends Document {
   name: string;
   description?: string;
-  categoryId: Schema.Types.ObjectId;
+  categoryId: Schema.Types.ObjectId | null;
   createdBy: Schema.Types.ObjectId; // User ID who created it
   createdType: CreatedType; // ADMIN or COMPANY
   companyId?: Schema.Types.ObjectId; // null for ADMIN, filled for COMPANY
@@ -33,7 +33,9 @@ const skillSchema = new Schema<ISkill>(
     categoryId: {
       type: Schema.Types.ObjectId,
       ref: 'SkillCategory',
-      required: true,
+      required: false,
+      default: null,
+      sparse: true,
       index: true,
     },
 
