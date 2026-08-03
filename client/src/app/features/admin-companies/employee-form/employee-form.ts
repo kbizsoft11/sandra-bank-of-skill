@@ -5,11 +5,13 @@ import {
   output,
   OnInit,
   signal,
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AlertService } from '../../../core/services/alert.service';
 import { CompanyService } from '../../../core/services/company.service';
+import { RoleService } from '../../../core/services/role.service';
 
 @Component({
   selector: 'app-employee-form',
@@ -21,6 +23,7 @@ import { CompanyService } from '../../../core/services/company.service';
 export class EmployeeFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly alertService = inject(AlertService);
+  private readonly roleService = inject(RoleService);
 
   // Inputs
   readonly employeeData = input<any | null>(null);
@@ -37,9 +40,33 @@ export class EmployeeFormComponent implements OnInit {
   readonly loading = signal(false);
   readonly showPassword = signal(false);
   readonly showConfirmPassword = signal(false);
+  readonly designations = signal<any[]>([]);
+  readonly loadingDesignations = signal(false);
 
   ngOnInit(): void {
     this.initializeForm();
+    this.loadDesignations();
+  }
+
+  private loadDesignations(): void {
+    if (!this.organisationId()) {
+      return;
+    }
+
+    this.loadingDesignations.set(true);
+    this.roleService.getAllRoles().subscribe({
+      next: (response) => {
+        if (response?.data) {
+          const roles = Array.isArray(response.data) ? response.data : response.data.roles || [];
+          this.designations.set(roles);
+        }
+        this.loadingDesignations.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading designations:', err);
+        this.loadingDesignations.set(false);
+      },
+    });
   }
 
   private initializeForm(): void {

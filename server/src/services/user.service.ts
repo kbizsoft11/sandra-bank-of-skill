@@ -6,7 +6,9 @@ import { InviteUserDto } from '../dto/invite-user.dto';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
 
 import { userRepository } from '../repositories/user.repository';
+import skillUserRepository from '../repositories/skillUser.repository';
 import { ActivityModel } from '../models/activity.model';
+import { UserModel } from '../models/user.model';
 
 import { hashPassword, generateRandomPassword } from '../utils/password';
 import { sendInvitationEmail, sendInvitationLinkEmail, sendPasswordResetNotificationEmail, sendVerificationEmail } from './email.service';
@@ -1080,6 +1082,58 @@ export const userService = {
   },
 
   /**
+   * Bulk update multiple employees
+   */
+  bulkUpdateEmployees: async (
+    employeeIds: string[],
+    updates: {
+      department?: string;
+      team?: string;
+      jobRole?: string;
+      status?: string;
+    },
+    userRole?: string,
+    userOrgId?: string
+  ) => {
+    if (!Array.isArray(employeeIds) || employeeIds.length === 0) {
+      throw new Error('Employee IDs array is required');
+    }
+
+    // Prepare update data
+    const updateData: any = {};
+
+    if (updates.department) updateData.department = updates.department;
+    if (updates.team) updateData.team = updates.team;
+    if (updates.jobRole) updateData.designationId = updates.jobRole;
+    if (updates.status) {
+      updateData.isActive = updates.status === 'active';
+      updateData.accountStatus = updates.status === 'active' ? 'active' : 'inactive';
+    }
+
+    // For company users, validate they can only update their own employees
+    if (userRole === 'company' && userOrgId) {
+      // Verify all employees belong to the company
+      const employees = await userRepository.findByIds(employeeIds);
+      for (const emp of employees) {
+        if (emp.organisationId?.toString() !== userOrgId) {
+          throw new Error('Unauthorized: Cannot update employees from other organizations');
+        }
+      }
+    }
+
+    // Bulk update
+    const result = await UserModel.updateMany(
+      { _id: { $in: employeeIds } },
+      updateData
+    );
+
+    return {
+      modifiedCount: result.modifiedCount,
+      matchedCount: result.matchedCount,
+    };
+  },
+
+  /**
    * Deactivate a user
    */
   deactivateUser: async (userId: string) => {
@@ -1261,4 +1315,29 @@ export const userService = {
     };
   },
 
+  /**
+   * Get employee skills
+   */
+  getEmployeeSkills: async (employeeId: string) => {
+    const skillUsers = await skillUserRepository.findByEmployeeId(employeeId);
+    return skillUsers;
+  },
+
+  /**
+   * Assign skills to employee
+   */
+  assignSkillsToEmployee: async (employeeId: string, skills: Array<{ skillId: string; score?: number; level?: string }>) => {
+    // Delete existing skills for this employee
+    await skillUserRepository.deleteByEmployeeId(employeeId);
+
+    // Add new skills with score and level from the request
+    const skillAssignments = skills.map(skill => ({
+      userId: employeeId,
+      skillId: skill.skillId,
+      score: skill.score ?? 0,
+      level: skill.level ?? 'beginner',
+    } as any));
+
+    return await skillUserRepository.createBulk(skillAssignments);
+  },
 };

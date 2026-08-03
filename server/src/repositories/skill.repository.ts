@@ -65,8 +65,7 @@ export class SkillRepository {
       // Company's own skills
       categoryFilters.push({ 
         createdType: "COMPANY", 
-        companyId: companyId,
-        archived: false
+        companyId: companyId
       });
       
       // Admin skills in accessible categories
@@ -86,8 +85,7 @@ export class SkillRepository {
         if (validCategoryIds.length > 0) {
           categoryFilters.push({ 
             createdType: "ADMIN", 
-            categoryId: { $in: validCategoryIds },
-            archived: false
+            categoryId: { $in: validCategoryIds }
           });
         }
       }
@@ -281,26 +279,37 @@ export class SkillRepository {
   }
 
   /**
-   * Find unassigned skills for a category
+   * Find unassigned skills for a category (including orphan skills with null categoryId)
    */
   async findUnassignedSkills(categoryId: string, query: GetSkillsQueryDto = {}): Promise<{ skills: ISkill[]; total: number }> {
     const { page = 1, limit = 10, search, status, archived } = query;
 
-    const filter: any = { categoryId: { $ne: categoryId } };
+    // Get skills that are NOT in this category (includes orphan skills with categoryId = null)
+    const filter: any = { 
+      $or: [
+        { categoryId: { $ne: categoryId } },  // Not in this category
+        { categoryId: null }  // Or orphan skills
+      ]
+    };
 
     if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ];
+      filter.$and = filter.$and || [];
+      filter.$and.push({
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+        ]
+      });
     }
 
     if (status) {
-      filter.status = status;
+      filter.$and = filter.$and || [];
+      filter.$and.push({ status });
     }
 
     if (archived !== undefined) {
-      filter.archived = archived;
+      filter.$and = filter.$and || [];
+      filter.$and.push({ archived });
     }
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -336,6 +345,16 @@ export class SkillRepository {
     return Skill.updateMany(
       { _id: { $in: skillIds } },
       { categoryId }
+    ).exec();
+  }
+
+  /**
+   * Remove skills from category (set categoryId to null - make them orphan)
+   */
+  async removeFromCategory(skillIds: string[]): Promise<any> {
+    return Skill.updateMany(
+      { _id: { $in: skillIds } },
+      { categoryId: null }
     ).exec();
   }
 

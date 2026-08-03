@@ -28,13 +28,17 @@ interface EmployeeSearchResult {
   };
   skills: Array<{
     _id: string;
-    skill_name: string;
-    skill_level: string;
-    skill_score: number;
+    name: string;
+    categoryId: string;
+  }>;
+  skillUsers: Array<{
+    skillId: string;
+    score: number;
+    level: string;
   }>;
   skillCategories: Array<{
     _id: string;
-    cat_name: string;
+    name: string;
   }>;
 }
 
@@ -216,11 +220,11 @@ export class EmployeeSearch implements OnInit {
   }
 
   getUniqueSkillNames(employee: EmployeeSearchResult): string[] {
-    return [...new Set(employee.skills.map(s => s.skill_name))].slice(0, 5);
+    return [...new Set(employee.skills.map(s => s.name))].slice(0, 5);
   }
 
   getUniqueCategoryNames(employee: EmployeeSearchResult): string[] {
-    return [...new Set(employee.skillCategories.map(c => c.cat_name))].slice(0, 3);
+    return [...new Set(employee.skillCategories.map(c => c.name))].slice(0, 3);
   }
 
   viewEmployeeSkills(employeeId: string): void {

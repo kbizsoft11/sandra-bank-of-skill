@@ -73,6 +73,7 @@ export class CompanySkills implements OnInit, AfterViewInit, OnDestroy {
   searchTerm = signal<string>('');
   selectedCategoryFilter = signal<string>('');
   selectedStatusFilter = signal<string>('');
+  selectedArchiveFilter = signal<'all' | 'active' | 'archived'>('active');
   sortColumn = signal<string>('name');
   sortDirection = signal<'asc' | 'desc'>('asc');
 
@@ -91,11 +92,38 @@ export class CompanySkills implements OnInit, AfterViewInit, OnDestroy {
   readonly filteredAndSortedSkills = computed(() => {
     let filtered = [...this.skills()];
 
-    // Apply sorting
+    // Apply archive filter
+    const archiveFilter = this.selectedArchiveFilter();
+    if (archiveFilter === 'active') {
+      filtered = filtered.filter(s => !s.archived);
+    } else if (archiveFilter === 'archived') {
+      filtered = filtered.filter(s => s.archived);
+    }
+
+    // Apply other filters
+    if (this.searchTerm()) {
+      const search = this.searchTerm().toLowerCase();
+      filtered = filtered.filter(s => s.name.toLowerCase().includes(search));
+    }
+
+    if (this.selectedCategoryFilter()) {
+      filtered = filtered.filter(s => s.categoryId === this.selectedCategoryFilter());
+    }
+
+    if (this.selectedStatusFilter()) {
+      filtered = filtered.filter(s => s.status === this.selectedStatusFilter());
+    }
+
+    // Apply sorting - FIRST by createdType (COMPANY first), THEN by selected column
     const column = this.sortColumn();
     const direction = this.sortDirection();
 
     filtered.sort((a, b) => {
+      // PRIMARY SORT: createdType (COMPANY first)
+      if (a.createdType === 'COMPANY' && b.createdType !== 'COMPANY') return -1;
+      if (a.createdType !== 'COMPANY' && b.createdType === 'COMPANY') return 1;
+      
+      // SECONDARY SORT: by selected column
       let aVal: any, bVal: any;
 
       if (column === 'name') {
@@ -211,6 +239,13 @@ export class CompanySkills implements OnInit, AfterViewInit, OnDestroy {
       query.status = this.selectedStatusFilter();
     }
 
+    // Pass archived filter to backend
+    if (this.selectedArchiveFilter() === 'active') {
+      query.archived = false;
+    } else if (this.selectedArchiveFilter() === 'archived') {
+      query.archived = true;
+    }
+
     this.skillService.getSkills(query).subscribe({
       next: (response) => {
         this.isLoading.set(false);
@@ -251,6 +286,13 @@ export class CompanySkills implements OnInit, AfterViewInit, OnDestroy {
   onStatusFilterChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.selectedStatusFilter.set(value);
+    this.currentPage.set(1);
+    this.loadSkills();
+  }
+
+  onArchiveFilterChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value as 'all' | 'active' | 'archived';
+    this.selectedArchiveFilter.set(value);
     this.currentPage.set(1);
     this.loadSkills();
   }
@@ -333,31 +375,66 @@ export class CompanySkills implements OnInit, AfterViewInit, OnDestroy {
 
   deleteSkill(skill: CompanySkill): void {
     Swal.fire({
-      title: 'Delete Skill?',
-      text: `Are you sure you want to delete "${skill.name}"? This action cannot be undone.`,
+      title: 'Archive Skill?',
+      text: `Are you sure you want to archive "${skill.name}"?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Yes, Delete it!',
+      confirmButtonText: 'Yes, Archive it!',
       cancelButtonText: 'Cancel',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.skillService.deleteSkill(skill._id).subscribe({
+        this.skillService.archiveSkill(skill._id, true).subscribe({
           next: () => {
             Swal.fire({
-              title: 'Deleted!',
-              text: 'Skill has been deleted successfully.',
+              title: 'Archived!',
+              text: 'Skill has been archived successfully.',
               icon: 'success',
               timer: 2000,
             });
             this.loadSkills();
           },
           error: (error) => {
-            console.error('Error deleting skill:', error);
+            console.error('Error archiving skill:', error);
             Swal.fire({
               title: 'Error!',
-              text: error?.error?.message || 'Failed to delete skill. Please try again.',
+              text: error?.error?.message || 'Failed to archive skill. Please try again.',
+              icon: 'error',
+            });
+          },
+        });
+      }
+    });
+  }
+
+  unarchiveSkill(skill: CompanySkill): void {
+    Swal.fire({
+      title: 'Restore Skill?',
+      text: `Are you sure you want to restore "${skill.name}"?`,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonColor: '#198754',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, Restore it!',
+      cancelButtonText: 'Cancel',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.skillService.archiveSkill(skill._id, false).subscribe({
+          next: () => {
+            Swal.fire({
+              title: 'Restored!',
+              text: 'Skill has been restored successfully.',
+              icon: 'success',
+              timer: 2000,
+            });
+            this.loadSkills();
+          },
+          error: (error) => {
+            console.error('Error restoring skill:', error);
+            Swal.fire({
+              title: 'Error!',
+              text: error?.error?.message || 'Failed to restore skill. Please try again.',
               icon: 'error',
             });
           },

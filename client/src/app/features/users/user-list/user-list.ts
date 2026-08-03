@@ -10,6 +10,7 @@ import { Router, RouterLink } from '@angular/router';
 import { DataTableComponent } from '../../../shared/data-table/data-table.component';
 import { TableColDirective } from '../../../shared/data-table/table-col.directive';
 import { TableColumn } from '../../../shared/data-table/table-column.model';
+import { SkillService } from '../../../core/services/skill.service';
 
 @Component({
   selector: 'app-user-list',
@@ -24,6 +25,7 @@ export class UserList implements OnInit {
   private readonly alertService = inject(AlertService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly skillService = inject(SkillService);
   readonly auth = inject(AuthService);
 
   readonly users = signal<any[]>([]);
@@ -73,6 +75,17 @@ export class UserList implements OnInit {
   activityType: 'login' | 'course' | 'assessment' | 'skill' | 'recent' = 'login';
   employeeActivities = signal<any[]>([]);
   isLoadingActivities = signal<boolean>(false);
+
+  // Assign Skills Modal
+  showAssignSkillsModal = false;
+  selectedEmployeeForSkills: any = null;
+  skillSearchTerm = '';
+  allSkills = signal<any[]>([]);
+  filteredSkills = signal<any[]>([]);
+  selectedSkillsForEmployee = signal<string[]>([]);
+  skillScoresAndLevels = signal<{ [skillId: string]: { score: number; level: string } }>({});
+  isAssigningSkills = false;
+  assignSkillsError = '';
 
   // Filtered users based on role and view state
   readonly displayedUsers = computed(() => {
@@ -133,7 +146,7 @@ export class UserList implements OnInit {
     baseColumns.push(
       { key: 'fullName', header: 'Name', sortable: true },
       { key: 'email', header: 'Email', sortable: true },
-      { key: 'role', header: 'Role' },
+      { key: 'role', header: 'Designation' },
       { key: 'accountStatus', header: 'Status' },
       { key: 'actions', header: 'Actions', align: 'end', width: '240px' }
     );
@@ -171,10 +184,14 @@ export class UserList implements OnInit {
       },
     });
 
-    // Load job roles
-    this.userService.getJobRoles().subscribe({
+    // Load job roles from RoleService (organization roles only)
+    this.roleService.getRoles(true).subscribe({
       next: (response) => {
-        this.jobRoles.set(response.data || []);
+        const roles = Array.isArray(response?.data) ? response.data : response.data?.roles || [];
+        this.jobRoles.set(roles.map((role: any) => ({
+          _id: role._id,
+          name: role.designationName
+        })));
       },
       error: (error) => {
         console.error('Error loading job roles:', error);
@@ -883,5 +900,171 @@ export class UserList implements OnInit {
       case 'recent': return 'bi-clock-history';
       default: return 'bi-activity';
     }
+  }
+
+  openAssignSkillsModal(employee: any): void {
+    this.selectedEmployeeForSkills = employee;
+    this.showAssignSkillsModal = true;
+    this.skillSearchTerm = '';
+    this.selectedSkillsForEmployee.set([]);
+    this.skillScoresAndLevels.set({});
+    this.assignSkillsError = '';
+    
+    // Load company created skills (non-archived only)
+    this.skillService.getSkills({ limit: '1000', archived: 'false' }).subscribe({
+      next: (response: any) => {
+        const companySkills = (response.data?.skills || response.data || []).filter((s: any) => !s.archived);
+        
+        this.allSkills.set(companySkills);
+        this.filteredSkills.set(companySkills);
+        
+        // Load already assigned skills for this employee
+        this.loadEmployeeSkills(employee._id);
+      },
+      error: () => {
+        this.assignSkillsError = 'Failed to load skills';
+      }
+    });
+  }
+
+  closeAssignSkillsModal(): void {
+    this.showAssignSkillsModal = false;
+    this.selectedEmployeeForSkills = null;
+    this.selectedSkillsForEmployee.set([]);
+  }
+
+  filterSkills(): void {
+    const term = this.skillSearchTerm.toLowerCase();
+    const allSkills = this.allSkills();
+    
+    if (!term) {
+      this.filteredSkills.set(allSkills);
+    } else {
+      this.filteredSkills.set(allSkills.filter(skill => 
+        skill.name.toLowerCase().includes(term) || 
+        (skill.category?.name?.toLowerCase().includes(term))
+      ));
+    }
+  }
+
+  isSkillSelected(skillId: string): boolean {
+    return this.selectedSkillsForEmployee().includes(skillId);
+  }
+
+  toggleSkillSelection(skillId: string): void {
+    const selected = [...this.selectedSkillsForEmployee()];
+    const index = selected.indexOf(skillId);
+    
+    if (index > -1) {
+      selected.splice(index, 1);
+    } else {
+      selected.push(skillId);
+    }
+    
+    this.selectedSkillsForEmployee.set(selected);
+  }
+
+  getSkillName(skillId: string): string {
+    const skill = this.allSkills().find(s => s._id === skillId);
+    return skill?.name || 'Unknown Skill';
+  }
+
+  getSkillScore(skillId: string): number {
+    return this.skillScoresAndLevels()[skillId]?.score || 0;
+  }
+
+  setSkillScore(skillId: string, score: string | number): void {
+    const scoreNum = parseInt(score.toString());
+    const current = this.skillScoresAndLevels();
+    current[skillId] = {
+      score: Math.min(100, Math.max(0, scoreNum)),
+      level: current[skillId]?.level || 'beginner'
+    };
+    this.skillScoresAndLevels.set({ ...current });
+  }
+
+  getSkillLevel(skillId: string): string {
+    return this.skillScoresAndLevels()[skillId]?.level || 'beginner';
+  }
+
+  setSkillLevel(skillId: string, event: any): void {
+    const level = event.target?.value || event;
+    const current = this.skillScoresAndLevels();
+    current[skillId] = {
+      score: current[skillId]?.score || 0,
+      level: level
+    };
+    this.skillScoresAndLevels.set({ ...current });
+  }
+
+  loadEmployeeSkills(employeeId: string): void {
+    this.userService.getEmployeeSkills(employeeId).subscribe({
+      next: (response: any) => {
+        const skills = response.data || [];
+        const skillIds = skills.map((s: any) => s.skillId?._id || s.skillId || s._id);
+        this.selectedSkillsForEmployee.set(skillIds);
+        
+        // Populate score and level for each assigned skill
+        const scoresAndLevels: { [skillId: string]: { score: number; level: string } } = {};
+        
+        // Also merge skill details from the response if available
+        const allSkillsMap = new Map(this.allSkills().map(s => [s._id, s]));
+        
+        skills.forEach((s: any) => {
+          const skillId = s.skillId?._id || s.skillId || s._id;
+          scoresAndLevels[skillId] = {
+            score: s.score || 0,
+            level: s.level || 'beginner'
+          };
+          
+          // Add skill details to allSkills if not already there
+          if (!allSkillsMap.has(skillId) && s.skillId) {
+            // If skillId is populated (has name property), add it
+            if (typeof s.skillId === 'object' && s.skillId.name) {
+              allSkillsMap.set(skillId, {
+                _id: skillId,
+                name: s.skillId.name,
+                category: s.skillId.categoryId
+              });
+            }
+          }
+        });
+        
+        this.skillScoresAndLevels.set(scoresAndLevels);
+        this.allSkills.set(Array.from(allSkillsMap.values()));
+      },
+      error: () => {
+        console.error('Failed to load employee skills');
+      }
+    });
+  }
+
+  assignSkillsToEmployee(): void {
+    this.isAssigningSkills = true;
+    this.assignSkillsError = '';
+
+    // Build array of skills with score and level
+    const skillsWithScoresAndLevels = this.selectedSkillsForEmployee().map(skillId => ({
+      skillId: skillId,
+      score: this.getSkillScore(skillId),
+      level: this.getSkillLevel(skillId)
+    }));
+
+    const payload = {
+      employeeId: this.selectedEmployeeForSkills._id,
+      skills: skillsWithScoresAndLevels
+    };
+
+    this.userService.assignSkillsToEmployee(payload).subscribe({
+      next: () => {
+        this.isAssigningSkills = false;
+        this.alertService.success('Skills assigned successfully');
+        this.closeAssignSkillsModal();
+      },
+      error: (error) => {
+        this.isAssigningSkills = false;
+        this.assignSkillsError = error?.error?.message || 'Failed to assign skills';
+      }
+    });
   }
 }

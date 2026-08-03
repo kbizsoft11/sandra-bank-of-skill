@@ -181,6 +181,12 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       roles: ['admin'],
     },
     {
+      label: 'Analytics',
+      path: 'admin-skill-category-analytics',
+      icon: 'bi bi-bar-chart',
+      roles: ['admin'],
+    },
+    {
       label: 'Questionnaires',
       path: 'questionnaires',
       icon: 'bi bi-clipboard-check',

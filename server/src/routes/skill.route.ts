@@ -87,6 +87,15 @@ router.put(
   skillController.update
 );
 
+// Archive/unarchive a skill
+router.patch(
+  "/:id/archive",
+  authenticate,
+  validateParams(skillIdParamSchema),
+  validate(archiveSkillSchema),
+  skillController.archive
+);
+
 // Admin can delete any skill, employees can delete their own
 router.delete(
   "/:id",

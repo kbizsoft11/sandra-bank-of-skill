@@ -1,4 +1,4 @@
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" style="background-color: #f8f9fa;">
 
   <!-- Header Section -->
   <div class="d-flex align-items-center justify-content-between mb-4">
@@ -16,8 +16,33 @@
     </a>
   </div>
 
-  <!-- Filters Section -->
+  <!-- Filters & Tabs Section -->
   <div class="rounded-4 border bg-white shadow-sm overflow-hidden mb-4">
+    <!-- Tabs -->
+    <div class="border-bottom">
+      <ul class="nav nav-tabs mb-0" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button 
+            class="nav-link"
+            [class.active]="selectedArchiveFilter() === 'active'"
+            (click)="selectedArchiveFilter.set('active'); currentPage.set(1); loadSkills()"
+            type="button">
+            Active Skills
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button 
+            class="nav-link"
+            [class.active]="selectedArchiveFilter() === 'archived'"
+            (click)="selectedArchiveFilter.set('archived'); currentPage.set(1); loadSkills()"
+            type="button">
+            Archived Skills
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Filters -->
     <div class="px-4 py-3 border-bottom bg-light">
       <div class="row g-3">
         <!-- Category Filter -->
@@ -103,7 +128,6 @@
                   Category <i class="bi" [ngClass]="'bi-' + getSortIcon('category')"></i>
                 </span>
               </th>
-              <th class="px-4 py-3" style="width: 28%;">Description</th>
               <th class="px-4 py-3 text-center" style="width: 8%;">
                 <span class="cursor-pointer" (click)="sortBy('status')" title="Click to sort">
                   Status <i class="bi" [ngClass]="'bi-' + getSortIcon('status')"></i>
@@ -133,9 +157,6 @@
                   <span [ngClass]="skill.createdType === 'COMPANY' ? 'badge bg-info-subtle text-info-emphasis' : 'badge bg-warning-subtle text-warning-emphasis'">
                     {{ skill.category?.name || 'Unknown' }}
                   </span>
-                </td>
-                <td class="px-4 py-3 text-secondary">
-                  <small>{{ skill.description || '-' }}</small>
                 </td>
                 <td class="px-4 py-3 text-center">
                   <span class="badge" [ngClass]="skill.status === 'active' ? 'bg-success' : 'bg-secondary'">
@@ -167,14 +188,25 @@
                         style="flex-shrink: 0; padding: 0.35rem 0.5rem;">
                         <i class="bi bi-pencil"></i>
                       </button>
-                      <button 
-                        type="button"
-                        class="btn btn-sm btn-outline-danger"
-                        (click)="deleteSkill(skill)"
-                        title="Delete skill"
-                        style="flex-shrink: 0; padding: 0.35rem 0.5rem;">
-                        <i class="bi bi-trash"></i>
-                      </button>
+                      @if (!skill.archived) {
+                        <button 
+                          type="button"
+                          class="btn btn-sm btn-outline-danger"
+                          (click)="deleteSkill(skill)"
+                          title="Archive skill"
+                          style="flex-shrink: 0; padding: 0.35rem 0.5rem;">
+                          <i class="bi bi-archive"></i>
+                        </button>
+                      } @else {
+                        <button 
+                          type="button"
+                          class="btn btn-sm btn-outline-success"
+                          (click)="unarchiveSkill(skill)"
+                          title="Restore archived skill"
+                          style="flex-shrink: 0; padding: 0.35rem 0.5rem;">
+                          <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                      }
                     } @else {
                       <!-- Admin skills: view only -->
                       <button 

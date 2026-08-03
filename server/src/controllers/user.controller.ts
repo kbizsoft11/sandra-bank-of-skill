@@ -748,6 +748,36 @@ export const getJobRoles = asyncHandler(
   }
 );
 
+export const bulkUpdateEmployees = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userRole = (req as any).user?.role;
+    const userOrgId = (req as any).user?.organisationId;
+    const { employeeIds, updates } = req.body;
+
+    if (!Array.isArray(employeeIds) || employeeIds.length === 0) {
+      return sendResponse(res, 400, 'employeeIds array is required and cannot be empty');
+    }
+
+    if (!updates || Object.keys(updates).length === 0) {
+      return sendResponse(res, 400, 'At least one field to update is required');
+    }
+
+    const result = await userService.bulkUpdateEmployees(
+      employeeIds,
+      updates,
+      userRole,
+      userOrgId
+    );
+
+    return sendResponse(
+      res,
+      200,
+      'Employees updated successfully',
+      result
+    );
+  }
+);
+
 export const exportEmployees = asyncHandler(
   async (req: Request, res: Response) => {
     const userRole = (req as any).user?.role;
@@ -910,5 +940,65 @@ export const getAllActivities = asyncHandler(
       result
     );
 
+  }
+);
+
+
+export const getEmployeeSkills = asyncHandler(
+  async (req: Request, res: Response) => {
+    const employeeId = req.params.id as string;
+    const userRole = (req as any).user?.role;
+    const userOrgId = (req as any).user?.organisationId;
+
+    // Verify employee belongs to company
+    const employee = await userRepository.findById(employeeId);
+    if (!employee) {
+      return sendResponse(res, 404, 'Employee not found');
+    }
+
+    if (userRole === 'company' && employee.organisationId !== userOrgId) {
+      return sendResponse(res, 403, 'Access denied');
+    }
+
+    const skills = await userService.getEmployeeSkills(employeeId);
+
+    return sendResponse(
+      res,
+      200,
+      'Employee skills fetched successfully',
+      skills
+    );
+  }
+);
+
+export const assignSkillsToEmployee = asyncHandler(
+  async (req: Request, res: Response) => {
+    const employeeId = req.params.id as string;
+    const { skills } = req.body as { skills: Array<{ skillId: string; score?: number; level?: string }> };
+    const userRole = (req as any).user?.role;
+    const userOrgId = (req as any).user?.organisationId;
+
+    // Verify employee belongs to company
+    const employee = await userRepository.findById(employeeId);
+    if (!employee) {
+      return sendResponse(res, 404, 'Employee not found');
+    }
+
+    if (userRole === 'company' && employee.organisationId !== userOrgId) {
+      return sendResponse(res, 403, 'Access denied');
+    }
+
+    if (!Array.isArray(skills)) {
+      return sendResponse(res, 400, 'skills must be an array');
+    }
+
+    const result = await userService.assignSkillsToEmployee(employeeId, skills);
+
+    return sendResponse(
+      res,
+      200,
+      'Skills assigned successfully',
+      result
+    );
   }
 );

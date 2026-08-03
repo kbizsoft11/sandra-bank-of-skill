@@ -181,38 +181,46 @@ class SkillService {
     }
 
     // If category is being updated, verify new category exists and company has access
-    if (data.categoryId && data.categoryId !== skill.categoryId.toString()) {
-      const category = await skillCategoryRepository.findById(data.categoryId);
-      if (!category) {
-        throw new ApiError(StatusCodes.NOT_FOUND, "New skill category not found");
-      }
-
-      // Verify company has access to new category
-      if (userRole === "company") {
-        const companyIdObjectId = new Schema.Types.ObjectId(companyId!);
-
-        // Case 1: Company's own category
-        if (category.createdType === "COMPANY" && category.companyId?.toString() === companyId) {
-          // OK - allowed
+    // Allow null categoryId to make skills orphan
+    const currentCategoryId = skill.categoryId ? skill.categoryId.toString() : null;
+    if (data.categoryId !== undefined && data.categoryId !== currentCategoryId) {
+      // If categoryId is being set to null, that's allowed (makes skill orphan)
+      if (data.categoryId === null) {
+        // Making skill orphan - this is allowed
+      } else {
+        // Setting to a specific category - validate it exists and user has access
+        const category = await skillCategoryRepository.findById(data.categoryId);
+        if (!category) {
+          throw new ApiError(StatusCodes.NOT_FOUND, "New skill category not found");
         }
-        // Case 2: Admin category that company has selected
-        else if (category.createdType === "ADMIN") {
-          const companySkillCategoryRepo = new CompanySkillCategoryRepository();
-          
-          const mapping = await companySkillCategoryRepo.findByCompanyAndCategory(companyId || "", data.categoryId);
-          if (!mapping) {
+
+        // Verify company has access to new category
+        if (userRole === "company") {
+          const companyIdObjectId = new Schema.Types.ObjectId(companyId!);
+
+          // Case 1: Company's own category
+          if (category.createdType === "COMPANY" && category.companyId?.toString() === companyId) {
+            // OK - allowed
+          }
+          // Case 2: Admin category that company has selected
+          else if (category.createdType === "ADMIN") {
+            const companySkillCategoryRepo = new CompanySkillCategoryRepository();
+            
+            const mapping = await companySkillCategoryRepo.findByCompanyAndCategory(companyId || "", data.categoryId);
+            if (!mapping) {
+              throw new ApiError(
+                StatusCodes.FORBIDDEN,
+                "You can only use your own categories or selected admin categories"
+              );
+            }
+          }
+          // Case 3: Not allowed
+          else {
             throw new ApiError(
               StatusCodes.FORBIDDEN,
               "You can only use your own categories or selected admin categories"
             );
           }
-        }
-        // Case 3: Not allowed
-        else {
-          throw new ApiError(
-            StatusCodes.FORBIDDEN,
-            "You can only use your own categories or selected admin categories"
-          );
         }
       }
     }
@@ -303,7 +311,7 @@ class SkillService {
   }
 
   /**
-   * Assign skills to category
+   * Assign skills to category (handles orphan skills with null categoryId)
    */
   async assignSkillsToCategory(skillIds: string[], categoryId: string) {
     // Verify category exists
@@ -318,7 +326,7 @@ class SkillService {
       throw new ApiError(StatusCodes.NOT_FOUND, "One or more skills not found");
     }
 
-    // Update category for all skills
+    // Update category for all skills (works for both categorized and orphan skills)
     return skillRepository.updateCategoryForSkills(skillIds, categoryId);
   }
 
@@ -330,7 +338,7 @@ class SkillService {
   }
 
   /**
-   * Remove skills from category
+   * Remove skills from category (make them orphan by setting categoryId to null)
    */
   async removeSkillsFromCategory(skillIds: string[]) {
     // Verify skills exist
@@ -339,8 +347,8 @@ class SkillService {
       throw new ApiError(StatusCodes.NOT_FOUND, "One or more skills not found");
     }
 
-    // Delete skills
-    return skillRepository.deleteByIds(skillIds);
+    // Set categoryId to null (make them orphan)
+    return skillRepository.removeFromCategory(skillIds);
   }
 
   /**

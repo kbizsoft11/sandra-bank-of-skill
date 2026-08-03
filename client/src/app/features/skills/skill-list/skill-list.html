@@ -32,52 +32,6 @@
   <!-- Filters Section -->
   <div class="px-4 py-3 border-bottom bg-light">
 
-    <!-- Bulk Actions Toolbar (shown when skills are selected) -->
-    @if (selectedCount() > 0) {
-      <div class="alert alert-info d-flex align-items-center justify-content-between mb-3" role="alert">
-        <div>
-          <strong>{{ selectedCount() }} skill(s) selected</strong>
-        </div>
-        <div class="d-flex gap-2">
-          <button 
-            type="button" 
-            class="btn btn-sm btn-outline-primary"
-            (click)="onBulkMoveToCategory()"
-            title="Move selected skills to another category">
-            <i class="bi bi-arrow-left-right"></i> Move to Category
-          </button>
-          <button 
-            type="button" 
-            class="btn btn-sm btn-outline-success"
-            (click)="onBulkSetActive()"
-            title="Mark selected skills as active">
-            <i class="bi bi-check-circle"></i> Mark Active
-          </button>
-          <button 
-            type="button" 
-            class="btn btn-sm btn-outline-warning"
-            (click)="onBulkSetInactive()"
-            title="Mark selected skills as inactive">
-            <i class="bi bi-x-circle"></i> Mark Inactive
-          </button>
-          <button 
-            type="button" 
-            class="btn btn-sm btn-outline-danger"
-            (click)="onBulkDelete()"
-            title="Permanently delete selected skills">
-            <i class="bi bi-trash"></i> Delete
-          </button>
-          <button 
-            type="button" 
-            class="btn btn-sm btn-outline-secondary"
-            (click)="clearSelection()"
-            title="Clear all selections">
-            <i class="bi bi-x"></i> Clear
-          </button>
-        </div>
-      </div>
-    }
-
     <div class="row g-3">
       <!-- Search -->
       <div class="col-md-6">
@@ -175,20 +129,7 @@
 
           <tr class="table-light">
 
-            <th class="px-4 py-3" style="width: 40px; text-align: center;">
-              <div class="form-check">
-                <input 
-                  type="checkbox" 
-                  id="selectAllCheckbox"
-                  class="form-check-input"
-                  [checked]="areAllPaginatedSelected()"
-                  (change)="toggleSelectAll()"
-                  [disabled]="currentSkills().length === 0"
-                  title="Select all on this page">
-              </div>
-            </th>
-
-            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 25%">
+            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 30%">
               Skill Name
             </th>
 
@@ -196,17 +137,31 @@
               Category
             </th>
 
-            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 35%">
-              Description
-            </th>
+            @if (isViewingEmployeeSkills()) {
+              <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 15%; text-align: center;">
+                Score
+              </th>
 
-            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 10%; text-align: center;">
-              Status
-            </th>
+              <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 15%; text-align: center;">
+                Level
+              </th>
 
-            <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 10%; text-align: center;">
-              Actions
-            </th>
+              <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 10%; text-align: center;">
+                Status
+              </th>
+            } @else {
+              <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 30%">
+                Description
+              </th>
+
+              <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 10%; text-align: center;">
+                Status
+              </th>
+
+              <th class="px-4 py-3 text-uppercase small fw-semibold text-secondary" style="width: 10%; text-align: center;">
+                Actions
+              </th>
+            }
 
           </tr>
 
@@ -216,18 +171,7 @@
 
           @for(skill of currentSkills(); track skill._id) {
 
-          <tr class="border-bottom" [class.table-light]="isSkillSelected(skill._id)">
-
-            <td class="px-4 py-3" style="text-align: center;">
-              <div class="form-check">
-                <input 
-                  type="checkbox"
-                  class="form-check-input"
-                  [id]="'skill-' + skill._id"
-                  [checked]="isSkillSelected(skill._id)"
-                  (change)="toggleSkillSelection(skill._id)">
-              </div>
-            </td>
+          <tr class="border-bottom">
 
             <td class="px-4 py-3">
               <span class="fw-medium text-dark">{{ skill.name }}</span>
@@ -239,19 +183,34 @@
               </span>
             </td>
 
-            <td class="px-4 py-3 text-secondary">
-              <small>{{ skill.description || '-' }}</small>
-            </td>
+            @if (isViewingEmployeeSkills()) {
+              <td class="px-4 py-3" style="text-align: center;">
+                <strong class="text-primary">{{ getSkillScore(skill) }}/100</strong>
+              </td>
 
-            <td class="px-4 py-3 text-center">
-              <span class="badge" [ngClass]="skill.status === 'active' ? 'bg-success' : 'bg-secondary'">
-                {{ skill.status === 'active' ? 'Active' : 'Inactive' }}
-              </span>
-            </td>
+              <td class="px-4 py-3" style="text-align: center;">
+                <span class="badge" [ngClass]="getSkillLevelBadgeClass(skill)">
+                  {{ getSkillLevel(skill) }}
+                </span>
+              </td>
 
-            <td class="px-4 py-3 text-center">
+              <td class="px-4 py-3" style="text-align: center;">
+                <span class="badge" [ngClass]="skill.status === 'active' ? 'bg-success' : 'bg-secondary'">
+                  {{ skill.status === 'active' ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+            } @else {
+              <td class="px-4 py-3 text-secondary">
+                <small>{{ skill.description || '-' }}</small>
+              </td>
 
-              @if (canModifySkills()) {
+              <td class="px-4 py-3 text-center">
+                <span class="badge" [ngClass]="skill.status === 'active' ? 'bg-success' : 'bg-secondary'">
+                  {{ skill.status === 'active' ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+
+              <td class="px-4 py-3 text-center">
                 <div class="d-flex gap-1 justify-content-center">
                   <button 
                     type="button"
@@ -270,11 +229,8 @@
                     (delete)="deleteSkill(skill)">
                   </app-table-actions>
                 </div>
-              } @else {
-                <span class="text-muted small">-</span>
-              }
-
-            </td>
+              </td>
+            }
 
           </tr>
 

@@ -6,6 +6,7 @@ import { sendResponse } from '../utils/api-response';
 import { asyncHandler } from '../utils/async-handler';
 import { userService } from '../services/user.service';
 import { userRepository } from '../repositories/user.repository';
+import { organisationRepository } from '../repositories/organisation.repository';
 
 // ======================== COMPANY PORTAL ROUTES ========================
 
@@ -26,15 +27,22 @@ export const getMyOrganisation = asyncHandler(
       );
     }
 
-    // Fetch organisation (would need an Organisation repository)
-    // For now, return the user's organisation context
-    const user = await userRepository.findById(userId);
+    // Fetch organisation by ID
+    const organisation = await organisationRepository.findById(organisationId);
+
+    if (!organisation) {
+      return sendResponse(
+        res,
+        404,
+        'Organisation not found'
+      );
+    }
 
     return sendResponse(
       res,
       200,
       'Organisation fetched successfully',
-      user
+      organisation
     );
   }
 );

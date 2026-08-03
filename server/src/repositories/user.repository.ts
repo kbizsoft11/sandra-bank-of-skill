@@ -31,11 +31,118 @@ export const userRepository = {
       filter.tenantId = tenantId;
     }
     
-    return UserModel.find(filter).select("-password");
+    // Use aggregation pipeline to include designation lookup
+    const pipeline: any[] = [
+      { $match: filter },
+      
+      // Lookup designation from roles - convert designationId string to ObjectId for comparison
+      {
+        $lookup: {
+          from: 'roles',
+          let: { designationId: '$designationId' },
+          pipeline: [
+            { 
+              $match: { 
+                $expr: { 
+                  $eq: ['$_id', { $toObjectId: '$$designationId' }] 
+                } 
+              } 
+            },
+          ],
+          as: 'designation',
+        },
+      },
+
+      // Unwind designation (handle null case)
+      {
+        $unwind: {
+          path: '$designation',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // Project fields - include all user fields plus designationName
+      {
+        $project: {
+          password: 0,
+          designation: 0,
+          designationName: { $ifNull: ['$designation.designationName', null] },
+        },
+      },
+    ];
+    
+    return UserModel.aggregate(pipeline);
   },
 
   findById: async (id: string) => {
-    return UserModel.findById(id).select("-password");
+    const ObjectId = require('mongoose').Types.ObjectId;
+    const pipeline: any[] = [
+      { $match: { _id: new ObjectId(id) } },
+      
+      // Convert designationId to string for comparison if it's an ObjectId
+      {
+        $addFields: {
+          designationIdStr: { $toString: '$designationId' }
+        }
+      },
+      
+      // Lookup designation from roles
+      {
+        $lookup: {
+          from: 'roles',
+          let: { designationId: '$designationIdStr' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: [{ $toString: '$_id' }, '$$designationId']
+                }
+              }
+            }
+          ],
+          as: 'designation',
+        },
+      },
+
+      // Unwind designation (optional, single value)
+      {
+        $unwind: {
+          path: '$designation',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // Project fields - include only what we need
+      {
+        $project: {
+          _id: 1,
+          fullName: 1,
+          email: 1,
+          role: 1,
+          title: 1,
+          department: 1,
+          location: 1,
+          team: 1,
+          bio: 1,
+          profileImage: 1,
+          isActive: 1,
+          accountStatus: 1,
+          designationId: 1,
+          organisationId: 1,
+          tenantId: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          designationName: { $ifNull: ['$designation.designationName', null] },
+        },
+      },
+    ];
+
+    const result = await UserModel.aggregate(pipeline);
+    return result.length > 0 ? result[0] : null;
+  },
+
+  findByIds: async (ids: string[]) => {
+    return UserModel.find({ _id: { $in: ids } }).select("-password");
   },
 
   update: async (id: string, payload: Partial<IUser>) => {
@@ -121,21 +228,44 @@ export const userRepository = {
     }
     pipeline.push({ $match: matchStage });
 
-    // Lookup skills for each employee
+    // Lookup skills from skilluser collection
+    pipeline.push({
+      $lookup: {
+        from: 'skillusers',
+        localField: '_id',
+        foreignField: 'userId',
+        as: 'skillUsers',
+      },
+    });
+
+    // Lookup skill details
     pipeline.push({
       $lookup: {
         from: 'skills',
-        localField: '_id',
-        foreignField: 'user_id',
+        localField: 'skillUsers.skillId',
+        foreignField: '_id',
         as: 'skills',
       },
+    });
+
+    // Filter out archived skills
+    pipeline.push({
+      $addFields: {
+        skills: {
+          $filter: {
+            input: '$skills',
+            as: 'skill',
+            cond: { $eq: ['$$skill.archived', false] }
+          }
+        }
+      }
     });
 
     // Lookup skill categories through skills
     pipeline.push({
       $lookup: {
         from: 'skillcategories',
-        localField: 'skills.cat_id',
+        localField: 'skills.categoryId',
         foreignField: '_id',
         as: 'skillCategories',
       },
@@ -159,6 +289,32 @@ export const userRepository = {
       },
     });
 
+    // Lookup designation from roles
+    pipeline.push({
+      $lookup: {
+        from: 'roles',
+        let: { designationId: '$designationId' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ['$_id', { $toObjectId: '$$designationId' }]
+              }
+            }
+          }
+        ],
+        as: 'designation',
+      },
+    });
+
+    // Unwind designation (optional, single value)
+    pipeline.push({
+      $unwind: {
+        path: '$designation',
+        preserveNullAndEmptyArrays: true,
+      },
+    });
+
     // Apply filters
     const filterStage: any = {};
 
@@ -172,12 +328,12 @@ export const userRepository = {
 
     // Filter by skill name
     if (skill) {
-      filterStage['skills.skill_name'] = { $regex: skill, $options: 'i' };
+      filterStage['skills.name'] = { $regex: skill, $options: 'i' };
     }
 
     // Filter by skill category name
     if (category) {
-      filterStage['skillCategories.cat_name'] = { $regex: category, $options: 'i' };
+      filterStage['skillCategories.name'] = { $regex: category, $options: 'i' };
     }
 
     // Filter by department
@@ -213,6 +369,8 @@ export const userRepository = {
         profileImage: 1,
         tenantId: 1,
         organisationId: 1,
+        designationId: 1,
+        designationName: { $ifNull: ['$designation.designationName', null] },
         'organisation.organisationName': 1,
         skills: {
           $map: {
@@ -220,10 +378,19 @@ export const userRepository = {
             as: 'skill',
             in: {
               _id: '$$skill._id',
-              skill_name: '$$skill.skill_name',
-              skill_level: '$$skill.skill_level',
-              skill_score: '$$skill.skill_score',
-              cat_id: '$$skill.cat_id',
+              name: '$$skill.name',
+              categoryId: '$$skill.categoryId',
+            },
+          },
+        },
+        skillUsers: {
+          $map: {
+            input: '$skillUsers',
+            as: 'su',
+            in: {
+              skillId: '$$su.skillId',
+              score: '$$su.score',
+              level: '$$su.level',
             },
           },
         },
@@ -233,7 +400,7 @@ export const userRepository = {
             as: 'cat',
             in: {
               _id: '$$cat._id',
-              cat_name: '$$cat.cat_name',
+              name: '$$cat.name',
             },
           },
         },
@@ -478,13 +645,57 @@ export const userRepository = {
     // Get total count
     const total = await UserModel.countDocuments(filter);
 
-    // Get users with pagination and sort
-    const users = await UserModel
-      .find(filter)
-      .select('-password')
-      .sort(sortObj)
-      .skip(skip)
-      .limit(limit);
+    // Get users with pagination, sort, and designation lookup
+    const pipeline: any[] = [
+      { $match: filter },
+      
+      // Lookup designation from roles - convert designationId string to ObjectId for comparison
+      {
+        $lookup: {
+          from: 'roles',
+          let: { designationId: '$designationId' },
+          pipeline: [
+            { 
+              $match: { 
+                $expr: { 
+                  $eq: ['$_id', { $toObjectId: '$$designationId' }] 
+                } 
+              } 
+            },
+          ],
+          as: 'designation',
+        },
+      },
+
+      // Unwind designation (handle null case)
+      {
+        $unwind: {
+          path: '$designation',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // Add designationName field
+      {
+        $addFields: {
+          designationName: { $ifNull: ['$designation.designationName', null] },
+        },
+      },
+
+      { $sort: sortObj },
+      { $skip: skip },
+      { $limit: limit },
+
+      // Project fields - exclude password and temporary designation object
+      {
+        $project: {
+          password: 0,
+          designation: 0,
+        },
+      },
+    ];
+
+    const users = await UserModel.aggregate(pipeline);
 
     return {
       users,
@@ -553,13 +764,57 @@ export const userRepository = {
     // Get total count
     const total = await UserModel.countDocuments(filter);
 
-    // Get employees with pagination and sort
-    const users = await UserModel
-      .find(filter)
-      .select('-password')
-      .sort(sortObj)
-      .skip(skip)
-      .limit(limit);
+    // Get employees with pagination, sort, and designation lookup
+    const pipeline: any[] = [
+      { $match: filter },
+      
+      // Lookup designation from roles - convert designationId string to ObjectId for comparison
+      {
+        $lookup: {
+          from: 'roles',
+          let: { designationId: '$designationId' },
+          pipeline: [
+            { 
+              $match: { 
+                $expr: { 
+                  $eq: ['$_id', { $toObjectId: '$$designationId' }] 
+                } 
+              } 
+            },
+          ],
+          as: 'designation',
+        },
+      },
+
+      // Unwind designation (handle null case)
+      {
+        $unwind: {
+          path: '$designation',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // Add designationName field
+      {
+        $addFields: {
+          designationName: { $ifNull: ['$designation.designationName', null] },
+        },
+      },
+
+      { $sort: sortObj },
+      { $skip: skip },
+      { $limit: limit },
+
+      // Project fields - exclude password and temporary designation object
+      {
+        $project: {
+          password: 0,
+          designation: 0,
+        },
+      },
+    ];
+
+    const users = await UserModel.aggregate(pipeline);
 
     return {
       users,

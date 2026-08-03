@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 
 import { SkillService } from '../../../core/services/skill.service';
 import { SkillCategoryService } from '../../../core/services/skill-category.service';
+import { UserService } from '../../../core/services/user.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -35,6 +36,7 @@ export class SkillList implements OnInit {
 
   private readonly service = inject(SkillService);
   private readonly categoryService = inject(SkillCategoryService);
+  private readonly userService = inject(UserService);
   private readonly alertService = inject(AlertService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -138,6 +140,48 @@ export class SkillList implements OnInit {
     this.isLoading.set(true);
     const employeeId = this.employeeId();
     
+    // If viewing employee skills, fetch from the employee skills endpoint
+    if (this.isViewingEmployeeSkills() && employeeId) {
+      this.loadEmployeeSkills(employeeId);
+    } else {
+      // Otherwise load company/admin skills
+      this.loadCompanySkills();
+    }
+  }
+
+  private loadEmployeeSkills(employeeId: string): void {
+    // Use userService to get employee skills from SkillUser table
+    this.userService.getEmployeeSkills(employeeId).subscribe({
+      next: (response: any) => {
+        const skills = response.data || [];
+        
+        // Transform skill user data to match Skill interface
+        const transformedSkills = skills
+          .map((su: any) => ({
+            _id: su.skillId?._id || su.skillId,
+            name: su.skillId?.name || 'Unknown Skill',
+            categoryId: su.skillId?.categoryId,
+            score: su.score || 0,
+            level: su.level || 'beginner',
+            archived: su.skillId?.archived || false,
+            status: su.skillId?.status || 'active',
+          }))
+          // Filter out archived skills
+          .filter((skill: any) => !skill.archived);
+        
+        this.currentSkills.set(transformedSkills);
+        this.totalSkills.set(transformedSkills.length);
+        this.isLoading.set(false);
+      },
+      error: (err: any) => {
+        console.error('Failed to load employee skills:', err);
+        this.alertService.error('Failed to load employee skills');
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  private loadCompanySkills(): void {
     // Build query parameters with pagination and filters
     const query: any = {
       page: this.currentPage(),
@@ -154,10 +198,6 @@ export class SkillList implements OnInit {
 
     if (this.statusFilter()) {
       query.status = this.statusFilter();
-    }
-
-    if (this.isViewingEmployeeSkills() && employeeId) {
-      query.user_id = employeeId;
     }
 
     this.service.getSkills(query).subscribe({
@@ -243,6 +283,22 @@ export class SkillList implements OnInit {
       return skill.categoryId;
     }
     return (skill.categoryId as any)?.name || 'Unknown';
+  }
+
+  getSkillLevel(skill: any): string {
+    return (skill && skill.level) ? skill.level : 'beginner';
+  }
+
+  getSkillScore(skill: any): number {
+    return (skill && skill.score) ? skill.score : 0;
+  }
+
+  getSkillLevelBadgeClass(skill: any): string {
+    const level = (skill && skill.level) ? skill.level.toLowerCase() : 'beginner';
+    if (level === 'expert') return 'bg-success';
+    if (level === 'advanced') return 'bg-info';
+    if (level === 'intermediate') return 'bg-warning';
+    return 'bg-secondary';
   }
 
   onSearch(value: string): void {
