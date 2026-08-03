@@ -1,5 +1,5 @@
 // ============================================
-// SKILL CATEGORY ANALYTICS - PROFESSIONAL DESIGN
+// SKILL ANALYTICS - PROFESSIONAL DESIGN
 // ============================================
 
 // Color Palette
@@ -147,7 +147,7 @@ $text-secondary: #6c757d;
 }
 
 // ============================================
-// HEADER SECTION
+// STAT CARDS - SIMPLE & PROFESSIONAL
 // ============================================
 .analytics-header {
   margin-bottom: 2.5rem;
@@ -619,27 +619,31 @@ $text-secondary: #6c757d;
   }
 
   .growth-assignments {
-    background: rgba($info, 0.1);
-    color: $info;
+    color: white;
     padding: 0.4rem 0.75rem;
     border-radius: 4px;
     font-size: 0.8rem;
     font-weight: 600;
     flex-shrink: 0;
 
-    &.bg-primary {
-      background: $primary;
-      color: white;
-    }
-
-    &.bg-success {
-      background: $success;
-      color: white;
+    &.bg-warning {
+      background: $warning;
     }
 
     &.bg-danger {
       background: $danger;
-      color: white;
+    }
+
+    &.bg-primary {
+      background: $primary;
+    }
+
+    &.bg-success {
+      background: $success;
+    }
+
+    &.bg-info {
+      background: $info;
     }
   }
 }

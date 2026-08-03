@@ -4,11 +4,11 @@
     <div class="d-flex align-items-center justify-content-between mb-2">
       <div class="d-flex align-items-center gap-3">
         <div class="header-icon">
-          <i class="bi bi-bar-chart-line"></i>
+          <i class="bi bi-lightning-fill"></i>
         </div>
         <div>
-          <h1 class="page-title mb-0">Skill Categories Analytics</h1>
-          <p class="text-secondary mb-0">Skill distribution by category, employee adoption, and category performance</p>
+          <h1 class="page-title mb-0">Skills Analytics</h1>
+          <p class="text-secondary mb-0">Individual skill performance, adoption rates, and gap analysis</p>
         </div>
       </div>
       <div class="export-buttons" *ngIf="analytics() && !loading()">
@@ -92,11 +92,12 @@
       <div class="col-md-6 col-lg-3">
         <div class="stat-card card-primary">
           <div class="stat-icon">
-            <i class="bi bi-folder-fill"></i>
+            <i class="bi bi-lightning-fill"></i>
           </div>
           <div class="stat-content">
-            <p class="stat-label">Total Categories</p>
-            <h3 class="stat-value">{{ analytics()!.summary.totalCategories }}</h3>
+            <p class="stat-label">Total Skills</p>
+            <h3 class="stat-value">{{ analytics()!.summary.totalSkills }}</h3>
+            <small class="stat-meta">in system</small>
           </div>
         </div>
       </div>
@@ -104,23 +105,12 @@
       <div class="col-md-6 col-lg-3">
         <div class="stat-card card-success">
           <div class="stat-icon">
-            <i class="bi bi-star-fill"></i>
+            <i class="bi bi-check-circle-fill"></i>
           </div>
           <div class="stat-content">
-            <p class="stat-label">Total Skills</p>
-            <h3 class="stat-value">{{ analytics()!.summary.totalSkills }}</h3>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6 col-lg-3">
-        <div class="stat-card card-info">
-          <div class="stat-icon">
-            <i class="bi bi-people-fill"></i>
-          </div>
-          <div class="stat-content">
-            <p class="stat-label">Employees with Skills</p>
-            <h3 class="stat-value">{{ analytics()!.summary.totalEmployeesWithSkills }}</h3>
+            <p class="stat-label">Skills Assigned</p>
+            <h3 class="stat-value">{{ analytics()!.summary.skillsWithAssignments }}</h3>
+            <small class="stat-meta">to employees</small>
           </div>
         </div>
       </div>
@@ -128,11 +118,25 @@
       <div class="col-md-6 col-lg-3">
         <div class="stat-card card-warning">
           <div class="stat-icon">
+            <i class="bi bi-exclamation-circle-fill"></i>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Skills Gap</p>
+            <h3 class="stat-value">{{ analytics()!.summary.skillsWithoutAssignments }}</h3>
+            <small class="stat-meta">not assigned</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="stat-card card-info">
+          <div class="stat-icon">
             <i class="bi bi-graph-up"></i>
           </div>
           <div class="stat-content">
-            <p class="stat-label">Avg Employees/Category</p>
-            <h3 class="stat-value">{{ analytics()!.summary.averageEmployeesPerCategory }}</h3>
+            <p class="stat-label">Avg Skills/Employee</p>
+            <h3 class="stat-value">{{ analytics()!.summary.averageSkillsPerEmployee }}</h3>
+            <small class="stat-meta">per employee</small>
           </div>
         </div>
       </div>
@@ -141,51 +145,30 @@
     <!-- Charts Row -->
     <div class="charts-section mb-5">
       <div class="row g-4">
-        <!-- Skills per Category -->
+        <!-- Average Skill Level -->
         <div class="col-lg-6">
           <div class="chart-card">
             <div class="chart-header">
               <h5 class="chart-title">
                 <i class="bi bi-bar-chart-fill"></i>
-                Total Skills per Category
+                Top 10 Skills by Average Level
               </h5>
             </div>
             <div class="chart-body">
               <div style="height: 300px;">
-                <canvas #skillsPerCategoryChart></canvas>
+                <canvas #skillLevelChart></canvas>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Employees per Category -->
-        <div class="col-lg-6">
-          <div class="chart-card">
-            <div class="chart-header">
-              <h5 class="chart-title">
-                <i class="bi bi-people-fill"></i>
-                Employees Using Skills
-              </h5>
-            </div>
-            <div class="chart-body">
-              <div style="height: 300px;">
-                <canvas #employeesPerCategoryChart></canvas>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="charts-section mb-5">
-      <div class="row g-4">
-        <!-- Adoption Rate -->
+        <!-- Most Popular Skills -->
         <div class="col-lg-6">
           <div class="chart-card">
             <div class="chart-header">
               <h5 class="chart-title">
                 <i class="bi bi-pie-chart-fill"></i>
-                Most Popular Categories
+                Most Popular Skills (Adoption Rate)
               </h5>
             </div>
             <div class="chart-body">
@@ -195,19 +178,40 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- Level Distribution -->
+    <div class="charts-section mb-5">
+      <div class="row g-4">
+        <!-- Skill Growth Trend -->
         <div class="col-lg-6">
           <div class="chart-card">
             <div class="chart-header">
               <h5 class="chart-title">
-                <i class="bi bi-donut-chart"></i>
-                Overall Level Distribution
+                <i class="bi bi-graph-up-arrow"></i>
+                Skill Growth Trend
               </h5>
             </div>
             <div class="chart-body">
               <div style="height: 300px;">
-                <canvas #levelDistributionChart></canvas>
+                <canvas #growthTrendChart></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skill Gap Analysis -->
+        <div class="col-lg-6">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h5 class="chart-title">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Skills Gap Analysis (Low Performing)
+              </h5>
+            </div>
+            <div class="chart-body">
+              <div style="height: 300px;">
+                <canvas #gapAnalysisChart></canvas>
               </div>
             </div>
           </div>
@@ -215,13 +219,13 @@
       </div>
     </div>
 
-    <!-- Category Usage Reports Table -->
+    <!-- Most Requested Skills -->
     <div class="table-section mb-5">
       <div class="chart-card">
         <div class="chart-header">
           <h5 class="chart-title">
             <i class="bi bi-table"></i>
-            Category Usage Reports
+            Skill Reports
           </h5>
         </div>
         <div class="chart-body p-0">
@@ -229,9 +233,9 @@
             <table class="table align-middle mb-0 data-table">
               <thead>
                 <tr>
-                  <th>Category</th>
-                  <th class="text-center">Total Skills</th>
-                  <th class="text-center">Employees Using</th>
+                  <th>Skill Name</th>
+                  <th class="text-center">Category</th>
+                  <th class="text-center">Employees</th>
                   <th class="text-center">Assignments</th>
                   <th class="text-center">Avg Score</th>
                   <th class="text-center">Adoption Rate</th>
@@ -239,23 +243,23 @@
                 </tr>
               </thead>
               <tbody>
-                @for (report of analytics()!.categoryUsageReports; track report.categoryId) {
+                @for (report of analytics()!.skillReports; track report.skillId) {
                   <tr>
                     <td>
-                      <span class="fw-medium">{{ report.categoryName }}</span>
+                      <span class="fw-medium">{{ report.skillName }}</span>
                     </td>
                     <td class="text-center">
-                      <span class="badge-stat badge-primary">
-                        {{ report.totalSkills }}
+                      <span class="badge-stat badge-info">
+                        {{ report.categoryName }}
                       </span>
                     </td>
                     <td class="text-center">
                       <span class="badge-stat badge-success">
-                        {{ report.totalEmployeesUsing }}
+                        {{ report.totalEmployeesWithSkill }}
                       </span>
                     </td>
                     <td class="text-center">
-                      <span class="badge-stat badge-info">
+                      <span class="badge-stat badge-primary">
                         {{ report.totalAssignments }}
                       </span>
                     </td>
@@ -286,25 +290,25 @@
       </div>
     </div>
 
-    <!-- Top Categories & Growth -->
+    <!-- Most Requested & Popular Skills -->
     <div class="row g-4">
       <div class="col-lg-6">
         <div class="chart-card">
           <div class="chart-header">
             <h5 class="chart-title">
-              <i class="bi bi-trophy-fill"></i>
-              Top 5 Most Popular Categories
+              <i class="bi bi-fire"></i>
+              Top 5 Most Requested Skills
             </h5>
           </div>
           <div class="chart-body">
-            @for (cat of analytics()!.mostPopularCategories.slice(0, 5); track cat.categoryId; let i = $index) {
+            @for (skill of analytics()!.mostRequestedSkills.slice(0, 5); track skill.skillId; let i = $index) {
               <div class="ranking-item" [class.last]="i === 4">
                 <div class="ranking-number">{{ i + 1 }}</div>
                 <div class="ranking-content">
-                  <h6 class="ranking-name">{{ cat.categoryName }}</h6>
-                  <p class="ranking-meta">{{ cat.employeeCount }} employees • {{ cat.popularity }}% adoption</p>
+                  <h6 class="ranking-name">{{ skill.skillName }}</h6>
+                  <p class="ranking-meta">{{ skill.employeeCount }} employees • {{ skill.assignmentCount }} assignments</p>
                 </div>
-                <div class="ranking-badge">{{ cat.employeeCount }}</div>
+                <div class="ranking-badge">{{ skill.averageScore }}%</div>
               </div>
             }
           </div>
@@ -315,18 +319,18 @@
         <div class="chart-card">
           <div class="chart-header">
             <h5 class="chart-title">
-              <i class="bi bi-graph-up-arrow"></i>
-              Recent Category Growth
+              <i class="bi bi-star-fill"></i>
+              Skill Gap - Priority Training Needed
             </h5>
           </div>
           <div class="chart-body">
-            @for (growth of analytics()!.categoryGrowth.slice(0, 10); track growth._id.category + growth._id.month; let last = $last) {
+            @for (gap of analytics()!.skillGapAnalysis.slice(0, 5); track gap.skillId; let last = $last) {
               <div class="growth-item" [class.last]="last">
                 <div class="growth-date">
-                  <p class="growth-name fw-medium">{{ growth._id.categoryName }}</p>
-                  <small class="growth-meta">{{ formatDate(growth._id.month, growth._id.year) }}</small>
+                  <p class="growth-name fw-medium">{{ gap.skillName }}</p>
+                  <small class="growth-meta">{{ gap.recommendations }}</small>
                 </div>
-                <div class="growth-assignments">{{ growth.count }} assignments</div>
+                <div class="growth-assignments" [ngClass]="gap.averageScore < 30 ? 'bg-danger' : 'bg-warning'">{{ gap.averageScore }}% Score</div>
               </div>
             }
           </div>

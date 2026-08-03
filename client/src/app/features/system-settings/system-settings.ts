@@ -24,12 +24,11 @@ export class SystemSettingsComponent implements OnInit {
   // Form signals
   readonly generalForm = signal<FormGroup | null>(null);
   readonly emailForm = signal<FormGroup | null>(null);
-  readonly securityForm = signal<FormGroup | null>(null);
 
   // State signals
   readonly loading = signal(false);
   readonly saving = signal(false);
-  readonly activeTab = signal<'general' | 'email' | 'security'>('general');
+  readonly activeTab = signal<'general' | 'email'>('general');
 
   // File upload signals
   readonly logoPreview = signal<string | null>(null);
@@ -70,20 +69,6 @@ export class SystemSettingsComponent implements OnInit {
         smtpUsername: ['', Validators.required],
         smtpPassword: ['', Validators.required],
         fromEmail: ['', [Validators.required, Validators.email]],
-      })
-    );
-
-    this.securityForm.set(
-      this.fb.group({
-        jwtExpiry: ['7d', Validators.required],
-        sessionTimeout: [30, [Validators.required, Validators.min(5), Validators.max(1440)]],
-        passwordPolicy: this.fb.group({
-          minLength: [8, [Validators.required, Validators.min(6), Validators.max(32)]],
-          requireUppercase: [true],
-          requireLowercase: [true],
-          requireNumbers: [true],
-          requireSpecialChars: [false],
-        }),
       })
     );
   }
@@ -137,47 +122,6 @@ export class SystemSettingsComponent implements OnInit {
         fromEmail: data.fromEmail,
       });
     }
-
-    // Populate security form
-    if (this.securityForm()) {
-      this.securityForm()!.patchValue({
-        jwtExpiry: data.jwtExpiry || '7d',
-        sessionTimeout: data.sessionTimeout || 30,
-        passwordPolicy: data.passwordPolicy || this.passwordPolicyDefaults,
-      });
-    }
-  }
-
-  /**
-   * Save all changes
-   */
-  saveAllSettings(): void {
-    if (!this.validateAllForms()) {
-      this.alertService.error('Please fix form errors before saving');
-      return;
-    }
-
-    this.saving.set(true);
-
-    const formData = {
-      ...this.generalForm()!.value,
-      ...this.emailForm()!.value,
-      ...this.securityForm()!.value,
-    };
-
-    this.systemSettingsService.updateSettings(formData).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.alertService.success('System settings saved successfully');
-        }
-        this.saving.set(false);
-      },
-      error: (error) => {
-        console.error('Error saving system settings:', error);
-        this.alertService.error(error.error?.error || 'Failed to save system settings');
-        this.saving.set(false);
-      },
-    });
   }
 
   /**
@@ -227,32 +171,6 @@ export class SystemSettingsComponent implements OnInit {
       error: (error) => {
         console.error('Error saving email settings:', error);
         this.alertService.error(error.error?.error || 'Failed to save email settings');
-        this.saving.set(false);
-      },
-    });
-  }
-
-  /**
-   * Save security settings only
-   */
-  saveSecuritySettings(): void {
-    if (!this.securityForm()!.valid) {
-      this.alertService.error('Please fix form errors before saving');
-      return;
-    }
-
-    this.saving.set(true);
-
-    this.systemSettingsService.updateSecuritySettings(this.securityForm()!.value).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.alertService.success('Security settings saved successfully');
-        }
-        this.saving.set(false);
-      },
-      error: (error) => {
-        console.error('Error saving security settings:', error);
-        this.alertService.error(error.error?.error || 'Failed to save security settings');
         this.saving.set(false);
       },
     });
@@ -326,8 +244,7 @@ export class SystemSettingsComponent implements OnInit {
   private validateAllForms(): boolean {
     return (
       this.generalForm()!.valid &&
-      this.emailForm()!.valid &&
-      this.securityForm()!.valid
+      this.emailForm()!.valid
     );
   }
 
@@ -346,14 +263,6 @@ export class SystemSettingsComponent implements OnInit {
    */
   resetEmailForm(): void {
     this.emailForm()!.reset();
-    this.loadSettings();
-  }
-
-  /**
-   * Reset security form
-   */
-  resetSecurityForm(): void {
-    this.securityForm()!.reset();
     this.loadSettings();
   }
 

@@ -8,9 +8,11 @@ import { API_CONFIG } from '../../../core/config/api.config';
 
 interface MenuItem {
   label: string;
-  path: string;  // Just the path without role prefix (e.g., 'dashboard', 'users')
+  path?: string;  // Just the path without role prefix (e.g., 'dashboard', 'users')
   icon: string;
   roles: string[];
+  children?: MenuItem[]; // For dropdown menus
+  isDropdown?: boolean; // Flag to indicate dropdown menu
 }
 
 @Component({
@@ -31,6 +33,7 @@ export class DashboardSidebar implements OnInit, OnDestroy {
 
   showUserMenu = false;
   profileImage = signal<string | null>(null);
+  expandedMenus = signal<{ [key: string]: boolean }>({});
   private docClickHandler = () => { this.showUserMenu = false; };
 
   ngOnInit(): void {
@@ -81,6 +84,30 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       event.stopPropagation();
     }
     this.showUserMenu = !this.showUserMenu;
+  }
+
+  toggleDropdown(label: string, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const expanded = this.expandedMenus();
+    const newExpanded = {
+      ...expanded,
+      [label]: !expanded[label],
+    };
+    this.expandedMenus.set(newExpanded);
+    console.log('Dropdown toggled:', label, 'isExpanded:', newExpanded[label]);
+    
+    // Debug: log menu items with children
+    const menuItems = this.menuItems();
+    const dropdownItem = menuItems.find(item => item.label === label);
+    console.log('Dropdown item:', dropdownItem);
+  }
+
+  isDropdownExpanded(label: string): boolean {
+    const isExpanded = this.expandedMenus()[label] || false;
+    return isExpanded;
   }
 
   logout(): void {
@@ -169,22 +196,56 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       roles: ['admin'],
     },
     {
-      label: 'Skill Categories',
-      path: 'skill-categories',
-      icon: 'bi bi-diagram-3-fill',
+      label: 'Skill Manager',
+      icon: 'bi bi-gear-fill',
       roles: ['admin'],
-    },
-    {
-      label: 'Skills',
-      path: 'skills',
-      icon: 'bi bi-lightbulb-fill',
-      roles: ['admin'],
+      isDropdown: true,
+      children: [
+        {
+          label: 'Skill Categories',
+          path: 'skill-categories',
+          icon: 'bi bi-diagram-3-fill',
+          roles: ['admin'],
+        },
+        {
+          label: 'Skills',
+          path: 'skills',
+          icon: 'bi bi-lightbulb-fill',
+          roles: ['admin'],
+        },
+      ],
     },
     {
       label: 'Analytics',
-      path: 'admin-skill-category-analytics',
       icon: 'bi bi-bar-chart',
       roles: ['admin'],
+      isDropdown: true,
+      children: [
+        {
+          label: 'Skill Categories',
+          path: 'admin-skill-category-analytics',
+          icon: 'bi bi-diagram-3-fill',
+          roles: ['admin'],
+        },
+        {
+          label: 'Skills',
+          path: 'admin-skill-analytics',
+          icon: 'bi bi-star-fill',
+          roles: ['admin'],
+        },
+        {
+          label: 'Companies',
+          path: 'admin-company-analytics',
+          icon: 'bi bi-building-fill',
+          roles: ['admin'],
+        },
+        {
+          label: 'Employees',
+          path: 'admin-employee-analytics',
+          icon: 'bi bi-people-fill',
+          roles: ['admin'],
+        },
+      ],
     },
     {
       label: 'Questionnaires',
@@ -256,16 +317,36 @@ export class DashboardSidebar implements OnInit, OnDestroy {
     const rolePrefix = this.getRolePrefix();
     
     return this.allMenuItems
-      .filter((item, index, self) => {
-        // Filter by role and remove duplicates
-        return item.roles.includes(userRole) && self.findIndex(i => i.path === item.path) === index;
+      .filter((item) => {
+        // Filter by role only - don't remove duplicates here as dropdowns are unique
+        return item.roles.includes(userRole);
       })
       .map(item => {
-        return {
+        const mappedItem: any = {
           label: item.label,
-          route: `/${rolePrefix}/${item.path}`,
           icon: item.icon,
+          isDropdown: item.isDropdown || false,
         };
+
+        if (item.isDropdown && item.children) {
+          // Map children for dropdown
+          mappedItem.children = item.children
+            .filter(child => child.roles.includes(userRole))
+            .map(child => ({
+              label: child.label,
+              route: `/${rolePrefix}/${child.path}`,
+              icon: child.icon,
+            }));
+        } else if (item.path) {
+          mappedItem.route = `/${rolePrefix}/${item.path}`;
+        }
+
+        return mappedItem;
+      })
+      .filter((item, index, self) => {
+        // Remove duplicate non-dropdown items by path
+        if (item.isDropdown) return true; // Always keep dropdowns
+        return self.findIndex(i => !i.isDropdown && i.route === item.route) === index;
       });
   });
 }

@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="mb-4">
     <h1 class="h3 fw-semibold mb-1">System Settings</h1>
-    <p class="text-secondary mb-0">Manage platform configuration, email settings, and security policies</p>
+    <p class="text-secondary mb-0">Manage platform configuration and email settings</p>
   </div>
 
   <!-- Loading State -->
@@ -35,14 +35,6 @@
             role="tab">
             <i class="bi bi-envelope me-2"></i>
             Email Settings
-          </button>
-          <button
-            class="nav-link py-3"
-            [class.active]="activeTab() === 'security'"
-            (click)="activeTab.set('security')"
-            role="tab">
-            <i class="bi bi-shield-lock me-2"></i>
-            Security Settings
           </button>
         </div>
       </div>
@@ -167,12 +159,6 @@
           </h5>
         </div>
         <div class="card-body">
-          <div class="alert alert-info mb-4" role="alert">
-            <i class="bi bi-info-circle me-2"></i>
-            <strong>Note:</strong> These SMTP settings are stored in the database but are not yet connected to email
-            sending. Email integration will be configured in the next phase.
-          </div>
-
           <form [formGroup]="emailForm()!">
             <!-- SMTP Host -->
             <div class="mb-4">
@@ -282,163 +268,5 @@
         </div>
       </div>
     }
-
-    <!-- SECURITY SETTINGS TAB -->
-    @if (activeTab() === 'security' && securityForm()) {
-      <div class="card shadow-sm">
-        <div class="card-header bg-light border-bottom">
-          <h5 class="mb-0">
-            <i class="bi bi-shield-lock me-2"></i>
-            Security Settings
-          </h5>
-        </div>
-        <div class="card-body">
-          <form [formGroup]="securityForm()!">
-            <!-- JWT Expiry -->
-            <div class="mb-4">
-              <label for="jwtExpiry" class="form-label fw-medium">JWT Token Expiry</label>
-              <select class="form-select" id="jwtExpiry" formControlName="jwtExpiry">
-                @for (option of jwtExpiryOptions; track option) {
-                  <option [value]="option">{{ option }}</option>
-                }
-              </select>
-              <small class="text-muted">How long JWT tokens remain valid</small>
-            </div>
-
-            <!-- Session Timeout -->
-            <div class="mb-4">
-              <label for="sessionTimeout" class="form-label fw-medium">Session Timeout (minutes)</label>
-              <input
-                type="number"
-                class="form-control"
-                [class.is-invalid]="securityForm()!.get('sessionTimeout')?.invalid && securityForm()!.get('sessionTimeout')?.touched"
-                id="sessionTimeout"
-                formControlName="sessionTimeout"
-                placeholder="30" />
-              @if (securityForm()!.get('sessionTimeout')?.hasError('required')) {
-                <div class="invalid-feedback">Session timeout is required</div>
-              }
-              @if (securityForm()!.get('sessionTimeout')?.hasError('min')) {
-                <div class="invalid-feedback">Session timeout must be at least 5 minutes</div>
-              }
-              @if (securityForm()!.get('sessionTimeout')?.hasError('max')) {
-                <div class="invalid-feedback">Session timeout cannot exceed 1440 minutes (24 hours)</div>
-              }
-            </div>
-
-            <!-- Password Policy -->
-            <div class="mb-4" formGroupName="passwordPolicy">
-              <h6 class="fw-medium mb-3">Password Policy</h6>
-
-              <!-- Min Length -->
-              <div class="mb-3">
-                <label for="minLength" class="form-label">Minimum Password Length</label>
-                <input
-                  type="number"
-                  class="form-control"
-                  [class.is-invalid]="getNestedControl(securityForm(), 'passwordPolicy', 'minLength')?.invalid && getNestedControl(securityForm(), 'passwordPolicy', 'minLength')?.touched"
-                  id="minLength"
-                  formControlName="minLength"
-                  placeholder="8" />
-                @if (getNestedControl(securityForm(), 'passwordPolicy', 'minLength')?.hasError('min')) {
-                  <div class="invalid-feedback">Minimum length must be at least 6</div>
-                }
-                @if (getNestedControl(securityForm(), 'passwordPolicy', 'minLength')?.hasError('max')) {
-                  <div class="invalid-feedback">Minimum length cannot exceed 32</div>
-                }
-              </div>
-
-              <!-- Require Uppercase -->
-              <div class="form-check mb-2">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="requireUppercase"
-                  formControlName="requireUppercase" />
-                <label class="form-check-label" for="requireUppercase">
-                  Require uppercase letters (A-Z)
-                </label>
-              </div>
-
-              <!-- Require Lowercase -->
-              <div class="form-check mb-2">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="requireLowercase"
-                  formControlName="requireLowercase" />
-                <label class="form-check-label" for="requireLowercase">
-                  Require lowercase letters (a-z)
-                </label>
-              </div>
-
-              <!-- Require Numbers -->
-              <div class="form-check mb-2">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="requireNumbers"
-                  formControlName="requireNumbers" />
-                <label class="form-check-label" for="requireNumbers">
-                  Require numbers (0-9)
-                </label>
-              </div>
-
-              <!-- Require Special Chars -->
-              <div class="form-check">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="requireSpecialChars"
-                  formControlName="requireSpecialChars" />
-                <label class="form-check-label" for="requireSpecialChars">
-                  Require special characters (!@#$%^&*)
-                </label>
-              </div>
-            </div>
-          </form>
-
-          <!-- Action Buttons -->
-          <div class="d-flex gap-2 mb-4">
-            <button
-              type="button"
-              class="btn btn-primary"
-              [disabled]="saving() || !securityForm()!.valid"
-              (click)="saveSecuritySettings()">
-              <i class="bi bi-check-circle me-2"></i>
-              Save Security Settings
-            </button>
-            <button
-              type="button"
-              class="btn btn-outline-secondary"
-              [disabled]="saving()"
-              (click)="resetSecurityForm()">
-              <i class="bi bi-arrow-clockwise me-2"></i>
-              Reset
-            </button>
-          </div>
-        </div>
-      </div>
-    }
-
-    <!-- Global Save Button -->
-    <div class="mt-4 d-flex gap-2">
-      <button
-        type="button"
-        class="btn btn-success btn-lg"
-        [disabled]="saving()"
-        (click)="saveAllSettings()">
-        <i class="bi bi-check-circle me-2"></i>
-        Save All Settings
-      </button>
-      <button
-        type="button"
-        class="btn btn-danger btn-lg"
-        [disabled]="saving()"
-        (click)="resetAllSettings()">
-        <i class="bi bi-arrow-clockwise me-2"></i>
-        Reset to Defaults
-      </button>
-    </div>
   }
 </div>

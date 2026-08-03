@@ -1,5 +1,5 @@
 // ============================================
-// SKILL CATEGORY ANALYTICS - PROFESSIONAL DESIGN
+// COMPANY ANALYTICS - PROFESSIONAL DESIGN
 // ============================================
 
 // Color Palette
@@ -292,6 +292,20 @@ $text-secondary: #6c757d;
       background: $warning;
     }
   }
+
+  &.card-danger {
+    .stat-label {
+      color: $danger;
+    }
+
+    .stat-value {
+      color: $danger;
+    }
+
+    .stat-icon {
+      background: $danger;
+    }
+  }
 }
 
 // ============================================
@@ -418,6 +432,11 @@ $text-secondary: #6c757d;
   &.badge-warning {
     background: rgba($warning, 0.1);
     color: $warning;
+  }
+
+  &.badge-danger {
+    background: rgba($danger, 0.1);
+    color: $danger;
   }
 }
 

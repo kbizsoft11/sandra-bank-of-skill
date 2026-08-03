@@ -1,7 +1,168 @@
+/* Search and filter section styling */
+.card-body {
+  &.filter-section {
+    padding: 1.5rem;
+  }
+}
+
+.input-group {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: white;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+
+  &:focus-within {
+    border-color: #0d6efd;
+    box-shadow: 0 4px 16px rgba(13, 110, 253, 0.15);
+  }
+
+  .input-group-text {
+    border: none;
+    padding: 0.75rem 1rem;
+    color: #6c757d;
+    background: transparent;
+    font-size: 1.1rem;
+  }
+
+  .form-control {
+    border: none;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    background: transparent;
+
+    &:focus {
+      border: none;
+      box-shadow: none;
+      outline: none;
+    }
+
+    &::placeholder {
+      color: #adb5bd;
+      font-weight: 400;
+    }
+  }
+
+  .btn {
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: all 0.2s ease;
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(13, 110, 253, 0.2);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    }
+  }
+
+  .form-select {
+    border: none;
+    padding: 0.75rem 1rem;
+    background: transparent;
+
+    &:focus {
+      border: none;
+      box-shadow: none;
+      outline: none;
+    }
+  }
+}
+
+/* Improved search input styling */
+.form-control {
+  color: #333;
+  
+  &::placeholder {
+    color: #adb5bd;
+  }
+}
+
+/* Responsive search styling */
+@media (max-width: 992px) {
+  .input-group {
+    .form-control,
+    .input-group-text,
+    .btn,
+    .form-select {
+      font-size: 0.95rem;
+    }
+
+    .input-group-text {
+      padding: 0.625rem 0.875rem;
+    }
+
+    .form-control {
+      padding: 0.625rem 0.875rem;
+    }
+
+    .btn {
+      padding: 0.625rem 1.25rem;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .input-group {
+    flex-direction: column;
+    border-radius: 0.375rem;
+
+    .form-control,
+    .input-group-text,
+    .btn,
+    .form-select {
+      font-size: 0.9rem;
+      padding: 0.5rem 0.75rem;
+    }
+
+    .input-group-text {
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .btn {
+      padding: 0.65rem 1rem;
+      width: 100%;
+      border-radius: 0 0 0.375rem 0.375rem;
+    }
+
+    .form-control {
+      border-radius: 0.375rem 0.375rem 0 0;
+    }
+  }
+}
+
+/* Filter card styling */
+.card.shadow-sm {
+  border: 1px solid #e9ecef;
+  border-radius: 0.5rem;
+  
+  &:focus-within {
+    border-color: #0d6efd;
+  }
+}
 .skill-list {
   max-height: 500px;
   overflow-y: auto;
-  border-bottom: 1px solid #dee2e6;
 
   .skill-item {
     padding: 12px 16px;
@@ -56,6 +217,45 @@
   }
 }
 
+/* Card styling for better compact display */
+.card {
+  display: flex;
+  flex-direction: column;
+
+  .card-body {
+    flex: 1;
+    padding: 0;
+
+    &.border-bottom {
+      padding: 12px 16px;
+      border-bottom: 1px solid #dee2e6;
+      flex: 0 0 auto;
+    }
+
+    &.text-center {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 120px;
+    }
+  }
+
+  .card-footer {
+    flex: 0 0 auto;
+  }
+
+  .card-header {
+    flex: 0 0 auto;
+  }
+}
+
+/* Ensure card height is dynamic based on content */
+.card.h-100 {
+  min-height: auto;
+  max-height: calc(100vh - 200px);
+}
+
 .card-header {
   h5 {
     margin-bottom: 0;
@@ -70,11 +270,13 @@
 }
 
 .card-footer {
+  flex: 0 0 auto;
   display: flex;
   justify-content: center;
 
   .pagination-sm {
     gap: 4px;
+    margin-bottom: 0;
 
     .page-link {
       padding: 0.25rem 0.5rem;
