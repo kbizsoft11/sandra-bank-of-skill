@@ -429,6 +429,39 @@ export const dashboardRoutes: Routes = [
       ),
   },
 
+  // Admin Skill Analytics (Admin only)
+  {
+    path: 'admin-skill-analytics',
+    canActivate: [roleGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () =>
+      import('../features/admin-analytics/skill-analytics').then(
+        (c) => c.SkillAnalyticsComponent,
+      ),
+  },
+
+  // Admin Company Analytics (Admin only)
+  {
+    path: 'admin-company-analytics',
+    canActivate: [roleGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () =>
+      import('../features/admin-analytics/company-analytics').then(
+        (c) => c.CompanyAnalyticsComponent,
+      ),
+  },
+
+  // Admin Employee Analytics (Admin only)
+  {
+    path: 'admin-employee-analytics',
+    canActivate: [roleGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () =>
+      import('../features/admin-analytics/employee-analytics').then(
+        (c) => c.EmployeeAnalyticsComponent,
+      ),
+  },
+
   // Opportunities (Employee and Company)
   {
     path: 'opportunities',

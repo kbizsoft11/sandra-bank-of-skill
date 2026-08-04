@@ -5,31 +5,60 @@
 
   <nav class="sidebar-nav">
     @for (item of menuItems(); track item.label) {
-      <a
-        [routerLink]="item.route"
-        routerLinkActive="active"
-        class="nav-item-link"
-        (click)="closeSidebar()"
-      >
-        <span class="nav-icon-circle">
-          <i [class]="item.icon"></i>
-        </span>
-        {{ item.label }}
-      </a>
+      @if (item.isDropdown) {
+        <!-- Custom Dropdown Menu -->
+        <div class="custom-dropdown">
+          <div
+            class="menu-item dropdown-trigger"
+            [class.open]="isDropdownExpanded(item.label)"
+            (click)="toggleDropdown(item.label, $event)"
+          >
+            <span class="menu-icon">
+              <i [class]="item.icon"></i>
+            </span>
+            <span class="menu-text">{{ item.label }}</span>
+            <span class="arrow-icon" [class.rotated]="isDropdownExpanded(item.label)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M4 6l4 4 4-4H4z"/>
+              </svg>
+            </span>
+          </div>
+          @if (isDropdownExpanded(item.label) && item.children && item.children.length > 0) {
+            <div class="submenu">
+              @for (child of item.children; track child.label) {
+                <a
+                  [routerLink]="child.route"
+                  routerLinkActive="submenu-active"
+                  class="submenu-item"
+                  (click)="closeSidebar()"
+                >
+                  <span class="submenu-icon">
+                    <i [class]="child.icon"></i>
+                  </span>
+                  <span class="submenu-text">{{ child.label }}</span>
+                </a>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Regular Menu Item -->
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          class="menu-item"
+          (click)="closeSidebar()"
+        >
+          <span class="menu-icon">
+            <i [class]="item.icon"></i>
+          </span>
+          <span class="menu-text">{{ item.label }}</span>
+        </a>
+      }
     }
   </nav>
 
   <div class="sidebar-footer">
-    <div class="org-card">
-      <div class="icon-box">
-        <i class="bi bi-building"></i>
-      </div>
-      <div>
-        <div style="font-weight: 600; font-size: 13.5px;">Abc Corporation</div>
-        <small class="org-plan">Enterprise Plan</small>
-      </div>
-    </div>
-
     <div class="user-card" (click)="toggleUserMenu($event)">
       @if (profileImage()) {
         <img [src]="profileImage()" [alt]="auth.user()?.fullName" />

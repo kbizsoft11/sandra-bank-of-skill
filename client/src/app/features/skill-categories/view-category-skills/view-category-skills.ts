@@ -8,19 +8,16 @@ import { SkillCategory } from '../../../shared/interfaces/skill-category.interfa
 
 interface CategorySkill {
   _id: string;
-  skill_name: string;
-  skill_desc?: string;
-  skill_level: string;
-  skill_score: number;
-  user_id: {
-    _id: string;
-    fullName: string;
-    email: string;
-  };
-  category?: {
-    _id: string;
-    name: string;
-  };
+  name: string;
+  description?: string;
+  categoryId?: string | { _id: string; name: string };
+  createdBy?: string | { _id: string; fullName: string; email: string };
+  createdType: 'ADMIN' | 'COMPANY';
+  companyId?: string;
+  archived: boolean;
+  status: 'active' | 'inactive';
+  createdAt: string;
+  updatedAt: string;
 }
 
 @Component({
@@ -61,7 +58,6 @@ export class ViewCategorySkills implements OnInit {
 
   // Filter signals
   readonly searchForm = signal<FormGroup | null>(null);
-  readonly skillLevelFilter = signal<string>('');
 
   // Action signals
   readonly isMoving = signal(false);
@@ -129,7 +125,6 @@ export class ViewCategorySkills implements OnInit {
       page: 1,
       limit: 100, // Load more to show all available
       search: this.searchForm()?.get('search')?.value || undefined,
-      skill_level: this.skillLevelFilter() || undefined,
     };
 
     // Load assigned skills
@@ -178,17 +173,6 @@ export class ViewCategorySkills implements OnInit {
   }
 
   onSearch(): void {
-    this.assignedPage.set(1);
-    this.unassignedPage.set(1);
-    const categoryId = this.route.snapshot.paramMap.get('id');
-    if (categoryId) {
-      this.loadSkills(categoryId);
-    }
-  }
-
-  onLevelFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
-    this.skillLevelFilter.set(value);
     this.assignedPage.set(1);
     this.unassignedPage.set(1);
     const categoryId = this.route.snapshot.paramMap.get('id');
@@ -353,6 +337,14 @@ export class ViewCategorySkills implements OnInit {
     if (score >= 85) return 'bg-success';
     if (score >= 65) return 'bg-warning';
     return 'bg-danger';
+  }
+
+  getStatusBadgeClass(status: string): string {
+    return status === 'active' ? 'bg-success' : 'bg-danger';
+  }
+
+  getCreatedTypeBadge(type: string): string {
+    return type === 'ADMIN' ? 'bg-primary' : 'bg-info';
   }
 
   onAssignedPageChange(page: number): void {

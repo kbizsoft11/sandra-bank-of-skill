@@ -1,34 +1,34 @@
 import { Component, inject, OnInit, signal, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AnalyticsService, SkillCategoryAnalytics } from '../../core/services/analytics.service';
+import { AnalyticsService, SkillAnalytics } from '../../core/services/analytics.service';
 import { ExportService } from '../../core/services/export.service';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
 Chart.register(...registerables);
 
 @Component({
-  selector: 'app-skill-category-analytics',
+  selector: 'app-skill-analytics',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './skill-category-analytics.html',
-  styleUrls: ['./skill-category-analytics.scss'],
+  templateUrl: './skill-analytics.html',
+  styleUrls: ['./skill-analytics.scss'],
 })
-export class SkillCategoryAnalyticsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class SkillAnalyticsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly analyticsService = inject(AnalyticsService);
   private readonly exportService = inject(ExportService);
 
-  @ViewChild('skillsPerCategoryChart') skillsPerCategoryChart?: ElementRef<HTMLCanvasElement>;
-  @ViewChild('employeesPerCategoryChart') employeesPerCategoryChart?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('skillLevelChart') skillLevelChart?: ElementRef<HTMLCanvasElement>;
   @ViewChild('adoptionRateChart') adoptionRateChart?: ElementRef<HTMLCanvasElement>;
-  @ViewChild('levelDistributionChart') levelDistributionChart?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('growthTrendChart') growthTrendChart?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('gapAnalysisChart') gapAnalysisChart?: ElementRef<HTMLCanvasElement>;
 
-  private skillsPerCategoryChartInstance: Chart | null = null;
-  private employeesPerCategoryChartInstance: Chart | null = null;
+  private skillLevelChartInstance: Chart | null = null;
   private adoptionRateChartInstance: Chart | null = null;
-  private levelDistributionChartInstance: Chart | null = null;
+  private growthTrendChartInstance: Chart | null = null;
+  private gapAnalysisChartInstance: Chart | null = null;
 
-  readonly analytics = signal<SkillCategoryAnalytics | null>(null);
+  readonly analytics = signal<SkillAnalytics | null>(null);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly exporting = signal(false);
@@ -56,7 +56,7 @@ export class SkillCategoryAnalyticsComponent implements OnInit, AfterViewInit, O
     this.loading.set(true);
     this.error.set(null);
 
-    this.analyticsService.getSkillCategoryAnalytics(startDate, endDate).subscribe({
+    this.analyticsService.getSkillAnalytics(startDate, endDate).subscribe({
       next: (response) => {
         if (response?.data) {
           this.analytics.set(response.data);
@@ -66,7 +66,7 @@ export class SkillCategoryAnalyticsComponent implements OnInit, AfterViewInit, O
       },
       error: (error) => {
         console.error('Error loading analytics:', error);
-        this.error.set('Failed to load skill category analytics');
+        this.error.set('Failed to load skill analytics');
         this.loading.set(false);
       },
     });
@@ -84,10 +84,10 @@ export class SkillCategoryAnalyticsComponent implements OnInit, AfterViewInit, O
     try {
       // Prepare flattened data for export
       const exportData = this.exportService.flattenData(
-        data.categoryUsageReports.map(report => ({
-          'Category Name': report.categoryName,
-          'Total Skills': report.totalSkills,
-          'Total Employees': report.totalEmployeesUsing,
+        data.skillReports.map(report => ({
+          'Skill Name': report.skillName,
+          'Category': report.categoryName,
+          'Total Employees': report.totalEmployeesWithSkill,
           'Total Assignments': report.totalAssignments,
           'Average Score': report.averageScore,
           'Adoption Rate (%)': report.adoptionRate,
@@ -99,13 +99,13 @@ export class SkillCategoryAnalyticsComponent implements OnInit, AfterViewInit, O
         []
       );
 
-      const filename = `Skill-Categories-Analytics-${this.getFormattedDate()}`;
+      const filename = `Skills-Analytics-${this.getFormattedDate()}`;
       this.exportService.exportToCSV(
         exportData,
         filename,
         [
-          'Category Name',
-          'Total Skills',
+          'Skill Name',
+          'Category',
           'Total Employees',
           'Total Assignments',
           'Average Score',
@@ -118,10 +118,10 @@ export class SkillCategoryAnalyticsComponent implements OnInit, AfterViewInit, O
       );
 
       // Show success message
-      console.log('Skill categories analytics exported successfully');
+      console.log('Skills analytics exported successfully');
     } catch (error) {
-      console.error('Error exporting skill categories analytics:', error);
-      this.error.set('Failed to export skill categories analytics');
+      console.error('Error exporting skills analytics:', error);
+      this.error.set('Failed to export skills analytics');
     } finally {
       this.exporting.set(false);
     }
@@ -139,10 +139,10 @@ export class SkillCategoryAnalyticsComponent implements OnInit, AfterViewInit, O
     try {
       // Prepare flattened data for export
       const exportData = this.exportService.flattenData(
-        data.categoryUsageReports.map(report => ({
-          'Category Name': report.categoryName,
-          'Total Skills': report.totalSkills,
-          'Total Employees': report.totalEmployeesUsing,
+        data.skillReports.map(report => ({
+          'Skill Name': report.skillName,
+          'Category': report.categoryName,
+          'Total Employees': report.totalEmployeesWithSkill,
           'Total Assignments': report.totalAssignments,
           'Average Score': report.averageScore,
           'Adoption Rate (%)': report.adoptionRate,
@@ -154,13 +154,13 @@ export class SkillCategoryAnalyticsComponent implements OnInit, AfterViewInit, O
         []
       );
 
-      const filename = `Skill-Categories-Analytics-${this.getFormattedDate()}`;
+      const filename = `Skills-Analytics-${this.getFormattedDate()}`;
       this.exportService.exportToExcel(
         exportData,
         filename,
         [
-          'Category Name',
-          'Total Skills',
+          'Skill Name',
+          'Category',
           'Total Employees',
           'Total Assignments',
           'Average Score',
@@ -173,10 +173,10 @@ export class SkillCategoryAnalyticsComponent implements OnInit, AfterViewInit, O
       );
 
       // Show success message
-      console.log('Skill categories analytics exported successfully');
+      console.log('Skills analytics exported successfully');
     } catch (error) {
-      console.error('Error exporting skill categories analytics:', error);
-      this.error.set('Failed to export skill categories analytics');
+      console.error('Error exporting skills analytics:', error);
+      this.error.set('Failed to export skills analytics');
     } finally {
       this.exporting.set(false);
     }
@@ -220,43 +220,45 @@ export class SkillCategoryAnalyticsComponent implements OnInit, AfterViewInit, O
   }
 
   private destroyCharts(): void {
-    this.skillsPerCategoryChartInstance?.destroy();
-    this.employeesPerCategoryChartInstance?.destroy();
+    this.skillLevelChartInstance?.destroy();
     this.adoptionRateChartInstance?.destroy();
-    this.levelDistributionChartInstance?.destroy();
-    this.skillsPerCategoryChartInstance = null;
-    this.employeesPerCategoryChartInstance = null;
+    this.growthTrendChartInstance?.destroy();
+    this.gapAnalysisChartInstance?.destroy();
+    this.skillLevelChartInstance = null;
     this.adoptionRateChartInstance = null;
-    this.levelDistributionChartInstance = null;
+    this.growthTrendChartInstance = null;
+    this.gapAnalysisChartInstance = null;
   }
 
   private renderCharts(): void {
     if (typeof window === 'undefined' || !this.analytics()) return;
 
-    this.renderSkillsPerCategoryChart();
-    this.renderEmployeesPerCategoryChart();
+    this.renderSkillLevelChart();
     this.renderAdoptionRateChart();
-    this.renderLevelDistributionChart();
+    this.renderGrowthTrendChart();
+    this.renderGapAnalysisChart();
   }
 
-  private renderSkillsPerCategoryChart(): void {
-    const canvas = this.skillsPerCategoryChart?.nativeElement;
+  private renderSkillLevelChart(): void {
+    const canvas = this.skillLevelChart?.nativeElement;
     if (!canvas || !this.analytics()) return;
 
-    this.skillsPerCategoryChartInstance?.destroy();
+    this.skillLevelChartInstance?.destroy();
 
-    const data = this.analytics()!.totalSkillsPerCategory.slice(0, 10);
+    const data = this.analytics()!.averageSkillLevel.slice(0, 10);
 
     const config: ChartConfiguration = {
       type: 'bar',
       data: {
-        labels: data.map(cat => cat.categoryName),
-        datasets: [{
-          label: 'Total Skills',
-          data: data.map(cat => cat.skillCount),
-          backgroundColor: '#4966c8',
-          borderRadius: 6,
-        }],
+        labels: data.map((skill) => skill.skillName),
+        datasets: [
+          {
+            label: 'Average Score',
+            data: data.map((skill) => Math.round(skill.avgScore)),
+            backgroundColor: '#4966c8',
+            borderRadius: 6,
+          },
+        ],
       },
       options: {
         responsive: true,
@@ -265,46 +267,12 @@ export class SkillCategoryAnalyticsComponent implements OnInit, AfterViewInit, O
           legend: { display: false },
         },
         scales: {
-          y: { beginAtZero: true, ticks: { stepSize: 1 } },
+          y: { beginAtZero: true, max: 100, ticks: { stepSize: 10 } },
         },
       },
     };
 
-    this.skillsPerCategoryChartInstance = new Chart(canvas, config);
-  }
-
-  private renderEmployeesPerCategoryChart(): void {
-    const canvas = this.employeesPerCategoryChart?.nativeElement;
-    if (!canvas || !this.analytics()) return;
-
-    this.employeesPerCategoryChartInstance?.destroy();
-
-    const data = this.analytics()!.employeesPerCategory.slice(0, 10);
-
-    const config: ChartConfiguration = {
-      type: 'bar',
-      data: {
-        labels: data.map(cat => cat.categoryName),
-        datasets: [{
-          label: 'Employees Using',
-          data: data.map(cat => cat.employeeCount),
-          backgroundColor: '#20a36a',
-          borderRadius: 6,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-        },
-        scales: {
-          y: { beginAtZero: true, ticks: { stepSize: 1 } },
-        },
-      },
-    };
-
-    this.employeesPerCategoryChartInstance = new Chart(canvas, config);
+    this.skillLevelChartInstance = new Chart(canvas, config);
   }
 
   private renderAdoptionRateChart(): void {
@@ -313,17 +281,28 @@ export class SkillCategoryAnalyticsComponent implements OnInit, AfterViewInit, O
 
     this.adoptionRateChartInstance?.destroy();
 
-    const data = this.analytics()!.mostPopularCategories.slice(0, 8);
+    const data = this.analytics()!.mostPopularSkills.slice(0, 8);
 
     const config: ChartConfiguration = {
       type: 'doughnut',
       data: {
-        labels: data.map(cat => cat.categoryName),
-        datasets: [{
-          data: data.map(cat => cat.popularity),
-          backgroundColor: ['#4966c8', '#3157c7', '#20a36a', '#f0a33a', '#7545c2', '#16804f', '#ff6b6b', '#ff9ff3'],
-          borderWidth: 0,
-        }],
+        labels: data.map((skill) => skill.skillName),
+        datasets: [
+          {
+            data: data.map((skill) => skill.adoptionRate),
+            backgroundColor: [
+              '#4966c8',
+              '#3157c7',
+              '#20a36a',
+              '#f0a33a',
+              '#7545c2',
+              '#16804f',
+              '#ff6b6b',
+              '#ff9ff3',
+            ],
+            borderWidth: 0,
+          },
+        ],
       },
       options: {
         responsive: true,
@@ -337,43 +316,90 @@ export class SkillCategoryAnalyticsComponent implements OnInit, AfterViewInit, O
     this.adoptionRateChartInstance = new Chart(canvas, config);
   }
 
-  private renderLevelDistributionChart(): void {
-    const canvas = this.levelDistributionChart?.nativeElement;
+  private renderGrowthTrendChart(): void {
+    const canvas = this.growthTrendChart?.nativeElement;
     if (!canvas || !this.analytics()) return;
 
-    this.levelDistributionChartInstance?.destroy();
+    this.growthTrendChartInstance?.destroy();
 
-    const reports = this.analytics()!.categoryUsageReports;
-    
-    // Aggregate level breakdown across all categories
-    const aggregated = reports.reduce((acc, cat) => {
-      acc.expert += cat.levelBreakdown.expert;
-      acc.advanced += cat.levelBreakdown.advanced;
-      acc.intermediate += cat.levelBreakdown.intermediate;
-      acc.beginner += cat.levelBreakdown.beginner;
-      return acc;
-    }, { expert: 0, advanced: 0, intermediate: 0, beginner: 0 });
+    // Group by skill and get recent trends
+    const skillGrowth: { [key: string]: number } = {};
+    this.analytics()!.skillGrowthTrend.slice(0, 20).forEach((trend) => {
+      const skillName = trend._id.skillName;
+      skillGrowth[skillName] = (skillGrowth[skillName] || 0) + trend.count;
+    });
+
+    const topSkills = Object.entries(skillGrowth)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8);
 
     const config: ChartConfiguration = {
-      type: 'doughnut',
+      type: 'line',
       data: {
-        labels: ['Expert', 'Advanced', 'Intermediate', 'Beginner'],
-        datasets: [{
-          data: [aggregated.expert, aggregated.advanced, aggregated.intermediate, aggregated.beginner],
-          backgroundColor: ['#20a36a', '#4966c8', '#f0a33a', '#7545c2'],
-          borderWidth: 0,
-        }],
+        labels: topSkills.map((s) => s[0]),
+        datasets: [
+          {
+            label: 'Skill Assignments',
+            data: topSkills.map((s) => s[1]),
+            borderColor: '#4966c8',
+            backgroundColor: 'rgba(73, 102, 200, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#4966c8',
+            pointRadius: 4,
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12 } },
+          legend: { display: true, labels: { usePointStyle: true } },
+        },
+        scales: {
+          y: { beginAtZero: true },
         },
       },
     };
 
-    this.levelDistributionChartInstance = new Chart(canvas, config);
+    this.growthTrendChartInstance = new Chart(canvas, config);
+  }
+
+  private renderGapAnalysisChart(): void {
+    const canvas = this.gapAnalysisChart?.nativeElement;
+    if (!canvas || !this.analytics()) return;
+
+    this.gapAnalysisChartInstance?.destroy();
+
+    const data = this.analytics()!.skillGapAnalysis.slice(0, 8);
+
+    const config: ChartConfiguration = {
+      type: 'bar',
+      data: {
+        labels: data.map((skill) => skill.skillName),
+        datasets: [
+          {
+            label: 'Average Score',
+            data: data.map((skill) => skill.averageScore),
+            backgroundColor: '#ff6b6b',
+            borderRadius: 6,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+        },
+        scales: {
+          y: { beginAtZero: true, max: 100, ticks: { stepSize: 10 } },
+        },
+      },
+    };
+
+    this.gapAnalysisChartInstance = new Chart(canvas, config);
   }
 
   formatDate(month: number, year: number): string {

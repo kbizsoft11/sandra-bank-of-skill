@@ -142,7 +142,7 @@ class SkillService {
   }
 
   /**
-   * Get skills by category
+   * Get skills by category - filtered by category creator
    */
   async getByCategory(categoryId: string, query: GetSkillsQueryDto = {}) {
     // Verify category exists
@@ -151,7 +151,9 @@ class SkillService {
       throw new ApiError(StatusCodes.NOT_FOUND, "Skill category not found");
     }
 
-    return skillRepository.findByCategory(categoryId, query);
+    // Get skills only created by the same user who created the category
+    // Pass the createdBy filter to the repository
+    return skillRepository.findByCategory(categoryId, query, category.createdBy);
   }
 
   /**
@@ -298,7 +300,7 @@ class SkillService {
   }
 
   /**
-   * Get unassigned skills for a category
+   * Get unassigned skills for a category - filtered by category creator
    */
   async getUnassignedSkills(categoryId: string, query: GetSkillsQueryDto = {}) {
     // Verify category exists
@@ -307,7 +309,8 @@ class SkillService {
       throw new ApiError(StatusCodes.NOT_FOUND, "Skill category not found");
     }
 
-    return skillRepository.findUnassignedSkills(categoryId, query);
+    // Get unassigned skills only created by the same user who created the category
+    return skillRepository.findUnassignedSkills(categoryId, query, category.createdBy);
   }
 
   /**

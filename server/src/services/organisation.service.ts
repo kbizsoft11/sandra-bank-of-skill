@@ -476,6 +476,10 @@ export const organisationService = {
 
       await organisation.save();
 
+      // Save organisationId back to the user for cross-connection
+      company.organisationId = organisation._id.toString();
+      await company.save();
+
       // Return company without password
       return company.toObject({ transform: (doc: any, ret: any) => {
         delete ret.password;
@@ -536,6 +540,12 @@ export const organisationService = {
         if (fullName) org.organisationName = fullName;
 
         await org.save();
+
+        // Ensure organisationId is saved in user for cross-connection
+        if (!company.organisationId) {
+          company.organisationId = org._id.toString();
+          await company.save();
+        }
       }
 
       return company.toObject({ transform: (doc: any, ret: any) => {

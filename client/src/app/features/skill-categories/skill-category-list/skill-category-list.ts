@@ -40,12 +40,6 @@ export class SkillCategoryList implements OnInit {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
-  // Skills data signals
-  readonly categorySkills = signal<Map<string, any[]>>(new Map());
-  readonly expandedCategories = signal<Set<string>>(new Set());
-  readonly loadingSkills = signal<Map<string, boolean>>(new Map());
-  readonly removingSkillId = signal<string | null>(null);
-
   // Pagination signals
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
@@ -107,8 +101,6 @@ export class SkillCategoryList implements OnInit {
           }
         }
         this.loading.set(false);
-        // Load skills for all categories
-        this.loadSkillsForAllCategories();
       },
       error: (err) => {
         console.error('Error loading categories:', err);
@@ -245,102 +237,6 @@ export class SkillCategoryList implements OnInit {
     } else {
       return 'Company';
     }
-  }
-
-  // Load skills for all visible categories
-  private loadSkillsForAllCategories(): void {
-    const categories = this.displayedCategories();
-    categories.forEach(category => {
-      this.loadCategorySkills(category._id);
-    });
-  }
-
-  // Toggle category expansion
-  toggleCategoryExpansion(categoryId: string): void {
-    const expanded = this.expandedCategories();
-    if (expanded.has(categoryId)) {
-      expanded.delete(categoryId);
-    } else {
-      expanded.add(categoryId);
-      this.loadCategorySkills(categoryId);
-    }
-    this.expandedCategories.set(new Set(expanded));
-  }
-
-  isCategoryExpanded(categoryId: string): boolean {
-    return this.expandedCategories().has(categoryId);
-  }
-
-  // Load skills for a specific category
-  private loadCategorySkills(categoryId: string): void {
-    // Check if already loaded
-    if (this.categorySkills().has(categoryId)) {
-      return;
-    }
-
-    const loadingMap = this.loadingSkills();
-    loadingMap.set(categoryId, true);
-    this.loadingSkills.set(new Map(loadingMap));
-
-    this.skillCategoryService.getSkillsByCategory(categoryId, { limit: 100 }).subscribe({
-      next: (response) => {
-        const skillsMap = this.categorySkills();
-        if (response?.data) {
-          const skills = Array.isArray(response.data) ? response.data : response.data.skills || [];
-          skillsMap.set(categoryId, skills);
-          this.categorySkills.set(new Map(skillsMap));
-        }
-        const loadingMap = this.loadingSkills();
-        loadingMap.delete(categoryId);
-        this.loadingSkills.set(new Map(loadingMap));
-      },
-      error: (err) => {
-        console.error('Error loading category skills:', err);
-        const loadingMap = this.loadingSkills();
-        loadingMap.delete(categoryId);
-        this.loadingSkills.set(new Map(loadingMap));
-      },
-    });
-  }
-
-  // Get skills for a category
-  getCategorySkillsList(categoryId: string): any[] {
-    return this.categorySkills().get(categoryId) || [];
-  }
-
-  // Check if loading skills for a category
-  isLoadingCategorySkills(categoryId: string): boolean {
-    return this.loadingSkills().get(categoryId) || false;
-  }
-
-  // Remove skill from category (make it orphan by setting categoryId to null)
-  removeSkillFromCategory(skill: any, categoryId: string): void {
-    this.alertService.confirm(
-      'Make Skill Orphan?',
-      `"${skill.name || skill.skill_name}" will be removed from this category and become orphan (no category assigned).`,
-      'Yes, make orphan',
-      'Cancel'
-    ).then((confirmed) => {
-      if (confirmed) {
-        this.removingSkillId.set(skill._id);
-        this.skillCategoryService.removeSkills([skill._id]).subscribe({
-          next: () => {
-            this.alertService.success('Skill is now orphan - categoryId set to null');
-            this.removingSkillId.set(null);
-            // Reload skills for this category
-            const skillsMap = this.categorySkills();
-            const updatedSkills = (skillsMap.get(categoryId) || []).filter(s => s._id !== skill._id);
-            skillsMap.set(categoryId, updatedSkills);
-            this.categorySkills.set(new Map(skillsMap));
-          },
-          error: (err) => {
-            console.error('Error making skill orphan:', err);
-            this.alertService.error('Failed to make skill orphan');
-            this.removingSkillId.set(null);
-          },
-        });
-      }
-    });
   }
 
 }

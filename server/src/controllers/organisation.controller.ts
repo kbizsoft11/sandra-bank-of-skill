@@ -17,18 +17,18 @@ import { organisationRepository } from '../repositories/organisation.repository'
 export const getMyOrganisation = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
-    const organisationId = (req as any).user?.organisationId;
 
-    if (!organisationId) {
+    if (!userId) {
       return sendResponse(
         res,
-        404,
-        'Organisation not found'
+        401,
+        'Unauthorized'
       );
     }
 
-    // Fetch organisation by ID
-    const organisation = await organisationRepository.findById(organisationId);
+    // Fetch organisation by ownerUserId
+    const { Organisation } = await import('../models/organisation.model');
+    const organisation = await Organisation.findOne({ ownerUserId: userId }).lean();
 
     if (!organisation) {
       return sendResponse(
@@ -85,13 +85,43 @@ export const updateMyOrganisation = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
 
-    const user = await userService.updateMyProfile(userId, req.body);
+    if (!userId) {
+      return sendResponse(
+        res,
+        401,
+        'Unauthorized'
+      );
+    }
+
+    // Fetch the organisation by ownerUserId
+    const { Organisation } = await import('../models/organisation.model');
+    const organisation = await Organisation.findOne({ ownerUserId: userId });
+
+    if (!organisation) {
+      return sendResponse(
+        res,
+        404,
+        'Organisation not found'
+      );
+    }
+
+    // Update organisation fields from the request body
+    const { organisationName, industry, companySize, country, website, description } = req.body;
+
+    if (organisationName !== undefined) organisation.organisationName = organisationName;
+    if (industry !== undefined) organisation.industry = industry;
+    if (companySize !== undefined) organisation.companySize = companySize;
+    if (country !== undefined) organisation.country = country;
+    if (website !== undefined) organisation.website = website;
+    if (description !== undefined) organisation.description = description;
+
+    const updatedOrganisation = await organisation.save();
 
     return sendResponse(
       res,
       200,
       'Organisation updated successfully',
-      user
+      updatedOrganisation
     );
   }
 );

@@ -4,11 +4,11 @@
     <div class="d-flex align-items-center justify-content-between mb-2">
       <div class="d-flex align-items-center gap-3">
         <div class="header-icon">
-          <i class="bi bi-bar-chart-line"></i>
+          <i class="bi bi-building-fill"></i>
         </div>
         <div>
-          <h1 class="page-title mb-0">Skill Categories Analytics</h1>
-          <p class="text-secondary mb-0">Skill distribution by category, employee adoption, and category performance</p>
+          <h1 class="page-title mb-0">Company Analytics</h1>
+          <p class="text-secondary mb-0">Company performance, growth trends, and activity metrics</p>
         </div>
       </div>
       <div class="export-buttons" *ngIf="analytics() && !loading()">
@@ -92,11 +92,12 @@
       <div class="col-md-6 col-lg-3">
         <div class="stat-card card-primary">
           <div class="stat-icon">
-            <i class="bi bi-folder-fill"></i>
+            <i class="bi bi-building-fill"></i>
           </div>
           <div class="stat-content">
-            <p class="stat-label">Total Categories</p>
-            <h3 class="stat-value">{{ analytics()!.summary.totalCategories }}</h3>
+            <p class="stat-label">Total Companies</p>
+            <h3 class="stat-value">{{ analytics()!.summary.totalCompanies }}</h3>
+            <small class="stat-meta">all companies</small>
           </div>
         </div>
       </div>
@@ -104,23 +105,25 @@
       <div class="col-md-6 col-lg-3">
         <div class="stat-card card-success">
           <div class="stat-icon">
-            <i class="bi bi-star-fill"></i>
+            <i class="bi bi-check-circle-fill"></i>
           </div>
           <div class="stat-content">
-            <p class="stat-label">Total Skills</p>
-            <h3 class="stat-value">{{ analytics()!.summary.totalSkills }}</h3>
+            <p class="stat-label">Active Companies</p>
+            <h3 class="stat-value">{{ analytics()!.summary.activeCompanies }}</h3>
+            <small class="stat-meta">{{ analytics()!.summary.activePercentage }}% active</small>
           </div>
         </div>
       </div>
 
       <div class="col-md-6 col-lg-3">
-        <div class="stat-card card-info">
+        <div class="stat-card card-danger">
           <div class="stat-icon">
-            <i class="bi bi-people-fill"></i>
+            <i class="bi bi-x-circle-fill"></i>
           </div>
           <div class="stat-content">
-            <p class="stat-label">Employees with Skills</p>
-            <h3 class="stat-value">{{ analytics()!.summary.totalEmployeesWithSkills }}</h3>
+            <p class="stat-label">Inactive Companies</p>
+            <h3 class="stat-value">{{ analytics()!.summary.inactiveCompanies }}</h3>
+            <small class="stat-meta">{{ analytics()!.summary.inactivePercentage }}% inactive</small>
           </div>
         </div>
       </div>
@@ -128,86 +131,51 @@
       <div class="col-md-6 col-lg-3">
         <div class="stat-card card-warning">
           <div class="stat-icon">
-            <i class="bi bi-graph-up"></i>
+            <i class="bi bi-plus-circle-fill"></i>
           </div>
           <div class="stat-content">
-            <p class="stat-label">Avg Employees/Category</p>
-            <h3 class="stat-value">{{ analytics()!.summary.averageEmployeesPerCategory }}</h3>
+            <p class="stat-label">New (Last 30 Days)</p>
+            <h3 class="stat-value">{{ analytics()!.summary.newCompaniesLast30Days }}</h3>
+            <small class="stat-meta">new registrations</small>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Charts Row -->
+    <!-- Additional Stats Row -->
+
+    <!-- Charts Row 1 -->
     <div class="charts-section mb-5">
       <div class="row g-4">
-        <!-- Skills per Category -->
-        <div class="col-lg-6">
-          <div class="chart-card">
-            <div class="chart-header">
-              <h5 class="chart-title">
-                <i class="bi bi-bar-chart-fill"></i>
-                Total Skills per Category
-              </h5>
-            </div>
-            <div class="chart-body">
-              <div style="height: 300px;">
-                <canvas #skillsPerCategoryChart></canvas>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Employees per Category -->
-        <div class="col-lg-6">
-          <div class="chart-card">
-            <div class="chart-header">
-              <h5 class="chart-title">
-                <i class="bi bi-people-fill"></i>
-                Employees Using Skills
-              </h5>
-            </div>
-            <div class="chart-body">
-              <div style="height: 300px;">
-                <canvas #employeesPerCategoryChart></canvas>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="charts-section mb-5">
-      <div class="row g-4">
-        <!-- Adoption Rate -->
+        <!-- Company Status Chart -->
         <div class="col-lg-6">
           <div class="chart-card">
             <div class="chart-header">
               <h5 class="chart-title">
                 <i class="bi bi-pie-chart-fill"></i>
-                Most Popular Categories
+                Company Status Distribution
               </h5>
             </div>
             <div class="chart-body">
               <div style="height: 300px;">
-                <canvas #adoptionRateChart></canvas>
+                <canvas #companyStatusChart></canvas>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Level Distribution -->
+        <!-- Growth Trend Chart -->
         <div class="col-lg-6">
           <div class="chart-card">
             <div class="chart-header">
               <h5 class="chart-title">
-                <i class="bi bi-donut-chart"></i>
-                Overall Level Distribution
+                <i class="bi bi-graph-up-arrow"></i>
+                Company Registration Trend (12 Months)
               </h5>
             </div>
             <div class="chart-body">
               <div style="height: 300px;">
-                <canvas #levelDistributionChart></canvas>
+                <canvas #growthTrendChart></canvas>
               </div>
             </div>
           </div>
@@ -215,13 +183,52 @@
       </div>
     </div>
 
-    <!-- Category Usage Reports Table -->
+    <!-- Charts Row 2 -->
+    <div class="charts-section mb-5">
+      <div class="row g-4">
+        <!-- Employees Per Company Chart -->
+        <div class="col-lg-6">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h5 class="chart-title">
+                <i class="bi bi-bar-chart-fill"></i>
+                Top Companies by Employee Count
+              </h5>
+            </div>
+            <div class="chart-body">
+              <div style="height: 300px;">
+                <canvas #employeesPerCompanyChart></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Skill Categories Chart -->
+        <div class="col-lg-6">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h5 class="chart-title">
+                <i class="bi bi-lightning-fill"></i>
+                Top Skill Categories Used by Companies
+              </h5>
+            </div>
+            <div class="chart-body">
+              <div style="height: 300px;">
+                <canvas #skillAssignmentsChart></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Company Activity Report -->
     <div class="table-section mb-5">
       <div class="chart-card">
         <div class="chart-header">
           <h5 class="chart-title">
             <i class="bi bi-table"></i>
-            Category Usage Reports
+            Company Activity Report
           </h5>
         </div>
         <div class="chart-body p-0">
@@ -229,53 +236,26 @@
             <table class="table align-middle mb-0 data-table">
               <thead>
                 <tr>
-                  <th>Category</th>
-                  <th class="text-center">Total Skills</th>
-                  <th class="text-center">Employees Using</th>
-                  <th class="text-center">Assignments</th>
-                  <th class="text-center">Avg Score</th>
-                  <th class="text-center">Adoption Rate</th>
-                  <th class="text-center">Level Distribution</th>
+                  <th>Company Name</th>
+                  <th class="text-center">Status</th>
+                  <th class="text-center">Total Employees</th>
                 </tr>
               </thead>
               <tbody>
-                @for (report of analytics()!.categoryUsageReports; track report.categoryId) {
+                @for (activity of analytics()!.activityReport; track activity._id) {
                   <tr>
                     <td>
-                      <span class="fw-medium">{{ report.categoryName }}</span>
+                      <span class="fw-medium">{{ activity.name || 'Unknown' }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span [ngClass]="isCompanyActive(activity.status) ? 'badge-success' : 'badge-danger'" class="badge-stat">
+                        {{ isCompanyActive(activity.status) ? 'Active' : 'Inactive' }}
+                      </span>
                     </td>
                     <td class="text-center">
                       <span class="badge-stat badge-primary">
-                        {{ report.totalSkills }}
+                        {{ activity.employeeCount }}
                       </span>
-                    </td>
-                    <td class="text-center">
-                      <span class="badge-stat badge-success">
-                        {{ report.totalEmployeesUsing }}
-                      </span>
-                    </td>
-                    <td class="text-center">
-                      <span class="badge-stat badge-info">
-                        {{ report.totalAssignments }}
-                      </span>
-                    </td>
-                    <td class="text-center">
-                      <div class="score-bar" [style.width.%]="report.averageScore">
-                        <span class="score-text">{{ report.averageScore }}%</span>
-                      </div>
-                    </td>
-                    <td class="text-center">
-                      <span class="badge-stat badge-warning">
-                        {{ report.adoptionRate }}%
-                      </span>
-                    </td>
-                    <td class="text-center">
-                      <div class="level-badges">
-                        <span class="level-badge level-expert" [title]="'Expert: ' + report.levelBreakdown.expert">{{ report.levelBreakdown.expert }}</span>
-                        <span class="level-badge level-advanced" [title]="'Advanced: ' + report.levelBreakdown.advanced">{{ report.levelBreakdown.advanced }}</span>
-                        <span class="level-badge level-intermediate" [title]="'Intermediate: ' + report.levelBreakdown.intermediate">{{ report.levelBreakdown.intermediate }}</span>
-                        <span class="level-badge level-beginner" [title]="'Beginner: ' + report.levelBreakdown.beginner">{{ report.levelBreakdown.beginner }}</span>
-                      </div>
                     </td>
                   </tr>
                 }
@@ -286,25 +266,27 @@
       </div>
     </div>
 
-    <!-- Top Categories & Growth -->
+    <!-- Top Companies & Recent Registrations -->
     <div class="row g-4">
       <div class="col-lg-6">
         <div class="chart-card">
           <div class="chart-header">
             <h5 class="chart-title">
-              <i class="bi bi-trophy-fill"></i>
-              Top 5 Most Popular Categories
+              <i class="bi bi-star-fill"></i>
+              Top 10 Companies by Employee Count
             </h5>
           </div>
           <div class="chart-body">
-            @for (cat of analytics()!.mostPopularCategories.slice(0, 5); track cat.categoryId; let i = $index) {
-              <div class="ranking-item" [class.last]="i === 4">
+            @for (company of analytics()!.topCompanies.slice(0, 10); track company.companyId; let i = $index) {
+              <div class="ranking-item" [class.last]="i === 9">
                 <div class="ranking-number">{{ i + 1 }}</div>
                 <div class="ranking-content">
-                  <h6 class="ranking-name">{{ cat.categoryName }}</h6>
-                  <p class="ranking-meta">{{ cat.employeeCount }} employees • {{ cat.popularity }}% adoption</p>
+                  <h6 class="ranking-name">{{ company.companyName }}</h6>
+                  <p class="ranking-meta">{{ company.totalEmployees }} employees</p>
                 </div>
-                <div class="ranking-badge">{{ cat.employeeCount }}</div>
+                <div class="ranking-badge" [ngClass]="isCompanyActive(company.status) ? 'bg-success' : 'bg-danger'">
+                  {{ isCompanyActive(company.status) ? 'Active' : 'Inactive' }}
+                </div>
               </div>
             }
           </div>
@@ -315,18 +297,20 @@
         <div class="chart-card">
           <div class="chart-header">
             <h5 class="chart-title">
-              <i class="bi bi-graph-up-arrow"></i>
-              Recent Category Growth
+              <i class="bi bi-clock-history"></i>
+              Recent Company Registrations
             </h5>
           </div>
           <div class="chart-body">
-            @for (growth of analytics()!.categoryGrowth.slice(0, 10); track growth._id.category + growth._id.month; let last = $last) {
+            @for (registration of analytics()!.recentRegistrations.slice(0, 10); track registration.companyId; let last = $last) {
               <div class="growth-item" [class.last]="last">
                 <div class="growth-date">
-                  <p class="growth-name fw-medium">{{ growth._id.categoryName }}</p>
-                  <small class="growth-meta">{{ formatDate(growth._id.month, growth._id.year) }}</small>
+                  <p class="growth-name fw-medium">{{ registration.companyName }}</p>
+                  <small class="growth-meta">{{ registration.registeredDate | date: 'short' }}</small>
                 </div>
-                <div class="growth-assignments">{{ growth.count }} assignments</div>
+                <div class="growth-assignments" [ngClass]="isCompanyActive(registration.status) ? 'bg-success' : 'bg-danger'">
+                  {{ isCompanyActive(registration.status) ? 'Active' : 'Inactive' }}
+                </div>
               </div>
             }
           </div>

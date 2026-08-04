@@ -23,37 +23,24 @@
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       <div class="row g-3">
-        <div class="col-md-8">
+        <div class="col-md-12">
           <div class="input-group">
-            <span class="input-group-text bg-light">
+            <span class="input-group-text">
               <i class="bi bi-search"></i>
             </span>
             <input
               type="text"
               class="form-control"
-              placeholder="Search skills..."
+              placeholder="Search skills by name or description..."
               [value]="searchForm()?.get('search')?.value || ''"
               (change)="onSearchInputChange($event)"
               (keyup.enter)="onSearch()"
             />
-            <button class="btn btn-primary" (click)="onSearch()">
+            <button class="btn btn-primary" (click)="onSearch()" type="button">
               <i class="bi bi-search me-2"></i>
               Search
             </button>
           </div>
-        </div>
-        <div class="col-md-4">
-          <select
-            class="form-select"
-            (change)="onLevelFilterChange($event)"
-            [value]="skillLevelFilter()"
-          >
-            <option value="">All Levels</option>
-            <option value="Beginner">Beginner</option>
-            <option value="Intermediate">Intermediate</option>
-            <option value="Advanced">Advanced</option>
-            <option value="Expert">Expert</option>
-          </select>
         </div>
       </div>
     </div>
@@ -114,12 +101,17 @@
                   />
                   <label [for]="'unassigned-' + skill._id" class="form-check-label w-100">
                     <div class="skill-content">
-                      <div class="skill-name">{{ skill.skill_name }}</div>
+                      <div class="skill-name">{{ skill.name }}</div>
                       <div class="skill-meta">
-                        <span class="badge" [ngClass]="getSkillLevelBadgeClass(skill.skill_level)">
-                          {{ skill.skill_level }}
+                        <span class="badge" [ngClass]="getCreatedTypeBadge(skill.createdType)">
+                          {{ skill.createdType === 'ADMIN' ? 'Admin' : 'Company' }}
                         </span>
-                        <span class="text-muted small ms-2">{{ skill.user_id.fullName }}</span>
+                        <span class="badge ms-2" [ngClass]="getStatusBadgeClass(skill.status)">
+                          {{ skill.status }}
+                        </span>
+                        @if (skill.description) {
+                          <span class="text-muted small ms-2">{{ skill.description }}</span>
+                        }
                       </div>
                     </div>
                   </label>
@@ -274,14 +266,19 @@
                   />
                   <label [for]="'assigned-' + skill._id" class="form-check-label w-100">
                     <div class="skill-content">
-                      <div class="skill-name">{{ skill.skill_name }}</div>
+                      <div class="skill-name">{{ skill.name }}</div>
                       <div class="skill-meta">
-                        <span class="badge" [ngClass]="getSkillLevelBadgeClass(skill.skill_level)">
-                          {{ skill.skill_level }}
+                        <span class="badge" [ngClass]="getCreatedTypeBadge(skill.createdType)">
+                          {{ skill.createdType === 'ADMIN' ? 'Admin' : 'Company' }}
                         </span>
-                        <span class="text-muted small ms-2">{{ skill.user_id.fullName }}</span>
-                        @if (skill.skill_score) {
-                          <span class="badge bg-secondary ms-2">{{ skill.skill_score }}%</span>
+                        <span class="badge ms-2" [ngClass]="getStatusBadgeClass(skill.status)">
+                          {{ skill.status }}
+                        </span>
+                        @if (skill.description) {
+                          <span class="text-muted small ms-2">{{ skill.description }}</span>
+                        }
+                        @if (skill.archived) {
+                          <span class="badge bg-dark ms-2">Archived</span>
                         }
                       </div>
                     </div>

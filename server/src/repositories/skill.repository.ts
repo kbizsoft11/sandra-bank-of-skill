@@ -143,10 +143,15 @@ export class SkillRepository {
   /**
    * Find skills by category
    */
-  async findByCategory(categoryId: string, query: GetSkillsQueryDto = {}): Promise<{ skills: ISkill[]; total: number }> {
+  async findByCategory(categoryId: string, query: GetSkillsQueryDto = {}, createdBy?: Schema.Types.ObjectId): Promise<{ skills: ISkill[]; total: number }> {
     const { page = 1, limit = 10, search, status, archived } = query;
 
     const filter: any = { categoryId };
+
+    // Filter by createdBy if provided
+    if (createdBy) {
+      filter.createdBy = createdBy;
+    }
 
     if (search) {
       filter.$or = [
@@ -279,9 +284,9 @@ export class SkillRepository {
   }
 
   /**
-   * Find unassigned skills for a category (including orphan skills with null categoryId)
+   * Find unassigned skills for a category (including orphan skills with null categoryId) - filtered by category creator
    */
-  async findUnassignedSkills(categoryId: string, query: GetSkillsQueryDto = {}): Promise<{ skills: ISkill[]; total: number }> {
+  async findUnassignedSkills(categoryId: string, query: GetSkillsQueryDto = {}, createdBy?: Schema.Types.ObjectId): Promise<{ skills: ISkill[]; total: number }> {
     const { page = 1, limit = 10, search, status, archived } = query;
 
     // Get skills that are NOT in this category (includes orphan skills with categoryId = null)
@@ -291,6 +296,12 @@ export class SkillRepository {
         { categoryId: null }  // Or orphan skills
       ]
     };
+
+    // Filter by createdBy if provided
+    if (createdBy) {
+      filter.$and = filter.$and || [];
+      filter.$and.push({ createdBy });
+    }
 
     if (search) {
       filter.$and = filter.$and || [];
