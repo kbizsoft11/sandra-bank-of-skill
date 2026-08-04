@@ -44,6 +44,8 @@ export const QUEST_STATUS_LABELS: Record<PrismQuestStatus, string> = {
  */
 export interface IPrismAssessment {
   externalIdent: string;
+  /** Organisation-specific PRISM ClientID used for all candidate calls. */
+  clientId?: string;
   questStatus: PrismQuestStatus;
   lastFetchedAt: Date;
   questionnaire?: {
@@ -89,6 +91,16 @@ export interface ICreateCandidateRequest {
   CreateUser?: boolean;
   IsGift?: boolean;
   AccID?: number;
+}
+
+export interface ICreateClientRequest {
+  SiteID: string;
+  ClientID: string;
+  Forename: string;
+  Surname: string;
+  OrgName: string;
+  OrgID: string;
+  Email: string;
 }
 
 /**

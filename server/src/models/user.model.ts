@@ -149,6 +149,10 @@ const UserSchema = new Schema<IUser>(
 
         // PRISM Brain Mapping Assessment
         prismAssessment: {
+            clientId: {
+                type: String,
+                required: false,
+            },
             externalIdent: {
                 type: String,
                 required: false,

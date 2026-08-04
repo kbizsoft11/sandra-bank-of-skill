@@ -49,6 +49,12 @@ const organisationSchema =
                 unique: true,
             },
 
+            prismClientId: {
+                type: String,
+                required: false,
+                trim: true,
+            },
+
         },
         {
             timestamps: true,

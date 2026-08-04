@@ -20,6 +20,28 @@ import {
   PrismQuestStatus,
 } from '../types/assessment.types';
 import { env } from '../config/env';
+import { organisationRepository } from '../repositories/organisation.repository';
+
+const makePrismOrgId = (organisationId: string): string => `BankOfSkill${organisationId.replace(/[^A-Za-z0-9]/g, '')}`;
+
+const makePrismClientEmail = (email: string | undefined, prismClientId: string): string => {
+  const [localPart, domain] = (email || 'prism@bankofskill.com').split('@');
+  const suffix = prismClientId.toLowerCase().replace(/[^a-z0-9]/g, '').slice(-24);
+  const safeLocalPart = (localPart || 'prism').replace(/[^a-zA-Z0-9._+-]/g, '').slice(0, 32);
+  return `${safeLocalPart}.prism.${suffix}@${domain || 'bankofskill.com'}`;
+};
+
+const resolvePrismClientId = async (employee: any): Promise<string> => {
+  if (employee?.organisationId && /^[a-f\d]{24}$/i.test(employee.organisationId)) {
+    const organisation = await organisationRepository.findById(employee.organisationId);
+    if (organisation?.prismClientId) return organisation.prismClientId;
+  }
+  if (employee?.tenantId) {
+    const organisation = await organisationRepository.findByTenantId(employee.tenantId);
+    if (organisation?.prismClientId) return organisation.prismClientId;
+  }
+  return employee?.prismAssessment?.clientId || env.PRISM_CLIENT_ID;
+};
 
 const canAccessEmployeeAssessment = (
   requesterUser: any,
@@ -67,14 +89,44 @@ export const createAssessment = asyncHandler(async (req: Request, res: Response)
   if (!organisationId) throw new ApiError(400, 'Employee must belong to an organisation');
 
   try {
+    const organisation = employee.organisationId && /^[a-f\d]{24}$/i.test(employee.organisationId)
+      ? await organisationRepository.findById(employee.organisationId)
+      : employee.tenantId
+        ? await organisationRepository.findByTenantId(employee.tenantId)
+        : null;
+    const prismClientId = organisation?.prismClientId || makePrismOrgId(organisationId);
+
+    // PRISM requires a separate Client for every organisation. The OrgID used
+    // here becomes ClientID on every candidate created for that organisation.
+    if (!organisation?.prismClientId) {
+      const creatorName = requester?.fullName?.trim().split(/\s+/) || [];
+      try {
+        await prismService.createClient({
+          forename: creatorName[0] || 'Bank',
+          surname: creatorName.slice(1).join(' ') || 'of Skill',
+          orgName: organisation?.organisationName || `Organisation ${organisationId}`,
+          orgId: prismClientId,
+          // PRISM requires the client user email to be unique per client.
+          // Keep it deterministic so retries use the same email.
+          email: makePrismClientEmail(requester?.email, prismClientId),
+        });
+      } catch (error) {
+        // The client may have been created successfully before a previous
+        // request failed while parsing PRISM's non-standard success response.
+        const message = error instanceof PrismApiError ? error.prismMessage : '';
+        if (!/already exists|client exists|registered/i.test(message)) throw error;
+      }
+      if (organisation) await organisationRepository.update(organisation._id.toString(), { prismClientId });
+    }
+
     const prismResponse = await prismService.createCandidate(
+      prismClientId,
       employeeId,
-      organisationId,
       qTypeId || env.PRISM_DEFAULT_QTYPE_ID,
       {
         fullName: employee.fullName,
         email: employee.email,
-        organisationName: employee.organisationId || organisationId,
+        organisationName: organisation?.organisationName || `Organisation ${organisationId}`,
       }
     );
 
@@ -87,6 +139,7 @@ export const createAssessment = asyncHandler(async (req: Request, res: Response)
 
     const updateResult = await userRepository.update(employeeId, {
       prismAssessment: {
+        clientId: prismClientId,
         externalIdent: employeeId,
         questStatus: questStatus as PrismQuestStatus,
         lastFetchedAt: new Date(),
@@ -164,11 +217,13 @@ export const getAssessmentStatus = asyncHandler(async (req: Request, res: Respon
   }
 
   try {
-    const exists = await prismService.checkEntityExists(employeeId);
+    const prismClientId = await resolvePrismClientId(employee);
+    const exists = await prismService.checkEntityExists(employeeId, prismClientId);
 
     if (!exists) {
       await userRepository.update(employeeId, {
         prismAssessment: {
+          ...employee.prismAssessment,
           externalIdent: employeeId,
           questStatus: 1,
           lastFetchedAt: new Date(),
@@ -187,7 +242,9 @@ export const getAssessmentStatus = asyncHandler(async (req: Request, res: Respon
     // If we already have questionnaire data, preserve it and only update status
     if (employee.prismAssessment?.questionnaire) {
       // Just check status without losing questionnaire data
-      const history = await prismService.fetchCandidateHistory(employeeId);
+      const history = await prismService.fetchCandidateHistory(employeeId, prismClientId);
+
+      
       const firstItem = history.HistoryList?.[0];
       
       if (firstItem) {
@@ -214,7 +271,7 @@ export const getAssessmentStatus = asyncHandler(async (req: Request, res: Respon
     }
 
     // No questionnaire data exists, fetch full history
-    const history = await prismService.fetchCandidateHistory(employeeId);
+    const history = await prismService.fetchCandidateHistory(employeeId, prismClientId);
     const firstItem = history.HistoryList?.[0];
 
     if (!firstItem) {
@@ -229,6 +286,7 @@ export const getAssessmentStatus = asyncHandler(async (req: Request, res: Respon
 
     const updateData: any = {
       prismAssessment: {
+        clientId: employee.prismAssessment?.clientId,
         externalIdent: employeeId,
         questStatus: firstItem.QuestStatus,
         lastFetchedAt: new Date(),
@@ -273,9 +331,7 @@ export const getMyAssessments = asyncHandler(async (req: Request, res: Response)
 
   // Use userId from JWT token (not _id) as per known bug pattern
   const employeeId = requester.userId || requester._id;
-  
-  console.log('🔍 getMyAssessments called for employeeId:', employeeId);
-  console.log('🔍 requester:', { userId: requester.userId, _id: requester._id, role: requester.role });
+
   
   if (!employeeId) {
     throw new ApiError(400, 'Employee ID not found in token');
@@ -286,24 +342,40 @@ export const getMyAssessments = asyncHandler(async (req: Request, res: Response)
   try {
     // Simply get employee data from MongoDB
     const employee = await userRepository.findById(employeeId);
+
+  
     
-    console.log('🔍 Employee found:', {
-      _id: employee?._id,
-      email: employee?.email,
-      hasPrismAssessment: !!employee?.prismAssessment,
-      hasQuestionnaire: !!employee?.prismAssessment?.questionnaire,
-      hasActionUrl: !!employee?.prismAssessment?.questionnaire?.actionUrl,
-      actionUrl: employee?.prismAssessment?.questionnaire?.actionUrl,
-      questStatus: employee?.prismAssessment?.questStatus,
-    });
-    
-    // Show the assessment only when the assigned questionnaire has a URL.
+    // Refresh the cached status from the organisation-specific PRISM client
+    // whenever the employee dashboard is opened.
     if (employee?.prismAssessment?.questionnaire?.actionUrl) {
       const questionnaire = employee.prismAssessment.questionnaire;
-      const questStatus = employee.prismAssessment.questStatus || 1;
-      const lastFetchedAt = employee.prismAssessment.lastFetchedAt
+      let questStatus = employee.prismAssessment.questStatus || 1;
+      let lastFetchedAt = employee.prismAssessment.lastFetchedAt
         ? new Date(employee.prismAssessment.lastFetchedAt)
         : undefined;
+
+      try {
+        const prismClientId = await resolvePrismClientId(employee);
+        const history = await prismService.fetchCandidateHistory(employeeId, prismClientId);
+
+        const latest = history.HistoryList?.[0];
+        if (latest) {
+          questStatus = latest.QuestStatus || questStatus;
+          lastFetchedAt = new Date();
+          await userRepository.update(employeeId, {
+            prismAssessment: {
+              ...employee.prismAssessment,
+              clientId: prismClientId,
+              questStatus,
+              lastFetchedAt,
+            },
+          } as any);
+        }
+      } catch (error) {
+        // Keep the cached assignment visible if PRISM is temporarily unavailable.
+        console.warn('Unable to refresh employee PRISM status:', employeeId, error);
+      }
+
       const assessment = {
         entityType: 'PRISM Brain Mapping Assessment',
         qTypeId: questionnaire?.qTypeId || env.PRISM_DEFAULT_QTYPE_ID,
@@ -368,9 +440,10 @@ export const getAssessmentReport = asyncHandler(async (req: Request, res: Respon
   }
 
   try {
-    const reportData = await prismService.fetchMergedReportData(employeeId, entityTypeId, onetCode);
-    const basicMapUrl = await prismService.fetchBasicMap(employeeId);
-    const fullMapUrl = await prismService.fetchFullMap(employeeId);
+    const prismClientId = employee.prismAssessment.clientId || env.PRISM_CLIENT_ID;
+    const reportData = await prismService.fetchMergedReportData(employeeId, entityTypeId, onetCode, prismClientId);
+    const basicMapUrl = await prismService.fetchBasicMap(employeeId, prismClientId);
+    const fullMapUrl = await prismService.fetchFullMap(employeeId, prismClientId);
 
     await userRepository.update(employeeId, {
       prismAssessment: {
@@ -423,9 +496,9 @@ export const getAssessmentMap = asyncHandler(async (req: Request, res: Response)
   try {
     let mapUrl: string;
     if (mapType === 'full') {
-      mapUrl = employee.prismAssessment.report?.fullMapUrl || (await prismService.fetchFullMap(employeeId));
+      mapUrl = employee.prismAssessment.report?.fullMapUrl || (await prismService.fetchFullMap(employeeId, employee.prismAssessment.clientId || env.PRISM_CLIENT_ID));
     } else {
-      mapUrl = employee.prismAssessment.report?.basicMapUrl || (await prismService.fetchBasicMap(employeeId));
+      mapUrl = employee.prismAssessment.report?.basicMapUrl || (await prismService.fetchBasicMap(employeeId, employee.prismAssessment.clientId || env.PRISM_CLIENT_ID));
     }
 
     return sendResponse(res, 200, 'Brain map retrieved', { mapUrl, mapType });
@@ -472,7 +545,7 @@ export const unlockAssessmentReport = asyncHandler(async (req: Request, res: Res
   if (!organisationId) throw new ApiError(400, 'Employee must belong to an organisation');
 
   try {
-    await prismService.unlockReport(employeeId, organisationId);
+    await prismService.unlockReport(employeeId, organisationId, employee.prismAssessment.clientId || env.PRISM_CLIENT_ID);
 
     const now = new Date();
     await userRepository.update(employeeId, {

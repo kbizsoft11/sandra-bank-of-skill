@@ -17,4 +17,7 @@ export interface IOrganisation {
     ownerUserId: string;
 
     tenantId: string;
+
+    /** PRISM client identifier (the alphanumeric OrgID). */
+    prismClientId?: string;
 }

@@ -12,6 +12,7 @@ import {
   IFetchReportDataRequest,
   IFetchReportEIDataRequest,
   ICheckEntityExistsRequest,
+  ICreateClientRequest,
 } from '../types/assessment.types';
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -39,11 +40,19 @@ export class PrismService {
       throw new PrismApiError(502, 'PRISM returned an invalid response', 0, 'Invalid response');
     }
 
-    // ResponseStatus=2 is PRISM's success value. Older installations can
-    // omit it, so reject only explicit failure/unauthorised responses.
-    if ((result.ResponseStatus !== undefined && result.ResponseStatus !== 2) || result.IsAuthorised === false) {
-      const message = result.ResponseMessage || `PRISM ${method} failed`;
-      throw new PrismApiError(400, `PRISM API Error: ${message}`, result.ResponseStatus || 0, message);
+    // Most PRISM actions use ResponseStatus=2 for success. CreateClient can
+    // instead return ResponseStatus=0 with an explicit "Success:" message,
+    // for example: "Success:Thank you - you are now registered...".
+    const message = String(result.ResponseMessage || '');
+    const explicitSuccess = /^success\s*:/i.test(message);
+    const emptyCandidateHistory = method === 'FetchCandidateHistory'
+      && result.ResponseStatus === 2
+      && Array.isArray(result.HistoryList)
+      && result.HistoryList.length === 0;
+    const failedStatus = result.ResponseStatus !== undefined && result.ResponseStatus !== 2 && !explicitSuccess;
+    if (failedStatus || (result.IsAuthorised === false && !explicitSuccess && !emptyCandidateHistory)) {
+      const errorMessage = message || `PRISM ${method} failed`;
+      throw new PrismApiError(400, `PRISM API Error: ${errorMessage}`, result.ResponseStatus || 0, errorMessage);
     }
     return result;
   }
@@ -84,62 +93,78 @@ export class PrismService {
     }
   }
 
-  async createCandidate(employeeId: string, organisationId: string, qTypeId = env.PRISM_DEFAULT_QTYPE_ID, details?: { fullName?: string; email?: string; organisationName?: string }): Promise<ICreateCandidateResponse> {
+  async createClient(details: { forename: string; surname: string; orgName: string; orgId: string; email: string }): Promise<Record<string, any>> {
     this.validateCredentials();
+    const payload: ICreateClientRequest = this.withCredentials({
+      Forename: details.forename,
+      Surname: details.surname,
+      OrgName: details.orgName,
+      OrgID: details.orgId,
+      Email: details.email,
+    }) as ICreateClientRequest;
+    return this.makeRequest<Record<string, any>>('CreateClient', payload);
+  }
+
+  async createCandidate(clientId: string, employeeId: string, qTypeId = env.PRISM_DEFAULT_QTYPE_ID, details?: { fullName?: string; email?: string; organisationName?: string }): Promise<ICreateCandidateResponse> {
+    this.validateCredentials();
+    if (qTypeId === 29) {
+      throw new PrismApiError(400, 'QTypeID 29 (CareerMatch) is no longer supported by PRISM', 0, 'Unsupported QTypeID');
+    }
     const parts = details?.fullName?.trim().split(/\s+/) || [];
     const payload: ICreateCandidateRequest = this.withCredentials({
+      ClientID: clientId,
       ExternalIdent: employeeId,
-      ParentExternalIdent: organisationId,
       QTypeID: qTypeId,
       Forename: parts[0] || 'User',
       Surname: parts.slice(1).join(' ') || 'Employee',
       Email: details?.email || '',
-      Organisation: details?.organisationName || organisationId,
+      Organisation: details?.organisationName || '',
       LangID: 1,
-      CreateUser: true,
+      Gender: false,
+      CreateUser: false,
       IsGift: false,
     }) as ICreateCandidateRequest;
     return this.makeRequest<ICreateCandidateResponse>('CreateCandidate', payload);
   }
 
-  async fetchCandidateHistory(employeeId: string): Promise<IFetchCandidateHistoryResponse> {
+  async fetchCandidateHistory(employeeId: string, clientId = this.clientId): Promise<IFetchCandidateHistoryResponse> {
     this.validateCredentials();
-    return this.makeRequest<IFetchCandidateHistoryResponse>('FetchCandidateHistory', this.withCredentials({ ExternalIdent: employeeId }));
+    return this.makeRequest<IFetchCandidateHistoryResponse>('FetchCandidateHistory', this.withCredentials({ ClientID: clientId, ExternalIdent: employeeId }));
   }
 
-  async checkEntityExists(employeeId: string): Promise<boolean> {
+  async checkEntityExists(employeeId: string, clientId = this.clientId): Promise<boolean> {
     this.validateCredentials();
     try {
-      const result = await this.makeRequest<{ Exists?: boolean; EntityExists?: boolean }>('CheckEntityExists', this.withCredentials({ ExternalIdent: employeeId }));
-      return result.Exists === true || result.EntityExists === true;
+      const result = await this.makeRequest<{ Exists?: boolean; EntityExists?: boolean; ObjectExists?: boolean }>('CheckEntityExists', this.withCredentials({ ClientID: clientId, ExternalIdent: employeeId }));
+      return result.Exists === true || result.EntityExists === true || result.ObjectExists === true;
     } catch (error) {
       if (error instanceof PrismApiError && error.statusCode === 500) throw error;
       return false;
     }
   }
 
-  async unlockReport(employeeId: string, organisationId: string): Promise<Record<string, any>> {
+  async unlockReport(employeeId: string, organisationId: string, clientId = this.clientId): Promise<Record<string, any>> {
     this.validateCredentials();
-    return this.makeRequest<Record<string, any>>('UnlockReport', this.withCredentials({ ExternalIdent: employeeId, ParentExternalIdent: organisationId }) as IUnlockReportRequest);
+    return this.makeRequest<Record<string, any>>('UnlockReport', this.withCredentials({ ClientID: clientId, ExternalIdent: employeeId, ParentExternalIdent: organisationId }) as IUnlockReportRequest);
   }
 
-  async fetchReportData(employeeId: string, entityTypeId = 1, onetCode?: string): Promise<Record<string, any>> {
+  async fetchReportData(employeeId: string, entityTypeId = 1, onetCode?: string, clientId = this.clientId): Promise<Record<string, any>> {
     this.validateCredentials();
-    return this.makeRequest<Record<string, any>>('FetchReportData', this.withCredentials({ ExternalIdent: employeeId, EntityTypeID: entityTypeId, ...(onetCode ? { ONetCode: onetCode } : {}) }) as IFetchReportDataRequest);
+    return this.makeRequest<Record<string, any>>('FetchReportData', this.withCredentials({ ClientID: clientId, ExternalIdent: employeeId, EntityTypeID: entityTypeId, ...(onetCode ? { ONetCode: onetCode } : {}) }) as IFetchReportDataRequest);
   }
 
-  async fetchReportEIData(employeeId: string, entityTypeId = 1): Promise<Record<string, any>> {
+  async fetchReportEIData(employeeId: string, entityTypeId = 1, clientId = this.clientId): Promise<Record<string, any>> {
     this.validateCredentials();
-    return this.makeRequest<Record<string, any>>('FetchReportEIData', this.withCredentials({ ExternalIdent: employeeId, EntityTypeID: entityTypeId }) as IFetchReportEIDataRequest);
+    return this.makeRequest<Record<string, any>>('FetchReportEIData', this.withCredentials({ ClientID: clientId, ExternalIdent: employeeId, EntityTypeID: entityTypeId }) as IFetchReportEIDataRequest);
   }
 
-  async fetchBasicMap(employeeId: string): Promise<string> {
-    const result = await this.callAction<Record<string, any>>('FetchBasicMap', { ExternalIdent: employeeId });
+  async fetchBasicMap(employeeId: string, clientId = this.clientId): Promise<string> {
+    const result = await this.callAction<Record<string, any>>('FetchBasicMap', { ClientID: clientId, ExternalIdent: employeeId });
     return result.MapFileName || result.ActionURL1 || result.ActionURL2 || '';
   }
 
-  async fetchFullMap(employeeId: string): Promise<string> {
-    const result = await this.callAction<Record<string, any>>('FetchFullMap', { ExternalIdent: employeeId });
+  async fetchFullMap(employeeId: string, clientId = this.clientId): Promise<string> {
+    const result = await this.callAction<Record<string, any>>('FetchFullMap', { ClientID: clientId, ExternalIdent: employeeId });
     return result.MapFileName || result.ActionURL1 || result.ActionURL2 || '';
   }
 
@@ -162,10 +187,10 @@ export class PrismService {
   async upgradeReportByCode(payload: Record<string, unknown>) { return this.callAction('UpgradeReportByCode', payload); }
   async fetchCustomOutput(payload: Record<string, unknown>) { return this.callAction('FetchCustomOutput', payload); }
 
-  async fetchMergedReportData(employeeId: string, entityTypeId = 1, onetCode?: string): Promise<Record<string, any>> {
+  async fetchMergedReportData(employeeId: string, entityTypeId = 1, onetCode?: string, clientId = this.clientId): Promise<Record<string, any>> {
     const [assessmentData, emotionalIntelligenceData] = await Promise.all([
-      this.fetchReportData(employeeId, entityTypeId, onetCode),
-      this.fetchReportEIData(employeeId, entityTypeId),
+      this.fetchReportData(employeeId, entityTypeId, onetCode, clientId),
+      this.fetchReportEIData(employeeId, entityTypeId, clientId),
     ]);
     return { assessmentData, emotionalIntelligenceData, mergedAt: new Date().toISOString() };
   }

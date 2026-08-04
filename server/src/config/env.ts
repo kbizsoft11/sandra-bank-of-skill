@@ -53,7 +53,9 @@ export const env = {
   PRISM_API_BASE_URL: process.env.PRISM_API_BASE_URL || 'https://staging.prismbrainmapping.com/service_library/v2/api.svc',
   PRISM_SITE_ID: process.env.PRISM_SITE_ID || '',
   PRISM_CLIENT_ID: process.env.PRISM_CLIENT_ID || '',
-  PRISM_DEFAULT_QTYPE_ID: parseInt(process.env.PRISM_DEFAULT_QTYPE_ID || '42', 10),
+  // PRISM no longer supports CareerMatch (QTypeID 29). Keep this configurable
+  // because PRISM can assign different IDs to Professional/Personal/Foundation/4D.
+  PRISM_DEFAULT_QTYPE_ID: parseInt(process.env.PRISM_DEFAULT_QTYPE_ID || '1', 10),
   PRISM_RETRY_ATTEMPTS: parseInt(process.env.PRISM_RETRY_ATTEMPTS || '3', 10),
   PRISM_RETRY_DELAY_MS: parseInt(process.env.PRISM_RETRY_DELAY_MS || '1000', 10),
 };
