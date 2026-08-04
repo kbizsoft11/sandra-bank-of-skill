@@ -68,6 +68,86 @@
       </article>
     </section>
 
+    <!-- PRISM Brain Mapping Assessment -->
+    <section class="panel prism-assessment-panel">
+      <div class="panel-heading">
+        <div>
+          <h2><i class="bi bi-brain me-2"></i>PRISM Brain Mapping Assessments</h2>
+          <p>Complete your behavioral assessments to unlock insights about your work style</p>
+        </div>
+      </div>
+
+      @if (assessmentLoading()) {
+        <div class="loading-state p-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-muted">Loading assessments...</p>
+        </div>
+      } @else if (assessmentError()) {
+        <div class="alert alert-danger m-3">
+          <i class="bi bi-exclamation-circle me-2"></i>
+          <div>
+            <strong>Error Loading Assessments</strong>
+            <p class="mb-0">{{ assessmentError() }}</p>
+          </div>
+        </div>
+      } @else if (myAssessments().length > 0) {
+        <div class="assessments-list">
+          @for (assessment of myAssessments(); track $index) {
+            <div class="assessment-card" [class.assessment-error]="assessment.error">
+              <div class="assessment-header">
+                <div class="assessment-info">
+                  <h3>{{ assessment.entityType }}</h3>
+                  <span class="badge" [ngClass]="getAssessmentStatusBadgeClass(assessment.questStatus)">
+                    <i class="bi bi-circle-fill me-1"></i>
+                    {{ assessment.questStatusLabel }}
+                  </span>
+                </div>
+                @if (!assessment.error && assessment.takeAssessmentUrl) {
+                  <button 
+                    type="button" 
+                    class="btn btn-primary"
+                    (click)="takeAssessment(assessment.takeAssessmentUrl)">
+                    <i class="bi bi-arrow-right-circle me-2"></i>
+                    {{ getAssessmentActionLabel(assessment) }}
+                  </button>
+                }
+              </div>
+              <div class="assessment-details">
+                <div class="detail-item">
+                  <i class="bi bi-calendar3"></i>
+                  <span>Sent: {{ assessment.dateSent | date: 'MMM d, y' }}</span>
+                </div>
+                @if (assessment.dateCompleted) {
+                  <div class="detail-item">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Completed: {{ assessment.dateCompleted | date: 'MMM d, y' }}</span>
+                  </div>
+                }
+                @if (assessment.isCompleted && !assessment.isPaidFor) {
+                  <div class="detail-item text-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>Payment required to unlock full report</span>
+                  </div>
+                }
+                @if (assessment.error) {
+                  <div class="detail-item text-danger">
+                    <i class="bi bi-x-circle"></i>
+                    <span>{{ assessment.errorMessage || 'Failed to load assessment status' }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state p-5">
+          <i class="bi bi-inbox display-4 d-block mb-3 text-muted"></i>
+          <h3>No Assessments Assigned Yet</h3>
+          <p class="text-muted">Your manager will notify you when a PRISM assessment has been assigned to you.</p>
+        </div>
+      }
+    </section>
+
     <!-- Charts -->
     <section class="visual-grid">
       <article class="panel chart-panel">

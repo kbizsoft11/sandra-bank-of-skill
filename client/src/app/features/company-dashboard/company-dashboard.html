@@ -163,10 +163,120 @@
     }
 
     @if (activeTab() === 'assessments') {
-      <section class="panel full-panel">
+      <section class="panel full-panel prism-assessments-panel">
         @if (tabLoading()) {
           <div class="loading-state"><div class="spinner-border text-primary" role="status"></div></div>
         } @else {
+          <!-- PRISM Brain Mapping Assessments Section -->
+          <div class="panel-heading">
+            <div>
+              <h2><i class="bi bi-brain me-2"></i>PRISM Brain Mapping Assessments</h2>
+              <p>Behavioral assessments for employee development and team insights</p>
+            </div>
+            @if (prismAssessments()) {
+              <div class="assessment-summary-badges">
+                <span class="badge badge-gray">Not Started: {{ prismAssessments()!.summary.notStarted || 0 }}</span>
+                <span class="badge badge-blue">In Progress: {{ prismAssessments()!.summary.inProgress || 0 }}</span>
+                <span class="badge badge-green">Completed: {{ prismAssessments()!.summary.completed || 0 }}</span>
+                <span class="badge badge-purple">Unlocked: {{ prismAssessments()!.summary.unlocked || 0 }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Employee Assessments Table -->
+          <div class="table-responsive">
+            <table class="table align-middle assessment-table">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Department</th>
+                  <th>Status</th>
+                  <th>Last Updated</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (employee of prismAssessments()?.assessments; track employee.employeeId) {
+                  <tr>
+                    <td data-label="Employee">
+                      <div class="employee-cell">
+                        @if (employee.profileImage) {
+                          <img [src]="employee.profileImage" [alt]="employee.fullName" class="employee-avatar">
+                        } @else {
+                          <span class="employee-avatar avatar-placeholder">{{ getInitials(employee.fullName) }}</span>
+                        }
+                        <div>
+                          <strong>{{ employee.fullName }}</strong>
+                          <small>{{ employee.email }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td data-label="Department">
+                      <span class="department-badge">{{ employee.department || 'Not assigned' }}</span>
+                    </td>
+                    <td data-label="Status">
+                      @if (employee.assessment) {
+                        <span class="status-badge" [ngClass]="getStatusBadgeClass(employee.assessment.questStatus)">
+                          <i class="bi bi-{{ questStatusConfig[employee.assessment.questStatus]?.icon || 'circle' }}"></i>
+                          {{ employee.assessment.questStatusLabel || getStatusLabel(employee.assessment.questStatus) }}
+                        </span>
+                      } @else {
+                        <span class="status-badge badge-gray">
+                          <i class="bi bi-circle"></i>
+                          Not Started
+                        </span>
+                      }
+                    </td>
+                    <td data-label="Last Updated">
+                      @if (employee.assessment?.lastFetchedAt) {
+                        <small>{{ formatDateTime(employee.assessment.lastFetchedAt?.toString()) }}</small>
+                      } @else {
+                        <small class="text-muted">—</small>
+                      }
+                    </td>
+                    <td data-label="Actions" class="action-cell">
+                      <div class="action-buttons">
+                        @if (!employee.assessment || (!employee.assessment.hasQuestionnaire && employee.assessment.questStatus === 1)) {
+                          <button type="button" class="btn btn-sm btn-primary" (click)="createAssessment(employee.employeeId)">
+                            <i class="bi bi-plus-circle me-1"></i>Create Assessment
+                          </button>
+                        }
+                        
+                        @if (canTakeAssessment(employee)) {
+                          <span class="badge badge-info">
+                            <i class="bi bi-arrow-right-circle me-1"></i>Ready to Take
+                          </span>
+                        }
+                        
+                        @if (canUnlockAssessment(employee)) {
+                          <button type="button" class="btn btn-sm btn-success" (click)="unlockAssessment(employee.employeeId)">
+                            <i class="bi bi-unlock me-1"></i>Unlock Report
+                          </button>
+                        }
+                        
+                        @if (canViewReport(employee)) {
+                          <button type="button" class="btn btn-sm btn-purple" (click)="viewAssessmentReport(employee)">
+                            <i class="bi bi-file-text me-1"></i>View Report
+                          </button>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr class="empty-row">
+                    <td colspan="5" class="text-center text-muted py-5">
+                      <i class="bi bi-inbox display-4 d-block mb-3 text-muted"></i>
+                      <p>No employees found. Add employees to start creating assessments.</p>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <hr class="my-5">
+
+          <!-- Legacy Assessment History Section -->
           <div class="assessment-summary">
             <div><span>Self assessment</span><strong>{{ formatDate(assessments()?.selfAssessment?.lastCompletedAt) }}</strong></div>
             <div><span>Supervisor assessment</span><strong>{{ formatDate(assessments()?.supervisorAssessment?.lastCompletedAt) }}</strong></div>

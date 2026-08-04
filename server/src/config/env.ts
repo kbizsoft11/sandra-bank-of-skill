@@ -48,4 +48,12 @@ export const env = {
   
   // Client Configuration
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:4200',
+  
+  // PRISM Configuration
+  PRISM_API_BASE_URL: process.env.PRISM_API_BASE_URL || 'https://staging.prismbrainmapping.com/service_library/v2/api.svc',
+  PRISM_SITE_ID: process.env.PRISM_SITE_ID || '',
+  PRISM_CLIENT_ID: process.env.PRISM_CLIENT_ID || '',
+  PRISM_DEFAULT_QTYPE_ID: parseInt(process.env.PRISM_DEFAULT_QTYPE_ID || '42', 10),
+  PRISM_RETRY_ATTEMPTS: parseInt(process.env.PRISM_RETRY_ATTEMPTS || '3', 10),
+  PRISM_RETRY_DELAY_MS: parseInt(process.env.PRISM_RETRY_DELAY_MS || '1000', 10),
 };

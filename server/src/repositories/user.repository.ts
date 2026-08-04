@@ -61,12 +61,18 @@ export const userRepository = {
         },
       },
 
-      // Project fields - include all user fields plus designationName
+      // Add designationName field and remove password
+      {
+        $addFields: {
+          designationName: { $ifNull: ['$designation.designationName', null] },
+        },
+      },
+      
+      // Remove sensitive fields
       {
         $project: {
           password: 0,
           designation: 0,
-          designationName: { $ifNull: ['$designation.designationName', null] },
         },
       },
     ];
@@ -130,6 +136,7 @@ export const userRepository = {
           designationId: 1,
           organisationId: 1,
           tenantId: 1,
+          prismAssessment: 1,
           createdAt: 1,
           updatedAt: 1,
           designationName: { $ifNull: ['$designation.designationName', null] },
@@ -146,9 +153,14 @@ export const userRepository = {
   },
 
   update: async (id: string, payload: Partial<IUser>) => {
-    return UserModel.findByIdAndUpdate(id, payload, {
-      new: true,
-    }).select("-password");
+    return UserModel.findByIdAndUpdate(
+      id, 
+      { $set: payload }, 
+      {
+        new: true,
+        runValidators: false, // Skip validation for dynamic fields
+      }
+    ).select("-password");
   },
 
   delete: async (id: string) => {

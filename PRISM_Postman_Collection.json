@@ -1,0 +1,288 @@
+{
+  "info": {
+    "name": "PRISM Brain Mapping API Tests",
+    "description": "Test collection for PRISM Brain Mapping Service Library API v2.5",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://staging.prismbrainmapping.com/service_library/v2/api.svc",
+      "type": "string"
+    },
+    {
+      "key": "base_url_json",
+      "value": "https://staging.prismbrainmapping.com/service_library/v2/api.svc/json",
+      "type": "string"
+    },
+    {
+      "key": "site_id",
+      "value": "7e0c977f-d8c7-4927-a7a0-8fbe32108a43",
+      "type": "string"
+    },
+    {
+      "key": "client_id",
+      "value": "BankofSkill",
+      "type": "string"
+    },
+    {
+      "key": "external_ident",
+      "value": "test-employee-123",
+      "type": "string"
+    },
+    {
+      "key": "parent_external_ident",
+      "value": "test-org-456",
+      "type": "string"
+    },
+    {
+      "key": "qtype_id",
+      "value": "9",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. CreateCandidate (Standard Endpoint)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"SiteID\": \"{{site_id}}\",\n  \"ClientID\": \"{{client_id}}\",\n  \"ExternalIdent\": \"{{external_ident}}\",\n  \"ParentExternalIdent\": \"{{parent_external_ident}}\",\n  \"QTypeID\": {{qtype_id}},\n  \"Forename\": \"John\",\n  \"Surname\": \"Doe\",\n  \"Email\": \"john.doe@example.com\",\n  \"Organisation\": \"Test Organisation\",\n  \"LangID\": 1,\n  \"CreateUser\": true,\n  \"IsGift\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/CreateCandidate",
+          "host": ["{{base_url}}"],
+          "path": ["CreateCandidate"]
+        },
+        "description": "Test CreateCandidate with standard .svc endpoint (currently fails with 400)"
+      },
+      "response": []
+    },
+    {
+      "name": "2. CreateCandidate (JSON Endpoint)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"SiteID\": \"{{site_id}}\",\n  \"ClientID\": \"{{client_id}}\",\n  \"ExternalIdent\": \"{{external_ident}}\",\n  \"ParentExternalIdent\": \"{{parent_external_ident}}\",\n  \"QTypeID\": {{qtype_id}},\n  \"Forename\": \"John\",\n  \"Surname\": \"Doe\",\n  \"Email\": \"john.doe@example.com\",\n  \"Organisation\": \"Test Organisation\",\n  \"LangID\": 1,\n  \"CreateUser\": true,\n  \"IsGift\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url_json}}/CreateCandidate",
+          "host": ["{{base_url_json}}"],
+          "path": ["CreateCandidate"]
+        },
+        "description": "Test CreateCandidate with /json suffix endpoint"
+      },
+      "response": []
+    },
+    {
+      "name": "3. CreateCandidate (Minimal)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"SiteID\": \"{{site_id}}\",\n  \"ClientID\": \"{{client_id}}\",\n  \"ExternalIdent\": \"{{external_ident}}\",\n  \"ParentExternalIdent\": \"{{parent_external_ident}}\",\n  \"QTypeID\": {{qtype_id}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url_json}}/CreateCandidate",
+          "host": ["{{base_url_json}}"],
+          "path": ["CreateCandidate"]
+        },
+        "description": "Test with minimal required fields only"
+      },
+      "response": []
+    },
+    {
+      "name": "4. CheckEntityExists",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"SiteID\": \"{{site_id}}\",\n  \"ClientID\": \"{{client_id}}\",\n  \"ExternalIdent\": \"{{external_ident}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url_json}}/CheckEntityExists",
+          "host": ["{{base_url_json}}"],
+          "path": ["CheckEntityExists"]
+        },
+        "description": "Check if a candidate/entity exists in PRISM"
+      },
+      "response": []
+    },
+    {
+      "name": "5. FetchCandidateHistory",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"SiteID\": \"{{site_id}}\",\n  \"ClientID\": \"{{client_id}}\",\n  \"ExternalIdent\": \"{{external_ident}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url_json}}/FetchCandidateHistory",
+          "host": ["{{base_url_json}}"],
+          "path": ["FetchCandidateHistory"]
+        },
+        "description": "Fetch complete history of a candidate's questionnaires"
+      },
+      "response": []
+    },
+    {
+      "name": "6. UnlockReport",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"SiteID\": \"{{site_id}}\",\n  \"ClientID\": \"{{client_id}}\",\n  \"ExternalIdent\": \"{{external_ident}}\",\n  \"ParentExternalIdent\": \"{{parent_external_ident}}\",\n  \"TransactionMethod\": \"Test\",\n  \"OrderReference\": \"TEST-ORDER-001\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url_json}}/UnlockReport",
+          "host": ["{{base_url_json}}"],
+          "path": ["UnlockReport"]
+        },
+        "description": "Unlock a completed questionnaire report"
+      },
+      "response": []
+    },
+    {
+      "name": "7. FetchReportData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"SiteID\": \"{{site_id}}\",\n  \"ClientID\": \"{{client_id}}\",\n  \"ExternalIdent\": \"{{external_ident}}\",\n  \"EntityTypeID\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url_json}}/FetchReportData",
+          "host": ["{{base_url_json}}"],
+          "path": ["FetchReportData"]
+        },
+        "description": "Fetch core report data (Behaviour, Work Aptitude, etc.)"
+      },
+      "response": []
+    },
+    {
+      "name": "8. FetchReportEIData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"SiteID\": \"{{site_id}}\",\n  \"ClientID\": \"{{client_id}}\",\n  \"ExternalIdent\": \"{{external_ident}}\",\n  \"EntityTypeID\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url_json}}/FetchReportEIData",
+          "host": ["{{base_url_json}}"],
+          "path": ["FetchReportEIData"]
+        },
+        "description": "Fetch Emotional Intelligence and Mental Toughness data"
+      },
+      "response": []
+    }
+  ]
+}

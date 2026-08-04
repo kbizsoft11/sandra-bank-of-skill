@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { take } from 'rxjs';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
-
 import { AuthService } from '../../core/services/auth.service';
 import {
   CompanyAbout,
@@ -11,6 +10,13 @@ import {
   CompanyStats,
   DashboardService,
 } from '../../core/services/dashboard.service';
+import { AssessmentService } from '../../core/services/assessment.service';
+import {
+  OrganisationAssessments,
+  EmployeeAssessment,
+  QUEST_STATUS_CONFIG,
+  PrismQuestStatus,
+} from '../../shared/interfaces/assessment.interface';
 
 Chart.register(...registerables);
 
@@ -26,6 +32,7 @@ type CompanyDashboardTab = 'summary' | 'skills' | 'trends' | 'assessments' | 'ab
 export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly dashboardService = inject(DashboardService);
+  private readonly assessmentService = inject(AssessmentService);
 
   private readonly tabStorageKey = 'companyDashboardActiveTab';
   private readonly validTabs: CompanyDashboardTab[] = ['summary', 'skills', 'trends', 'assessments', 'about'];
@@ -39,12 +46,16 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
   readonly stats = signal<CompanyStats | null>(null);
   readonly about = signal<CompanyAbout | null>(null);
   readonly assessments = signal<CompanyAssessments | null>(null);
+  readonly prismAssessments = signal<OrganisationAssessments | null>(null);
   readonly activeTab = signal<CompanyDashboardTab>('summary');
   readonly loading = signal(true);
   readonly tabLoading = signal(false);
   readonly error = signal<string | null>(null);
   readonly assessmentsPage = signal(1);
   readonly assessmentsPerPage = signal(10);
+  readonly selectedEmployee = signal<EmployeeAssessment | null>(null);
+  readonly showReportModal = signal(false);
+  readonly questStatusConfig = QUEST_STATUS_CONFIG;
 
   get companyName(): string {
     return this.authService.user()?.fullName || 'Company dashboard';
@@ -61,6 +72,7 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.activeTab() === 'assessments') {
       this.loadAssessments();
+      this.loadPrismAssessments();
     }
 
     if (this.activeTab() === 'about') {
@@ -103,8 +115,13 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
       this.loadAbout();
     }
 
-    if (tab === 'assessments' && !this.assessments()) {
-      this.loadAssessments();
+    if (tab === 'assessments') {
+      if (!this.assessments()) {
+        this.loadAssessments();
+      }
+      if (!this.prismAssessments()) {
+        this.loadPrismAssessments();
+      }
     }
 
     if (tab === 'summary') {
@@ -312,5 +329,132 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
 
   get pages(): number[] {
     return Array.from({ length: this.assessments()?.pagination.totalPages || 1 }, (_, index) => index + 1);
+  }
+
+  loadPrismAssessments(): void {
+    const user = this.authService.user();
+    const organisationId = user?.organisationId || user?.tenantId;
+    
+    if (!organisationId) {
+      console.warn('No organisation ID or tenant ID found for user:', user);
+      // Set empty state instead of just warning
+      this.prismAssessments.set({
+        organisationId: '',
+        assessments: [],
+        total: 0,
+        summary: {
+          notStarted: 0,
+          inProgress: 0,
+          completed: 0,
+          unlocked: 0,
+        },
+      });
+      return;
+    }
+
+    console.log('Loading PRISM assessments for organisation:', organisationId);
+    
+    this.assessmentService.getOrganisationAssessments(organisationId).pipe(take(1)).subscribe({
+      next: (response) => {
+        console.log('PRISM assessments loaded:', response.data);
+        this.prismAssessments.set(response.data);
+      },
+      error: (error) => {
+        console.error('Error loading PRISM assessments:', error);
+        // Set empty state on error
+        this.prismAssessments.set({
+          organisationId: organisationId,
+          assessments: [],
+          total: 0,
+          summary: {
+            notStarted: 0,
+            inProgress: 0,
+            completed: 0,
+            unlocked: 0,
+          },
+        });
+      },
+    });
+  }
+
+  createAssessment(employeeId: string): void {
+    if (!employeeId) return;
+
+    this.assessmentService.createAssessment(employeeId).pipe(take(1)).subscribe({
+      next: (response) => {
+        console.log('Assessment created:', response.data);
+        this.loadPrismAssessments();
+      },
+      error: (error) => {
+        console.error('Error creating assessment:', error);
+        alert(error.error?.message || 'Failed to create assessment');
+      },
+    });
+  }
+
+  unlockAssessment(employeeId: string): void {
+    if (!employeeId) return;
+
+    if (!confirm('Are you sure you want to unlock this assessment report?')) {
+      return;
+    }
+
+    this.assessmentService.unlockAssessmentReport(employeeId).pipe(take(1)).subscribe({
+      next: (response) => {
+        console.log('Assessment unlocked:', response.data);
+        this.loadPrismAssessments();
+      },
+      error: (error) => {
+        console.error('Error unlocking assessment:', error);
+        alert(error.error?.message || 'Failed to unlock assessment');
+      },
+    });
+  }
+
+  viewAssessmentReport(employee: EmployeeAssessment): void {
+    this.selectedEmployee.set(employee);
+    this.showReportModal.set(true);
+
+    if (employee.assessment?.isUnlocked) {
+      this.assessmentService.getAssessmentReport(employee.employeeId).pipe(take(1)).subscribe({
+        next: (response) => {
+          console.log('Assessment report:', response.data);
+        },
+        error: (error) => {
+          console.error('Error loading report:', error);
+        },
+      });
+    }
+  }
+
+  closeReportModal(): void {
+    this.showReportModal.set(false);
+    this.selectedEmployee.set(null);
+  }
+
+  getStatusBadgeClass(status: PrismQuestStatus | undefined): string {
+    if (!status) return 'badge-gray';
+    return this.questStatusConfig[status]?.badgeClass || 'badge-gray';
+  }
+
+  getStatusLabel(status: PrismQuestStatus | undefined): string {
+    if (!status) return 'Not Started';
+    return this.questStatusConfig[status]?.label || 'Unknown';
+  }
+
+  canTakeAssessment(employee: EmployeeAssessment): boolean {
+    return employee.assessment !== null && 
+           (employee.assessment.questStatus === 1 || employee.assessment.questStatus === 2) && 
+           employee.assessment.hasQuestionnaire;
+  }
+
+  canUnlockAssessment(employee: EmployeeAssessment): boolean {
+    return employee.assessment !== null && 
+           (employee.assessment.questStatus === 3 || employee.assessment.questStatus === 4) &&
+           !employee.assessment.isUnlocked;
+  }
+
+  canViewReport(employee: EmployeeAssessment): boolean {
+    return employee.assessment !== null && employee.assessment.isUnlocked;
   }
 }

@@ -1,4 +1,5 @@
 import { UserRole, OnboardingStatus, AccountStatus } from "./common.types";
+import { IPrismAssessment } from "./assessment.types";
 
 export interface IUser {
 
@@ -55,5 +56,8 @@ export interface IUser {
     twitter?: string;
     linkedin?: string;
   };
+
+  // PRISM Brain Mapping Assessment
+  prismAssessment?: IPrismAssessment;
 
 }

@@ -19,6 +19,7 @@ import organisationRouter from './organisation.routes';
 import systemSettingsRouter from './system-settings.routes';
 import companyNotificationRoutes from './company-notification.route';
 import documentRouter from './document.route';
+import assessmentsRouter from './assessments.route';
 
 const router = Router();
 
@@ -33,6 +34,7 @@ router.use('/users', userRouter);
 router.use('/auth', authRouter);
 router.use('/waitlist', waitlistRouter);
 router.use('/documents', authenticate, documentRouter);
+router.use('/assessments', assessmentsRouter);
 router.use('/dashboard', authenticate, dashboardRoutes);
 router.use('/admin/global-search', authenticate, adminGlobalSearchRoutes);
 router.use('/analytics', authenticate, analyticsRoutes);

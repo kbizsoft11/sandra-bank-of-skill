@@ -145,7 +145,61 @@ const UserSchema = new Schema<IUser>(
                 type: String,
                 required: false,
             },
-        }
+        },
+
+        // PRISM Brain Mapping Assessment
+        prismAssessment: {
+            externalIdent: {
+                type: String,
+                required: false,
+            },
+            questStatus: {
+                type: Number,
+                enum: [1, 2, 3, 4, 5, 6],
+                required: false,
+            },
+            lastFetchedAt: {
+                type: Date,
+                required: false,
+            },
+            questionnaire: {
+                qTypeId: {
+                    type: Number,
+                    required: false,
+                },
+                questId: {
+                    type: String,
+                    required: false,
+                },
+                randomCode: {
+                    type: String,
+                    required: false,
+                },
+                actionUrl: {
+                    type: String,
+                    required: false,
+                },
+            },
+            report: {
+                reportData: {
+                    type: Map,
+                    of: Schema.Types.Mixed,
+                    required: false,
+                },
+                basicMapUrl: {
+                    type: String,
+                    required: false,
+                },
+                fullMapUrl: {
+                    type: String,
+                    required: false,
+                },
+                unlockedAt: {
+                    type: Date,
+                    required: false,
+                },
+            },
+        },
 
     },
 

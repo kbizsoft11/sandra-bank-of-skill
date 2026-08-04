@@ -4,6 +4,7 @@ export interface AuthUser {
   email: string;
   role: string;
   tenantId: string;
+  organisationId?: string;
   profileCompleted: boolean;
   isActive: boolean;
   createdAt: string;
