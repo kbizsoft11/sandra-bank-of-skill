@@ -237,9 +237,17 @@
                     <td data-label="Actions" class="action-cell">
                       <div class="action-buttons">
                         @if (!employee.assessment || (!employee.assessment.hasQuestionnaire && employee.assessment.questStatus === 1)) {
-                          <button type="button" class="btn btn-sm btn-primary" (click)="createAssessment(employee.employeeId)">
-                            <i class="bi bi-plus-circle me-1"></i>Create Assessment
-                          </button>
+                          <div class="prism-create-action">
+                            <label class="visually-hidden" [for]="'prism-type-' + employee.employeeId">Questionnaire type</label>
+                            <select class="form-select form-select-sm prism-type-select" [id]="'prism-type-' + employee.employeeId" [value]="getSelectedQuestionnaireType(employee.employeeId)" (change)="setSelectedQuestionnaireType(employee.employeeId, $event)">
+                              @for (type of prismQuestionnaireTypes; track type.id) {
+                                <option [value]="type.id">{{ type.label }}</option>
+                              }
+                            </select>
+                            <button type="button" class="btn btn-sm btn-primary" (click)="createAssessment(employee.employeeId, getSelectedQuestionnaireType(employee.employeeId))">
+                              <i class="bi bi-plus-circle me-1"></i>Create
+                            </button>
+                          </div>
                         }
                         
                         @if (canTakeAssessment(employee)) {

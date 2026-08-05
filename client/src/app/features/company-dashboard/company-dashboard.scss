@@ -724,6 +724,19 @@ select:focus-visible {
   padding: .4rem .75rem;
 }
 
+.prism-create-action {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+}
+
+.prism-type-select {
+  min-width: 130px;
+  color: var(--ink);
+  border-color: var(--select-border);
+  font-size: .8rem;
+}
+
 .btn-purple {
   background: var(--purple);
   color: #fff;
@@ -758,6 +771,16 @@ select:focus-visible {
 
 @media (max-width: 639px) {
   .action-buttons {
+    width: 100%;
+  }
+
+  .prism-create-action {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .prism-type-select {
     width: 100%;
   }
 

@@ -11,6 +11,7 @@ import {
   DashboardService,
 } from '../../core/services/dashboard.service';
 import { AssessmentService } from '../../core/services/assessment.service';
+import { AlertService } from '../../core/services/alert.service';
 import {
   OrganisationAssessments,
   EmployeeAssessment,
@@ -34,6 +35,15 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
   private readonly dashboardService = inject(DashboardService);
   private readonly assessmentService = inject(AssessmentService);
   private readonly router = inject(Router);
+  private readonly alertService = inject(AlertService);
+
+  readonly prismQuestionnaireTypes = [
+    { id: 1, label: 'Professional' },
+    { id: 21, label: 'Personal' },
+    { id: 4, label: 'Foundation' },
+    { id: 42, label: 'Career Explorer' },
+  ];
+  readonly selectedQuestionnaireTypes = signal<Record<string, number>>({});
 
   private readonly tabStorageKey = 'companyDashboardActiveTab';
   private readonly validTabs: CompanyDashboardTab[] = ['summary', 'skills', 'trends', 'assessments', 'about'];
@@ -376,10 +386,20 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  createAssessment(employeeId: string): void {
+  getSelectedQuestionnaireType(employeeId: string): number {
+    return this.selectedQuestionnaireTypes()[employeeId] || 1;
+  }
+
+  setSelectedQuestionnaireType(employeeId: string, event: Event): void {
+    const value = Number((event.target as HTMLSelectElement).value);
+    if (!Number.isInteger(value)) return;
+    this.selectedQuestionnaireTypes.update((selected) => ({ ...selected, [employeeId]: value }));
+  }
+
+  createAssessment(employeeId: string, qTypeId: number): void {
     if (!employeeId) return;
 
-    this.assessmentService.createAssessment(employeeId).pipe(take(1)).subscribe({
+    this.assessmentService.createAssessment(employeeId, qTypeId).pipe(take(1)).subscribe({
       next: (response) => {
         console.log('Assessment created:', response.data);
         this.prismAssessments.update((current) => current ? {
@@ -392,15 +412,16 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error creating assessment:', error);
-        alert(error.error?.message || 'Failed to create assessment');
+        this.alertService.error(error.error?.message || 'Failed to create assessment');
       },
     });
   }
 
-  unlockAssessment(employeeId: string): void {
+  async unlockAssessment(employeeId: string): Promise<void> {
     if (!employeeId) return;
 
-    if (!confirm('Are you sure you want to unlock this assessment report?')) {
+    const confirmed = await this.alertService.confirm('Are you sure you want to unlock this assessment report?', 'Unlock Report', 'Unlock', 'Cancel');
+    if (!confirmed) {
       return;
     }
 
@@ -417,7 +438,7 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error unlocking assessment:', error);
-        alert(error.error?.message || 'Failed to unlock assessment');
+        this.alertService.error(error.error?.message || 'Failed to unlock assessment');
       },
     });
   }

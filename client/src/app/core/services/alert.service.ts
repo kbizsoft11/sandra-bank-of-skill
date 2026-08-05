@@ -82,6 +82,21 @@ export class AlertService {
     });
   }
 
+  select(
+    message: string,
+    options: Record<string, string>,
+    title: string = 'Select an option',
+    confirmText: string = 'Continue'
+  ): Promise<string | null> {
+    return Swal.fire({
+      icon: 'question', title, text: message, input: 'select', inputOptions: options,
+      inputPlaceholder: 'Choose a questionnaire type', showCancelButton: true,
+      confirmButtonColor: '#667eea', cancelButtonColor: '#6c757d',
+      confirmButtonText: confirmText, cancelButtonText: 'Cancel', reverseButtons: true,
+      inputValidator: (value) => value ? undefined : 'Please select a questionnaire type',
+    }).then((result) => result.isConfirmed && result.value ? String(result.value) : null);
+  }
+
   /**
    * Show delete confirmation dialog
    */

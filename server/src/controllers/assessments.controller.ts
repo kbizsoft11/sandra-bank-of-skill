@@ -131,8 +131,13 @@ const shouldRefetchFromPrism = (lastFetchedAt?: Date, ttlMinutes: number = 5): b
 export const createAssessment = asyncHandler(async (req: Request, res: Response) => {
   const { employeeId, qTypeId } = req.body as ICreateAssessmentPayload;
   const requester = req.user;
+  const selectedQTypeId = qTypeId ?? env.PRISM_DEFAULT_QTYPE_ID;
+  const supportedQTypeIds = new Set([1, 4, 21, 42]);
 
   if (!employeeId) throw new ApiError(400, 'Employee ID is required');
+  if (!Number.isInteger(selectedQTypeId) || !supportedQTypeIds.has(selectedQTypeId)) {
+    throw new ApiError(400, 'Unsupported PRISM questionnaire type. Choose Professional, Personal, Foundation, or Career Explorer.');
+  }
 
   const employee = await userRepository.findById(employeeId);
   if (!employee) throw new ApiError(404, 'Employee not found');
@@ -193,7 +198,7 @@ export const createAssessment = asyncHandler(async (req: Request, res: Response)
     const prismResponse = await prismService.createCandidate(
       prismClientId,
       employeeId,
-      qTypeId || env.PRISM_DEFAULT_QTYPE_ID,
+      selectedQTypeId,
       {
         fullName: employee.fullName,
         email: employee.email,
@@ -215,7 +220,7 @@ export const createAssessment = asyncHandler(async (req: Request, res: Response)
         questStatus: questStatus as PrismQuestStatus,
         lastFetchedAt: new Date(),
         questionnaire: {
-          qTypeId: qTypeId || env.PRISM_DEFAULT_QTYPE_ID,
+          qTypeId: selectedQTypeId,
           questId: questId,
           randomCode: randomCode,
           actionUrl: actionUrl,
