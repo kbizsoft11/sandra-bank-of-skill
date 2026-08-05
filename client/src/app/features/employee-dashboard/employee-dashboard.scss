@@ -355,7 +355,7 @@ h1 { margin: 0; font-size: 1.5rem; line-height: 1.2; }
 
 /* PRISM Assessment Panel */
 .prism-assessment-panel {
-  margin-bottom: 2rem;
+  margin: 2rem 0;
   border-left: 4px solid #7c3aed;
 }
 
@@ -408,6 +408,24 @@ h1 { margin: 0; font-size: 1.5rem; line-height: 1.2; }
   }
 }
 
+.assessment-card .assessment-header > .btn {
+  flex: 0 0 auto;
+  min-width: 150px;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(49, 87, 199, .12);
+}
+
+.assessment-card .assessment-header > .btn:disabled {
+  opacity: .7;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.assessment-card .badge-blue { background: #e8efff; color: #3157c7; }
+.assessment-card .badge-yellow { background: #fff1df; color: #bd6b0c; }
+.assessment-card .badge-green { background: #e4f6ed; color: #16804f; }
+.assessment-card .badge-gray { background: #eef1f5; color: #64748b; }
+
 .assessment-details {
   display: flex;
   flex-wrap: wrap;
@@ -425,6 +443,21 @@ h1 { margin: 0; font-size: 1.5rem; line-height: 1.2; }
 
   i {
     font-size: 1rem;
+  }
+}
+
+.payment-notice {
+  color: #a85d00;
+  background: #fff8eb;
+  border: 1px solid #f5d49a;
+  border-radius: 8px;
+  padding: .55rem .75rem;
+
+  small {
+    display: block;
+    margin-top: .15rem;
+    color: #8a6a36;
+    font-size: .75rem;
   }
 }
 
@@ -446,6 +479,10 @@ h1 { margin: 0; font-size: 1.5rem; line-height: 1.2; }
 @media (max-width: 768px) {
   .assessment-header {
     flex-direction: column;
+  }
+
+  .assessment-card .assessment-header > .btn {
+    width: 100%;
   }
 
   .assessment-info .badge {

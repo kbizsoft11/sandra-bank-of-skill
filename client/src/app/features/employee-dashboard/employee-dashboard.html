@@ -70,12 +70,12 @@
 
     <!-- PRISM Brain Mapping Assessment -->
     <section class="panel prism-assessment-panel">
-      <div class="panel-heading">
-        <div>
-          <h2><i class="bi bi-brain me-2"></i>PRISM Brain Mapping Assessments</h2>
-          <p>Complete your behavioral assessments to unlock insights about your work style</p>
-        </div>
-      </div>
+  <div class="panel-heading">
+    <div>
+      <h2><i class="bi bi-brain me-2"></i>PRISM Brain Mapping Assessments</h2>
+      <p>Complete your behavioral assessments to unlock insights about your work style</p>
+    </div>
+  </div>
 
       @if (assessmentLoading()) {
         <div class="loading-state p-4">
@@ -92,16 +92,16 @@
         </div>
       } @else if (myAssessments().length > 0) {
         <div class="assessments-list">
-          @for (assessment of myAssessments(); track $index) {
-            <div class="assessment-card" [class.assessment-error]="assessment.error">
-              <div class="assessment-header">
-                <div class="assessment-info">
-                  <h3>{{ assessment.entityType }}</h3>
-                  <span class="badge" [ngClass]="getAssessmentStatusBadgeClass(assessment.questStatus)">
-                    <i class="bi bi-circle-fill me-1"></i>
-                    {{ assessment.questStatusLabel }}
-                  </span>
-                </div>
+      @for (assessment of myAssessments(); track $index) {
+        <div class="assessment-card" [class.assessment-error]="assessment.error">
+          <div class="assessment-header">
+            <div class="assessment-info">
+              <h3>{{ assessment.entityType }}</h3>
+              <span class="badge" [ngClass]="getAssessmentStatusBadgeClass(assessment.questStatus)">
+                <i class="bi bi-circle-fill me-1"></i>
+                {{ assessment.questStatusLabel }}
+              </span>
+            </div>
                 @if (!assessment.error && !assessment.isCompleted && assessment.takeAssessmentUrl) {
                   <button 
                     type="button" 
@@ -109,6 +109,22 @@
                     (click)="takeAssessment(assessment.takeAssessmentUrl)">
                     <i class="bi bi-arrow-right-circle me-2"></i>
                     {{ getAssessmentActionLabel(assessment) }}
+                  </button>
+                }
+                @if (!assessment.error && assessment.isCompleted && !assessment.isPaidFor) {
+                  <button
+                    type="button"
+                    class="btn btn-warning payment-action"
+                    [disabled]="!assessment.takeAssessmentUrl"
+                    [title]="assessment.takeAssessmentUrl ? 'Open the PRISM payment page' : 'PRISM has not returned a payment URL yet'"
+                    (click)="assessment.takeAssessmentUrl && takeAssessment(assessment.takeAssessmentUrl)">
+                    <i class="bi bi-credit-card me-2"></i>
+                    {{ assessment.takeAssessmentUrl ? 'Complete Payment' : 'Payment Link Unavailable' }}
+                  </button>
+                }
+                @if (!assessment.error && assessment.isCompleted && assessment.isPaidFor) {
+                  <button type="button" class="btn btn-success" (click)="viewAssessmentReport()">
+                    <i class="bi bi-file-earmark-bar-graph me-2"></i>View Report
                   </button>
                 }
               </div>
@@ -124,9 +140,12 @@
                   </div>
                 }
                 @if (assessment.isCompleted && !assessment.isPaidFor) {
-                  <div class="detail-item text-warning">
+                  <div class="detail-item payment-notice">
                     <i class="bi bi-exclamation-triangle"></i>
-                    <span>Payment required to unlock full report</span>
+                    <span>
+                      Payment is required to unlock the full report.
+                      @if (!assessment.takeAssessmentUrl) { <small> Please contact your manager because PRISM has not returned a payment URL.</small> }
+                    </span>
                   </div>
                 }
                 @if (assessment.error) {

@@ -798,3 +798,14 @@ select:focus-visible {
     flex-direction: row;
   }
 }
+.report-json {
+  max-height: 60vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-size: 0.8rem;
+}

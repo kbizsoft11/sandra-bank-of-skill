@@ -44,7 +44,9 @@ export class PrismService {
     // instead return ResponseStatus=0 with an explicit "Success:" message,
     // for example: "Success:Thank you - you are now registered...".
     const message = String(result.ResponseMessage || '');
-    const explicitSuccess = /^success\s*:/i.test(message);
+    // PRISM uses several success message formats, including
+    // "Success:..." and "Success - Candidate found".
+    const explicitSuccess = /^success\b/i.test(message);
     const emptyCandidateHistory = method === 'FetchCandidateHistory'
       && result.ResponseStatus === 2
       && Array.isArray(result.HistoryList)
@@ -132,10 +134,20 @@ export class PrismService {
     return this.makeRequest<IFetchCandidateHistoryResponse>('FetchCandidateHistory', this.withCredentials({ ClientID: clientId, ExternalIdent: employeeId }));
   }
 
-  async checkEntityExists(employeeId: string, clientId = this.clientId): Promise<boolean> {
+  async checkEntityExists(employeeId: string, entityTypeId = 1, clientId = this.clientId): Promise<boolean> {
     this.validateCredentials();
     try {
-      const result = await this.makeRequest<{ Exists?: boolean; EntityExists?: boolean; ObjectExists?: boolean }>('CheckEntityExists', this.withCredentials({ ClientID: clientId, ExternalIdent: employeeId }));
+      const payload: ICheckEntityExistsRequest = this.withCredentials({
+        ClientID: clientId,
+        ExternalIdent: employeeId,
+        ChildIdentifier: '',
+        EntityTypeID: entityTypeId,
+        DetailOne: '',
+        DetailTwo: '',
+        DetailThree: '',
+        RetURL: '',
+      }) as ICheckEntityExistsRequest;
+      const result = await this.makeRequest<{ Exists?: boolean; EntityExists?: boolean; ObjectExists?: boolean }>('CheckEntityExists', payload);
       return result.Exists === true || result.EntityExists === true || result.ObjectExists === true;
     } catch (error) {
       if (error instanceof PrismApiError && error.statusCode === 500) throw error;
@@ -143,9 +155,21 @@ export class PrismService {
     }
   }
 
-  async unlockReport(employeeId: string, organisationId: string, clientId = this.clientId): Promise<Record<string, any>> {
+  async unlockReport(
+    employeeId: string,
+    entityTypeId = 1,
+    clientId = this.clientId,
+    transactionMethod = env.PRISM_TRANSACTION_METHOD,
+    orderReference = `${env.PRISM_ORDER_REFERENCE_PREFIX}-${employeeId}`
+  ): Promise<Record<string, any>> {
     this.validateCredentials();
-    return this.makeRequest<Record<string, any>>('UnlockReport', this.withCredentials({ ClientID: clientId, ExternalIdent: employeeId, ParentExternalIdent: organisationId }) as IUnlockReportRequest);
+    return this.makeRequest<Record<string, any>>('UnlockReport', this.withCredentials({
+      ClientID: clientId,
+      ExternalIdent: employeeId,
+      EntityTypeID: entityTypeId,
+      TransactionMethod: transactionMethod,
+      OrderReference: orderReference,
+    }) as IUnlockReportRequest);
   }
 
   async fetchReportData(employeeId: string, entityTypeId = 1, onetCode?: string, clientId = this.clientId): Promise<Record<string, any>> {
@@ -158,13 +182,37 @@ export class PrismService {
     return this.makeRequest<Record<string, any>>('FetchReportEIData', this.withCredentials({ ClientID: clientId, ExternalIdent: employeeId, EntityTypeID: entityTypeId }) as IFetchReportEIDataRequest);
   }
 
-  async fetchBasicMap(employeeId: string, clientId = this.clientId): Promise<string> {
-    const result = await this.callAction<Record<string, any>>('FetchBasicMap', { ClientID: clientId, ExternalIdent: employeeId });
+  async fetchBasicMap(employeeId: string, entityTypeId = 1, onetCode = '', clientId = this.clientId): Promise<string> {
+    const result = await this.callAction<Record<string, any>>('FetchBasicMap', {
+      ClientID: clientId,
+      ExternalIdent: employeeId,
+      EntityTypeID: entityTypeId,
+      ShowUnderlying: false,
+      ShowAdapted: false,
+      ShowConsistent: false,
+      ShowBenchmarkOnly: false,
+      ONetCode: onetCode,
+      UserRandomCode: '',
+      Dimensions: onetCode ? 4 : 8,
+      LanguageID: 1,
+    });
     return result.MapFileName || result.ActionURL1 || result.ActionURL2 || '';
   }
 
-  async fetchFullMap(employeeId: string, clientId = this.clientId): Promise<string> {
-    const result = await this.callAction<Record<string, any>>('FetchFullMap', { ClientID: clientId, ExternalIdent: employeeId });
+  async fetchFullMap(employeeId: string, entityTypeId = 1, onetCode = '', clientId = this.clientId): Promise<string> {
+    const result = await this.callAction<Record<string, any>>('FetchFullMap', {
+      ClientID: clientId,
+      ExternalIdent: employeeId,
+      EntityTypeID: entityTypeId,
+      ShowUnderlying: false,
+      ShowAdapted: false,
+      ShowConsistent: false,
+      ShowBenchmarkOnly: false,
+      ONetCode: onetCode,
+      UserRandomCode: '',
+      Dimensions: onetCode ? 4 : 8,
+      LanguageID: 1,
+    });
     return result.MapFileName || result.ActionURL1 || result.ActionURL2 || '';
   }
 

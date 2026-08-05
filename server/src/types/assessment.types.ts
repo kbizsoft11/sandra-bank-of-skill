@@ -133,16 +133,20 @@ export interface IFetchCandidateHistoryRequest {
  * Fetch Candidate History Response Item
  */
 export interface IFetchCandidateHistoryItem {
-  CandidateName: string;
-  QType: string;
-  QTypeId: number;
+  CandidateName?: string;
+  QType?: string;
+  QTypeId?: number;
+  EntityType?: string;
+  ExternalIdent?: string;
   DateSent: string;
   DateCompleted: string | null;
-  QuestStatus: PrismQuestStatus;
+  QuestStatus?: PrismQuestStatus;
+  IsCompleted?: boolean;
+  IsPaidFor?: boolean;
   QuestId?: string;
   RandomCode?: string;
-  SubActionURL1?: string; // Current action URL based on state
-  IsPaidFor?: boolean;
+  SubActionURL1?: string;
+  SubActionURL2?: string;
 }
 
 /**
@@ -172,7 +176,9 @@ export interface IUnlockReportRequest {
   SiteID: string;
   ClientID: string;
   ExternalIdent: string;
-  ParentExternalIdent: string;
+  EntityTypeID: number;
+  TransactionMethod: string;
+  OrderReference: string;
 }
 
 /**
@@ -227,6 +233,12 @@ export interface ICheckEntityExistsRequest {
   SiteID: string;
   ClientID: string;
   ExternalIdent: string;
+  ChildIdentifier: string;
+  EntityTypeID: number;
+  DetailOne: string;
+  DetailTwo: string;
+  DetailThree: string;
+  RetURL: string;
 }
 
 /**

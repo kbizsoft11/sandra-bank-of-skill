@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { take } from 'rxjs';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { AuthService } from '../../core/services/auth.service';
@@ -33,6 +33,7 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly dashboardService = inject(DashboardService);
   private readonly assessmentService = inject(AssessmentService);
+  private readonly router = inject(Router);
 
   private readonly tabStorageKey = 'companyDashboardActiveTab';
   private readonly validTabs: CompanyDashboardTab[] = ['summary', 'skills', 'trends', 'assessments', 'about'];
@@ -53,8 +54,6 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
   readonly error = signal<string | null>(null);
   readonly assessmentsPage = signal(1);
   readonly assessmentsPerPage = signal(10);
-  readonly selectedEmployee = signal<EmployeeAssessment | null>(null);
-  readonly showReportModal = signal(false);
   readonly questStatusConfig = QUEST_STATUS_CONFIG;
 
   get companyName(): string {
@@ -383,6 +382,12 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
     this.assessmentService.createAssessment(employeeId).pipe(take(1)).subscribe({
       next: (response) => {
         console.log('Assessment created:', response.data);
+        this.prismAssessments.update((current) => current ? {
+          ...current,
+          assessments: current.assessments.map((item) => item.employeeId.toString() === employeeId
+            ? { ...item, assessment: { questStatus: response.data.questStatus, questStatusLabel: response.data.questStatusLabel, hasQuestionnaire: true, isUnlocked: false, actionUrl: response.data.actionUrl, lastFetchedAt: new Date().toISOString() } }
+            : item),
+        } : current);
         this.loadPrismAssessments();
       },
       error: (error) => {
@@ -402,6 +407,12 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
     this.assessmentService.unlockAssessmentReport(employeeId).pipe(take(1)).subscribe({
       next: (response) => {
         console.log('Assessment unlocked:', response.data);
+        this.prismAssessments.update((current) => current ? {
+          ...current,
+          assessments: current.assessments.map((item) => item.employeeId.toString() === employeeId && item.assessment
+            ? { ...item, assessment: { ...item.assessment, questStatus: response.data.questStatus, questStatusLabel: response.data.questStatusLabel, isUnlocked: true, lastFetchedAt: new Date().toISOString() } }
+            : item),
+        } : current);
         this.loadPrismAssessments();
       },
       error: (error) => {
@@ -412,24 +423,18 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
   }
 
   viewAssessmentReport(employee: EmployeeAssessment): void {
-    this.selectedEmployee.set(employee);
-    this.showReportModal.set(true);
-
-    if (employee.assessment?.isUnlocked) {
-      this.assessmentService.getAssessmentReport(employee.employeeId).pipe(take(1)).subscribe({
-        next: (response) => {
-          console.log('Assessment report:', response.data);
-        },
-        error: (error) => {
-          console.error('Error loading report:', error);
-        },
-      });
-    }
+    this.router.navigate(['/company/prism-report', employee.employeeId], {
+      queryParams: { name: employee.fullName },
+    });
   }
 
-  closeReportModal(): void {
-    this.showReportModal.set(false);
-    this.selectedEmployee.set(null);
+  @HostListener('window:focus')
+  refreshPrismAssessmentsOnFocus(): void {
+    if (this.activeTab() === 'assessments') this.loadPrismAssessments();
+  }
+
+  openPrismAction(url?: string): void {
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   getStatusBadgeClass(status: PrismQuestStatus | undefined): string {

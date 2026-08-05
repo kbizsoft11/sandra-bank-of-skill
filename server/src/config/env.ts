@@ -56,6 +56,8 @@ export const env = {
   // PRISM no longer supports CareerMatch (QTypeID 29). Keep this configurable
   // because PRISM can assign different IDs to Professional/Personal/Foundation/4D.
   PRISM_DEFAULT_QTYPE_ID: parseInt(process.env.PRISM_DEFAULT_QTYPE_ID || '1', 10),
+  PRISM_TRANSACTION_METHOD: process.env.PRISM_TRANSACTION_METHOD || 'BankOfSkill',
+  PRISM_ORDER_REFERENCE_PREFIX: process.env.PRISM_ORDER_REFERENCE_PREFIX || 'BOS',
   PRISM_RETRY_ATTEMPTS: parseInt(process.env.PRISM_RETRY_ATTEMPTS || '3', 10),
   PRISM_RETRY_DELAY_MS: parseInt(process.env.PRISM_RETRY_DELAY_MS || '1000', 10),
 };

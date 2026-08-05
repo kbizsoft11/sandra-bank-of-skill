@@ -1,0 +1,155 @@
+<div class="prism-report-shell">
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <i class="bi bi-exclamation-circle"></i>
+      <h2>Unable to load report</h2>
+      <p>{{ error() }}</p>
+      <button type="button" class="btn btn-primary" (click)="goBack()">Return to dashboard</button>
+    </div>
+  } @else {
+    <header class="dashboard-heading">
+      <div>
+        <p class="eyebrow">PRISM brain mapping</p>
+        <h1>{{ employeeName() }}'s report</h1>
+        <p class="subtitle">A visual summary of behaviour, aptitude, work environment and emotional intelligence.</p>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn btn-outline-primary" (click)="goBack()">
+          <i class="bi bi-arrow-left me-2"></i>Back to dashboard
+        </button>
+      </div>
+    </header>
+
+    <!-- Summary metrics -->
+    <section class="metric-grid">
+      <article class="metric-card">
+        <span class="metric-icon purple"><i class="bi bi-diagram-3-fill"></i></span>
+        <span class="metric-label">Top behaviours</span>
+        <strong>{{ behaviourItems.length }}</strong>
+        <small>Behaviour dimensions returned by PRISM</small>
+      </article>
+      <article class="metric-card">
+        <span class="metric-icon orange"><i class="bi bi-graph-up-arrow"></i></span>
+        <span class="metric-label">Average aptitude</span>
+        <strong>{{ averageAptitude }}<span class="unit">/100</span></strong>
+        <small>Across work aptitude dimensions</small>
+      </article>
+      <article class="metric-card">
+        <span class="metric-icon green"><i class="bi bi-emoji-smile-fill"></i></span>
+        <span class="metric-label">EI and resilience</span>
+        <strong>{{ averageEI }}<span class="unit">/100</span></strong>
+        <small>Combined available report scores</small>
+      </article>
+      <article class="metric-card">
+        <span class="metric-icon blue"><i class="bi bi-unlock-fill"></i></span>
+        <span class="metric-label">Report status</span>
+        <strong>Unlocked</strong>
+        <small>Scores returned successfully from PRISM</small>
+      </article>
+    </section>
+
+    <!-- Charts -->
+    <section class="visual-grid">
+      <article class="panel chart-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Behaviour profile</p>
+            <h2>Natural behaviour dimensions</h2>
+          </div>
+        </div>
+        <div class="chart-canvas">
+          <canvas #behaviourChart></canvas>
+        </div>
+      </article>
+
+      <article class="panel chart-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Work aptitude</p>
+            <h2>Preferred work activities</h2>
+          </div>
+        </div>
+        <div class="chart-canvas">
+          <canvas #aptitudeChart></canvas>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel chart-panel wide-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Emotional intelligence</p>
+          <h2>EI and mental toughness dimensions</h2>
+        </div>
+      </div>
+      <div class="chart-canvas tall">
+        <canvas #eiChart></canvas>
+      </div>
+    </section>
+
+    <!-- Behaviour insights -->
+    @if (topBehaviours.length) {
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Behaviour insights</p>
+            <h2>How this profile may show up at work</h2>
+          </div>
+        </div>
+        <div class="behaviour-grid">
+          @for (item of topBehaviours; track item.name) {
+            <article class="behaviour-card">
+              <h3>{{ item.name }}</h3>
+              <p>{{ item.description }}</p>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Strengths / growth areas -->
+    @if ((assessmentData['dtKeyData1'] || []).length || (assessmentData['dtKeyData2'] || []).length) {
+      <section class="content-grid">
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Strength indicators</p>
+              <h2>Likely strengths</h2>
+            </div>
+          </div>
+          @if ((assessmentData['dtKeyData1'] || []).length) {
+            <ul class="trait-list">
+              @for (item of assessmentData['dtKeyData1'] || []; track $index) {
+                <li>{{ item }}</li>
+              }
+            </ul>
+          } @else {
+            <p class="empty-state">No strength indicators available.</p>
+          }
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Development focus</p>
+              <h2>Possible growth areas</h2>
+            </div>
+          </div>
+          @if ((assessmentData['dtKeyData2'] || []).length) {
+            <ul class="trait-list">
+              @for (item of assessmentData['dtKeyData2'] || []; track $index) {
+                <li>{{ item }}</li>
+              }
+            </ul>
+          } @else {
+            <p class="empty-state">No development areas available.</p>
+          }
+        </article>
+      </section>
+    }
+  }
+</div>

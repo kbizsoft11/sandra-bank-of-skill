@@ -162,7 +162,9 @@ export class AssessmentService {
     this.assessmentLoading.set(true);
     this.assessmentError.set(null);
 
-    return this.http.get<ApiResponse<OrganisationAssessments>>(`${this.apiUrl}/organisation/${organisationId}/employees`).pipe(
+    const params = new HttpParams().set('_refresh', Date.now().toString());
+
+    return this.http.get<ApiResponse<OrganisationAssessments>>(`${this.apiUrl}/organisation/${organisationId}/employees`, { params }).pipe(
       tap({
         next: (response) => {
           this.assessmentLoading.set(false);
@@ -182,7 +184,9 @@ export class AssessmentService {
     this.assessmentLoading.set(true);
     this.assessmentError.set(null);
 
-    return this.http.get<ApiResponse<{ assessments: MyAssessmentItem[] }>>(`${this.apiUrl}/my-assessments`).pipe(
+    const params = new HttpParams().set('_refresh', Date.now().toString());
+
+    return this.http.get<ApiResponse<{ assessments: MyAssessmentItem[] }>>(`${this.apiUrl}/my-assessments`, { params }).pipe(
       tap({
         next: (response) => {
           this.assessmentLoading.set(false);

@@ -1,7 +1,7 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal, computed } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { take } from 'rxjs';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
@@ -47,6 +47,7 @@ export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
   private readonly dashboardService = inject(DashboardService);
   private readonly documentService = inject(DocumentService);
   private readonly assessmentService = inject(AssessmentService);
+  private readonly router = inject(Router);
 
   @ViewChild('skillDistributionChart') skillDistributionChart?: ElementRef<HTMLCanvasElement>;
   @ViewChild('topSkillsChart') topSkillsChart?: ElementRef<HTMLCanvasElement>;
@@ -616,6 +617,19 @@ export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
     if (url) {
       window.open(url, '_blank', 'noopener,noreferrer');
     }
+  }
+
+  @HostListener('window:focus')
+  refreshAssessmentsOnFocus(): void {
+    this.loadMyAssessments();
+  }
+
+  viewAssessmentReport(): void {
+    const employee = this.authService.user();
+    if (!employee?._id) return;
+    this.router.navigate(['/employee/prism-report', employee._id], {
+      queryParams: { name: employee.fullName },
+    });
   }
 
   getAssessmentActionLabel(assessment: any): string {

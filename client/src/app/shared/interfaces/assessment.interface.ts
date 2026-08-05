@@ -63,6 +63,7 @@ export interface EmployeeAssessment {
     lastFetchedAt?: Date | string;
     hasQuestionnaire: boolean;
     isUnlocked: boolean;
+    actionUrl?: string;
   } | null;
 }
 
