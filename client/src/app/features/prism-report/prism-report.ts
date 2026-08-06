@@ -17,6 +17,7 @@ export class PrismReportComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('behaviourChart') behaviourChart?: ElementRef<HTMLCanvasElement>;
   @ViewChild('aptitudeChart') aptitudeChart?: ElementRef<HTMLCanvasElement>;
   @ViewChild('eiChart') eiChart?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('fourDChart') fourDChart?: ElementRef<HTMLCanvasElement>;
   readonly loading = signal(true); readonly error = signal<string | null>(null); readonly report = signal<AssessmentReport | null>(null); readonly employeeName = signal('Employee');
   // Keep the collection structurally typed so Chart.js' specialised bar
   // chart generics do not conflict with the union used by Chart[].
@@ -35,6 +36,11 @@ export class PrismReportComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void { this.charts.forEach((chart) => chart.destroy()); }
   get assessmentData(): ReportSection { return (this.report()?.reportData as any)?.assessmentData || {}; }
   get emotionalIntelligenceData(): ReportSection { return (this.report()?.reportData as any)?.emotionalIntelligenceData || {}; }
+  get fourDText(): string { return String(this.assessmentData['fourDText'] || '').trim(); }
+  get fourDData(): Array<{ name: string; score: number }> {
+    const output = (this.report()?.reportData as any)?.fourDRawOutput?.Output4D || [];
+    return output.map((item: any) => ({ name: item.Name || `Quadrant ${item.QuadID}`, score: Number(item.Value) || 0 }));
+  }
   get behaviourItems(): Array<{ name: string; score: number }> { return (this.assessmentData['dtBehData'] || []).map((item: any) => ({ name: String(item.value || '').split('|')[0] || 'Behaviour', score: Number(item.key) || 0 })); }
   get aptitudeItems(): Array<{ name: string; score: number }> { return (this.assessmentData['dtWAData'] || []).map((item: any) => ({ name: item.apt_title || 'Work aptitude', score: Number(item.score) || 0 })); }
   get eiItems(): Array<{ name: string; score: number }> { return [...(this.emotionalIntelligenceData['CDAItems'] || []), ...(this.emotionalIntelligenceData['EQItems'] || []), ...(this.emotionalIntelligenceData['MTItems'] || [])].filter((item: any) => item.item_title || item.itemTitle).map((item: any) => ({ name: item.item_title || item.itemTitle, score: Number(item.item_score ?? item.score) || 0 })); }
@@ -43,7 +49,7 @@ export class PrismReportComponent implements OnInit, AfterViewInit, OnDestroy {
   get topBehaviours(): Array<{ name: string; description: string }> { return (this.assessmentData['dtTopBehData'] || []).slice(0, 4).map((item: any) => ({ name: item.value || 'Behaviour', description: this.cleanHtml(item.key || '') })); }
   private average(values: number[]): number { return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0; }
   private cleanHtml(value: string): string { return value.replace(/<[^>]*>/g, '').replace(/&#8217;/g, "'"); }
-  private renderCharts(): void { this.charts.forEach((chart) => chart.destroy()); this.charts = []; this.createChart(this.behaviourChart, this.behaviourItems, 'Behaviour profile', '#5669d9'); this.createChart(this.aptitudeChart, this.aptitudeItems, 'Work aptitude', '#e69a3a'); this.createChart(this.eiChart, this.eiItems.slice(0, 12), 'EI and mental toughness', '#35a77a'); }
+  private renderCharts(): void { this.charts.forEach((chart) => chart.destroy()); this.charts = []; this.createChart(this.behaviourChart, this.behaviourItems, 'Behaviour profile', '#5669d9'); this.createChart(this.aptitudeChart, this.aptitudeItems, 'Work aptitude', '#e69a3a'); this.createChart(this.eiChart, this.eiItems.slice(0, 12), 'EI and mental toughness', '#35a77a'); this.createChart(this.fourDChart, this.fourDData, '4D quadrant profile', '#7c3aed'); }
   private createChart(target: ElementRef<HTMLCanvasElement> | undefined, items: Array<{ name: string; score: number }>, label: string, color: string): void {
     if (!target || !items.length) return;
     const config: ChartConfiguration<'bar'> = { type: 'bar', data: { labels: items.map((item) => item.name), datasets: [{ label, data: items.map((item) => item.score), backgroundColor: color, borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { min: 0, max: 100, ticks: { stepSize: 20 } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } } };

@@ -490,10 +490,31 @@ export const getAssessmentReport = asyncHandler(async (req: Request, res: Respon
     }
 
     if (employee.prismAssessment.report?.reportData) {
+      let cachedReportData = employee.prismAssessment.report.reportData as Record<string, any>;
+      const cachedFourD = cachedReportData.fourDRawOutput;
+
+      // Reports created before 4D support do not contain the raw quadrant
+      // output. Refresh only that missing part instead of returning the old
+      // cached payload forever.
+      if (!cachedFourD || !Array.isArray(cachedFourD.Output4D)) {
+        const fourDRawOutput = await prismService
+          .fetch4DRawOutput(employeeId, entityTypeId, prismClientId)
+          .catch(() => ({}));
+        if (Array.isArray((fourDRawOutput as any).Output4D)) {
+          cachedReportData = { ...cachedReportData, fourDRawOutput };
+          await userRepository.update(employeeId, {
+            prismAssessment: {
+              ...currentAssessment,
+              report: { ...employee.prismAssessment.report, reportData: cachedReportData },
+            },
+          } as any);
+        }
+      }
+
       const response: IAssessmentReportResponse = {
         questStatus: historyStatus.questStatus,
         questStatusLabel: QUEST_STATUS_LABELS[historyStatus.questStatus],
-        reportData: employee.prismAssessment.report.reportData,
+        reportData: cachedReportData,
         basicMapUrl: employee.prismAssessment.report.basicMapUrl,
         fullMapUrl: employee.prismAssessment.report.fullMapUrl,
         unlockedAt: employee.prismAssessment.report.unlockedAt,
@@ -501,7 +522,11 @@ export const getAssessmentReport = asyncHandler(async (req: Request, res: Respon
       return sendResponse(res, 200, 'Assessment report retrieved (cached)', response);
     }
 
-    const reportData = await prismService.fetchMergedReportData(employeeId, entityTypeId, onetCode, prismClientId);
+    const [mergedReportData, fourDRawOutput] = await Promise.all([
+      prismService.fetchMergedReportData(employeeId, entityTypeId, onetCode, prismClientId),
+      prismService.fetch4DRawOutput(employeeId, entityTypeId, prismClientId).catch(() => ({})),
+    ]);
+    const reportData = { ...mergedReportData, fourDRawOutput };
     const basicMapUrl = await prismService.fetchBasicMap(employeeId, entityTypeId, onetCode || '', prismClientId);
     const fullMapUrl = await prismService.fetchFullMap(employeeId, entityTypeId, onetCode || '', prismClientId);
 

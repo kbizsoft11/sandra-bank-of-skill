@@ -216,6 +216,15 @@ export class PrismService {
     return result.MapFileName || result.ActionURL1 || result.ActionURL2 || '';
   }
 
+  async fetch4DRawOutput(employeeId: string, entityTypeId = 1, clientId = this.clientId): Promise<Record<string, any>> {
+    this.validateCredentials();
+    return this.makeRequest<Record<string, any>>('Fetch4DRawOutput', this.withCredentials({
+      ClientID: clientId,
+      ExternalIdent: employeeId,
+      EntityTypeID: entityTypeId,
+    }));
+  }
+
   async callAction<T = Record<string, any>>(method: string, payload: Record<string, unknown> = {}): Promise<T> {
     this.validateCredentials();
     return this.makeRequest<T>(method, this.withCredentials(payload));
@@ -225,7 +234,6 @@ export class PrismService {
   async updateUser(payload: Record<string, unknown>) { return this.callAction('UpdateUser', payload); }
   async fetchMultiCandidateHistory(payload: Record<string, unknown>) { return this.callAction('FetchMultiCandidateHistory', payload); }
   async fetchEstablishmentHistory(payload: Record<string, unknown>) { return this.callAction('FetchEstablishmentHistory', payload); }
-  async fetch4DRawOutput(payload: Record<string, unknown>) { return this.callAction('Fetch4DRawOutput', payload); }
   async fetchCareerDetail(onetCode: string, includeStyles = false) { return this.callAction('FetchCareerDetail', { ONetCode: onetCode, IncludeStyles: includeStyles }); }
   async fetchOccupationCategories() { return this.callAction('FetchOccupationCategories'); }
   async fetchOccupationsByCategory(categoryId: number | string) { return this.callAction('FetchOccupationsByCategory', { CategoryID: categoryId }); }
