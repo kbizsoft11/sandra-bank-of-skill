@@ -15,7 +15,7 @@
       <div>
         <p class="eyebrow">PRISM brain mapping</p>
         <h1>{{ employeeName() }}'s report</h1>
-        <p class="subtitle">A visual summary of behaviour, aptitude, work environment and emotional intelligence.</p>
+        <p class="subtitle">A visual summary of PRISM profile dimensions. These values describe preferences, not performance ratings.</p>
       </div>
       <div class="header-actions">
         <button type="button" class="btn btn-outline-primary" (click)="goBack()">
@@ -25,24 +25,24 @@
     </header>
 
     <!-- Summary metrics -->
-    <section class="metric-grid">
+    <!-- <section class="metric-grid">
       <article class="metric-card">
         <span class="metric-icon purple"><i class="bi bi-diagram-3-fill"></i></span>
-        <span class="metric-label">Top behaviours</span>
+        <span class="metric-label">Behaviour dimensions</span>
         <strong>{{ behaviourItems.length }}</strong>
-        <small>Behaviour dimensions returned by PRISM</small>
+        <small>Dimensions returned by PRISM</small>
       </article>
       <article class="metric-card">
         <span class="metric-icon orange"><i class="bi bi-graph-up-arrow"></i></span>
-        <span class="metric-label">Average aptitude</span>
-        <strong>{{ averageAptitude }}<span class="unit">/100</span></strong>
-        <small>Across work aptitude dimensions</small>
+        <span class="metric-label">Work aptitude dimensions</span>
+        <strong>{{ aptitudeItems.length }}</strong>
+        <small>Dimensions returned by PRISM</small>
       </article>
       <article class="metric-card">
         <span class="metric-icon green"><i class="bi bi-emoji-smile-fill"></i></span>
-        <span class="metric-label">EI and resilience</span>
-        <strong>{{ averageEI }}<span class="unit">/100</span></strong>
-        <small>Combined available report scores</small>
+        <span class="metric-label">EI dimensions</span>
+        <strong>{{ eiItems.length }}</strong>
+        <small>Dimensions returned by PRISM</small>
       </article>
       <article class="metric-card">
         <span class="metric-icon blue"><i class="bi bi-unlock-fill"></i></span>
@@ -50,14 +50,14 @@
         <strong>Unlocked</strong>
         <small>Scores returned successfully from PRISM</small>
       </article>
-    </section>
+    </section> -->
 
     <!-- Charts -->
     <section class="visual-grid">
       <article class="panel chart-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Behaviour profile</p>
+            <p class="eyebrow">PRISM profile values</p>
             <h2>Natural behaviour dimensions</h2>
           </div>
         </div>
@@ -69,7 +69,7 @@
       <article class="panel chart-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Work aptitude</p>
+            <p class="eyebrow">PRISM profile values</p>
             <h2>Preferred work activities</h2>
           </div>
         </div>
@@ -82,7 +82,7 @@
     <section class="panel chart-panel wide-panel">
       <div class="panel-heading">
         <div>
-          <p class="eyebrow">Emotional intelligence</p>
+          <p class="eyebrow">PRISM profile values</p>
           <h2>EI and mental toughness dimensions</h2>
         </div>
       </div>
@@ -91,16 +91,9 @@
       </div>
     </section>
 
-    @if (fourDData.length) {
-      <section class="panel chart-panel wide-panel">
-        <div class="panel-heading"><div><p class="eyebrow">4D profile</p><h2>PRISM quadrant scores</h2></div></div>
-        <div class="chart-canvas"><canvas #fourDChart></canvas></div>
-      </section>
-    }
-
     @if (fourDText) {
       <section class="panel wide-panel">
-        <div class="panel-heading"><div><p class="eyebrow">4D interpretation</p><h2>Work-style summary</h2></div></div>
+        <div class="panel-heading"><div><p class="eyebrow">Four-colour behavioural profile</p><h2>Work-style summary</h2></div></div>
         <p class="report-copy">{{ fourDText }}</p>
       </section>
     }

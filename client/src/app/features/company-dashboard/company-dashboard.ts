@@ -41,7 +41,7 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
     { id: 1, label: 'Professional' },
     { id: 21, label: 'Personal' },
     { id: 4, label: 'Foundation' },
-    { id: 42, label: 'Career Explorer' },
+    { id: 9, label: '4D' },
   ];
   readonly selectedQuestionnaireTypes = signal<Record<string, number>>({});
 

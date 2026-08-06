@@ -59,9 +59,9 @@ const questionnaireTypeName = (qTypeId?: number): string | undefined => {
     1: 'professional',
     21: 'personal',
     4: 'foundation',
+    9: '4d',
     19: 'select-online',
     29: 'career match',
-    42: 'career explorer',
   };
   return qTypeId === undefined ? undefined : names[qTypeId];
 };
@@ -132,11 +132,11 @@ export const createAssessment = asyncHandler(async (req: Request, res: Response)
   const { employeeId, qTypeId } = req.body as ICreateAssessmentPayload;
   const requester = req.user;
   const selectedQTypeId = qTypeId ?? env.PRISM_DEFAULT_QTYPE_ID;
-  const supportedQTypeIds = new Set([1, 4, 21, 42]);
+  const supportedQTypeIds = new Set([1, 4, 9, 21]);
 
   if (!employeeId) throw new ApiError(400, 'Employee ID is required');
   if (!Number.isInteger(selectedQTypeId) || !supportedQTypeIds.has(selectedQTypeId)) {
-    throw new ApiError(400, 'Unsupported PRISM questionnaire type. Choose Professional, Personal, Foundation, or Career Explorer.');
+    throw new ApiError(400, 'Unsupported PRISM questionnaire type. Choose Professional, Personal, Foundation, or 4D.');
   }
 
   const employee = await userRepository.findById(employeeId);
