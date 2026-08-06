@@ -4,10 +4,19 @@ export const systemSettingsRepository = {
   /**
    * Get the system settings document
    * Returns null if no settings exist
+   * Note: Password is excluded for security, but we return a flag indicating if it exists
    */
   getSettings: async (): Promise<ISystemSettings | null> => {
     try {
       const settings = await SystemSettings.findOne().select('+smtpPassword').lean();
+      if (settings) {
+        // Create a flag to indicate if password exists, but don't return the actual password
+        const settingsWithFlag = {
+          ...settings,
+          smtpPassword: settings.smtpPassword ? 'exists' : '', // Return 'exists' string or empty
+        } as any;
+        return settingsWithFlag;
+      }
       return settings;
     } catch (error) {
       console.error('Error getting system settings:', error);

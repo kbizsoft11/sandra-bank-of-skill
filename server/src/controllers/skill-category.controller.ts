@@ -5,6 +5,10 @@ import {
 
 import { asyncHandler } from '../utils/async-handler';
 import { SkillCategoryService } from '../services/skill-category.service';
+import { getUserFullName } from '../utils/user.util';
+import { ActivityService } from '../services/activity.service';
+import { ApiError } from '../utils/api-error';
+import { StatusCodes } from 'http-status-codes';
 
 class SkillCategoryController {
 
@@ -18,22 +22,31 @@ class SkillCategoryController {
     ) => {
 
       const userId = (req as any).user?.userId;
+      const fullNameFromToken = (req as any).user?.fullName;
+      const email = (req as any).user?.email;
       const userRole = (req as any).user?.role;
       const companyId = (req as any).user?.organisationId;
 
       if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: 'User not authenticated'
-        });
+        throw new ApiError(StatusCodes.UNAUTHORIZED, 'User not authenticated');
       }
+
+      // Get full name from token or database
+      const fullName = await getUserFullName(fullNameFromToken, userId);
+      
+      // Extract IP and user agent from request
+      const ipAddress = ActivityService.getClientIp(req);
+      const userAgent = ActivityService.getUserAgent(req);
 
       const category =
         await this.service.create(
           req.body,
           userId,
           userRole,
-          userRole === "company" ? companyId : undefined
+          userRole === "company" ? companyId : undefined,
+          { fullName, email },
+          ipAddress,
+          userAgent
         );
 
       return res.status(201).json({
@@ -97,15 +110,32 @@ class SkillCategoryController {
       res: Response
     ) => {
 
+      const userId = (req as any).user?.userId;
+      const fullNameFromToken = (req as any).user?.fullName;
+      const email = (req as any).user?.email;
       const userRole = (req as any).user?.role;
       const companyId = (req as any).user?.organisationId;
+
+      if (!userId) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, 'User not authenticated');
+      }
+
+      // Get full name from token or database
+      const fullName = await getUserFullName(fullNameFromToken, userId);
+      
+      // Extract IP and user agent from request
+      const ipAddress = ActivityService.getClientIp(req);
+      const userAgent = ActivityService.getUserAgent(req);
 
       const category =
         await this.service.update(
           req.params.id as string,
           req.body,
           userRole,
-          userRole === "company" ? companyId : undefined
+          userRole === "company" ? companyId : undefined,
+          { fullName, email },
+          ipAddress,
+          userAgent
         );
 
       return res.json({

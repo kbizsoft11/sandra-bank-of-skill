@@ -949,6 +949,7 @@ export const getEmployeeSkills = asyncHandler(
     const employeeId = req.params.id as string;
     const userRole = (req as any).user?.role;
     const userOrgId = (req as any).user?.organisationId;
+    const currentUserId = (req as any).user?.userId;
 
     // Verify employee belongs to company
     const employee = await userRepository.findById(employeeId);
@@ -956,8 +957,14 @@ export const getEmployeeSkills = asyncHandler(
       return sendResponse(res, 404, 'Employee not found');
     }
 
+    // Authorization checks
     if (userRole === 'company' && employee.organisationId !== userOrgId) {
       return sendResponse(res, 403, 'Access denied');
+    }
+
+    // Employees can only access their own skills
+    if (userRole === 'employee' && employeeId !== currentUserId) {
+      return sendResponse(res, 403, 'Access denied - you can only view your own skills');
     }
 
     const skills = await userService.getEmployeeSkills(employeeId);

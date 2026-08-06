@@ -1,6 +1,7 @@
-import { afterNextRender, Component, inject } from '@angular/core';
+import { afterNextRender, Component, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './core/services/theme.service';
+import { PublicSettingsService } from './core/services/public-settings.service';
 
 @Component({
   selector: 'app-root',
@@ -10,6 +11,11 @@ import { ThemeService } from './core/services/theme.service';
 })
 export class App {
   private readonly themeService = inject(ThemeService);
+  private readonly publicSettingsService = inject(PublicSettingsService);
+  
+  // Signal to track if app is ready to display
+  readonly appReady = signal(false);
+  
   private readonly fallbackImageSrc = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
     <svg width="800px" height="800px" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect width="120" height="120" fill="#EFF1F3"/>
@@ -21,6 +27,13 @@ export class App {
     afterNextRender(() => {
       this.themeService.initTheme();
       this.attachGlobalImageFallback();
+      
+      // Public settings service will initialize automatically on injection
+      
+      // Mark app as ready after a small delay to ensure everything is initialized
+      setTimeout(() => {
+        this.appReady.set(true);
+      }, 100);
     });
   }
 

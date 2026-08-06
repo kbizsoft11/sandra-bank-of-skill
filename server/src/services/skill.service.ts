@@ -5,12 +5,22 @@ import skillCategoryRepository from "../repositories/skillCategory.repository";
 import { CompanySkillCategoryRepository } from "../repositories/company-skill-category.repository";
 import { CreateSkillDto, UpdateSkillDto, GetSkillsQueryDto } from "../dto/skill.dto";
 import { Schema } from "mongoose";
+import activityService from "./activity.service";
+import { ACTIVITY_TYPES, RESOURCE_TYPES } from "../constants/activity-types";
 
 class SkillService {
   /**
    * Create a new skill
    */
-  async create(data: CreateSkillDto, userId: string, userRole: string, companyId?: string) {
+  async create(
+    data: CreateSkillDto,
+    userId: string,
+    userRole: string,
+    companyId?: string,
+    userData?: { fullName: string; email: string },
+    ipAddress?: string,
+    userAgent?: string
+  ) {
     const categoryId = data.categoryId;
 
     // Verify category exists
@@ -72,6 +82,29 @@ class SkillService {
       createdType,
       companyId: companyId,
     });
+
+    // Log activity
+    try {
+      await activityService.logActivity({
+        userId,
+        userName: userData?.fullName || 'Unknown',
+        userEmail: userData?.email || '',
+        userRole: userRole as 'admin' | 'company' | 'employee',
+        actionType: ACTIVITY_TYPES.CREATE,
+        resource: RESOURCE_TYPES.SKILL,
+        resourceId: skill._id?.toString(),
+        resourceName: skill.name,
+        description: `Skill "${skill.name}" created${createdType === "COMPANY" ? " by company" : " by admin"}`,
+        status: 'success',
+        companyId,
+        ipAddress: ipAddress || 'unknown',
+        userAgent: userAgent || 'unknown',
+        details: { createdType, categoryId },
+      });
+    } catch (err) {
+      // Log error but don't throw - logging should never break main flow
+      console.error('Error logging skill creation activity:', err);
+    }
 
     return skill;
   }
@@ -159,7 +192,16 @@ class SkillService {
   /**
    * Update skill
    */
-  async update(id: string, data: UpdateSkillDto, userRole?: string, companyId?: string) {
+  async update(
+    id: string, 
+    data: UpdateSkillDto, 
+    userId: string,
+    userRole?: string, 
+    companyId?: string, 
+    userData?: { fullName: string; email: string }, 
+    ipAddress?: string, 
+    userAgent?: string
+  ) {
     // Verify skill exists
     const skill = await skillRepository.findById(id);
     if (!skill) {
@@ -254,17 +296,79 @@ class SkillService {
       throw new ApiError(StatusCodes.NOT_FOUND, "Skill not found");
     }
 
+    // Log activity - log the current user who is updating, not the creator
+    try {
+      const updatedFields = Object.keys(data).join(', ');
+      // Need to get userId from somewhere - we don't have it in this method
+      // We need to pass it from the controller
+      await activityService.logActivity({
+        userId: userId || 'unknown',
+        userName: userData?.fullName || 'Unknown',
+        userEmail: userData?.email || '',
+        userRole: (userRole || 'admin') as 'admin' | 'company' | 'employee',
+        actionType: ACTIVITY_TYPES.UPDATE,
+        resource: RESOURCE_TYPES.SKILL,
+        resourceId: id,
+        resourceName: updated.name,
+        description: `Skill "${updated.name}" updated (${updatedFields})`,
+        status: 'success',
+        companyId,
+        ipAddress: ipAddress || 'unknown',
+        userAgent: userAgent || 'unknown',
+        details: { updatedFields: Object.keys(data) },
+      });
+    } catch (err) {
+      console.error('Error logging skill update activity:', err);
+    }
+
     return updated;
   }
 
   /**
    * Archive/Unarchive skill
    */
-  async setArchived(id: string, archived: boolean) {
+  async setArchived(
+    id: string, 
+    archived: boolean, 
+    userId: string,
+    userRole?: string, 
+    companyId?: string, 
+    userData?: { fullName: string; email: string }, 
+    ipAddress?: string, 
+    userAgent?: string
+  ) {
+    const skill = await skillRepository.findById(id);
+    
+    if (!skill) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Skill not found");
+    }
+
     const updated = await skillRepository.setArchived(id, archived);
 
     if (!updated) {
       throw new ApiError(StatusCodes.NOT_FOUND, "Skill not found");
+    }
+
+    // Log activity
+    try {
+      await activityService.logActivity({
+        userId: userId || 'unknown',
+        userName: userData?.fullName || 'Unknown',
+        userEmail: userData?.email || '',
+        userRole: (userRole || 'admin') as 'admin' | 'company' | 'employee',
+        actionType: ACTIVITY_TYPES.UPDATE,
+        resource: RESOURCE_TYPES.SKILL,
+        resourceId: id,
+        resourceName: skill.name,
+        description: `Skill "${skill.name}" ${archived ? 'archived' : 'restored'}`,
+        status: 'success',
+        companyId,
+        ipAddress: ipAddress || 'unknown',
+        userAgent: userAgent || 'unknown',
+        details: { archived },
+      });
+    } catch (err) {
+      console.error('Error logging skill archive activity:', err);
     }
 
     return updated;
@@ -273,7 +377,15 @@ class SkillService {
   /**
    * Delete skill
    */
-  async delete(id: string, userRole?: string, companyId?: string) {
+  async delete(
+    id: string, 
+    userId: string,
+    userRole?: string, 
+    companyId?: string, 
+    userData?: { fullName: string; email: string }, 
+    ipAddress?: string, 
+    userAgent?: string
+  ) {
     const skill = await skillRepository.findById(id);
 
     if (!skill) {
@@ -294,6 +406,27 @@ class SkillService {
 
     if (!deleted) {
       throw new ApiError(StatusCodes.NOT_FOUND, "Skill not found");
+    }
+
+    // Log activity - log the current user who is deleting
+    try {
+      await activityService.logActivity({
+        userId: userId || 'unknown',
+        userName: userData?.fullName || 'Unknown',
+        userEmail: userData?.email || '',
+        userRole: (userRole || 'admin') as 'admin' | 'company' | 'employee',
+        actionType: ACTIVITY_TYPES.DELETE,
+        resource: RESOURCE_TYPES.SKILL,
+        resourceId: id,
+        resourceName: skill.name,
+        description: `Skill "${skill.name}" deleted`,
+        status: 'success',
+        companyId,
+        ipAddress: ipAddress || 'unknown',
+        userAgent: userAgent || 'unknown',
+      });
+    } catch (err) {
+      console.error('Error logging skill deletion activity:', err);
     }
 
     return { message: "Skill deleted successfully" };
@@ -330,7 +463,30 @@ class SkillService {
     }
 
     // Update category for all skills (works for both categorized and orphan skills)
-    return skillRepository.updateCategoryForSkills(skillIds, categoryId);
+    const result = await skillRepository.updateCategoryForSkills(skillIds, categoryId);
+    
+    // Log activity for bulk assign
+    try {
+      await activityService.logActivity({
+        userId: 'admin-bulk-operation',
+        userName: 'Admin Bulk Operation',
+        userEmail: 'admin@system.local',
+        userRole: 'admin' as const,
+        actionType: ACTIVITY_TYPES.UPDATE,
+        resource: RESOURCE_TYPES.SKILL,
+        resourceId: skillIds.join(', '),
+        resourceName: `${skillIds.length} skills`,
+        description: `Bulk assigned ${skillIds.length} skill(s) to category "${category.name}"`,
+        status: 'success',
+        ipAddress: 'internal',
+        userAgent: 'bulk-operation',
+        details: { operation: 'assignToCategory', count: skillIds.length, categoryId, categoryName: category.name },
+      });
+    } catch (err) {
+      console.error('Error logging bulk assign activity:', err);
+    }
+
+    return result;
   }
 
   /**
@@ -351,7 +507,30 @@ class SkillService {
     }
 
     // Set categoryId to null (make them orphan)
-    return skillRepository.removeFromCategory(skillIds);
+    const result = await skillRepository.removeFromCategory(skillIds);
+    
+    // Log activity for bulk remove
+    try {
+      await activityService.logActivity({
+        userId: 'admin-bulk-operation',
+        userName: 'Admin Bulk Operation',
+        userEmail: 'admin@system.local',
+        userRole: 'admin' as const,
+        actionType: ACTIVITY_TYPES.UPDATE,
+        resource: RESOURCE_TYPES.SKILL,
+        resourceId: skillIds.join(', '),
+        resourceName: `${skillIds.length} skills`,
+        description: `Bulk removed ${skillIds.length} skill(s) from category (made orphan)`,
+        status: 'success',
+        ipAddress: 'internal',
+        userAgent: 'bulk-operation',
+        details: { operation: 'removeFromCategory', count: skillIds.length },
+      });
+    } catch (err) {
+      console.error('Error logging bulk remove activity:', err);
+    }
+
+    return result;
   }
 
   /**
@@ -365,7 +544,30 @@ class SkillService {
     }
 
     // Update archived status for all skills
-    return skillRepository.bulkArchive(skillIds, archived);
+    const result = await skillRepository.bulkArchive(skillIds, archived);
+    
+    // Log activity for bulk archive
+    try {
+      await activityService.logActivity({
+        userId: 'admin-bulk-operation',
+        userName: 'Admin Bulk Operation',
+        userEmail: 'admin@system.local',
+        userRole: 'admin' as const,
+        actionType: ACTIVITY_TYPES.UPDATE,
+        resource: RESOURCE_TYPES.SKILL,
+        resourceId: skillIds.join(', '),
+        resourceName: `${skillIds.length} skills`,
+        description: `Bulk ${archived ? 'archived' : 'restored'} ${skillIds.length} skill(s)`,
+        status: 'success',
+        ipAddress: 'internal',
+        userAgent: 'bulk-operation',
+        details: { operation: 'bulkArchive', count: skillIds.length, archived },
+      });
+    } catch (err) {
+      console.error('Error logging bulk archive activity:', err);
+    }
+
+    return result;
   }
 
   /**
@@ -379,7 +581,30 @@ class SkillService {
     }
 
     // Update status for all skills
-    return skillRepository.bulkUpdateStatus(skillIds, status);
+    const result = await skillRepository.bulkUpdateStatus(skillIds, status);
+    
+    // Log activity for bulk status update
+    try {
+      await activityService.logActivity({
+        userId: 'admin-bulk-operation',
+        userName: 'Admin Bulk Operation',
+        userEmail: 'admin@system.local',
+        userRole: 'admin' as const,
+        actionType: ACTIVITY_TYPES.UPDATE,
+        resource: RESOURCE_TYPES.SKILL,
+        resourceId: skillIds.join(', '),
+        resourceName: `${skillIds.length} skills`,
+        description: `Bulk updated ${skillIds.length} skill(s) status to ${status}`,
+        status: 'success',
+        ipAddress: 'internal',
+        userAgent: 'bulk-operation',
+        details: { operation: 'bulkUpdateStatus', count: skillIds.length, newStatus: status },
+      });
+    } catch (err) {
+      console.error('Error logging bulk status update activity:', err);
+    }
+
+    return result;
   }
 }
 

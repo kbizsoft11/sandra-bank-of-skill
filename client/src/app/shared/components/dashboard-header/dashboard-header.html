@@ -37,45 +37,51 @@
       <div class="dropdown notifications-dropdown">
         <button type="button" class="header-icon notification-trigger" aria-label="Notifications" (click)="toggleNotificationsMenu($event)">
           <i class="bi bi-bell"></i>
-          @if (unreadNotificationsCount() > 0) {
-            <span class="notification-badge">{{ unreadNotificationsCount() }}</span>
-          }
+          <span class="notification-badge" *ngIf="unreadNotificationsCount() > 0">{{ unreadNotificationsCount() }}</span>
         </button>
 
-        @if (showNotificationsMenu) {
-          <div class="dropdown-menu dropdown-menu-end notification-menu show">
-            <div class="notification-menu-header">
-              <div>
-                <h6>Notifications</h6>
-                <p>{{ unreadNotificationsCount() }} unread</p>
-              </div>
-              <button type="button" class="btn btn-link btn-sm p-0" (click)="goToNotificationsPage()">View all</button>
+        <div class="dropdown-menu dropdown-menu-end notification-menu show" *ngIf="showNotificationsMenu">
+          <div class="notification-menu-header">
+            <div>
+              <h6>Notifications</h6>
+              <p *ngIf="unreadNotificationsCount() > 0">{{ unreadNotificationsCount() }} unread</p>
+              <p *ngIf="unreadNotificationsCount() === 0">All read</p>
             </div>
-
-            @if (notificationsLoading()) {
-              <div class="notification-menu-empty">Loading notifications...</div>
-            } @else if (notificationsError()) {
-              <div class="notification-menu-empty">{{ notificationsError() }}</div>
-            } @else if (notifications().length) {
-              <div class="notification-list">
-                @for (notification of notifications(); track notification._id) {
-                  <div class="notification-item" [class.unread]="!notification.isRead">
-                    <div class="notification-item-body">
-                      <div class="notification-item-title">{{ notification.title }}</div>
-                      <p>{{ notification.message }}</p>
-                      <span class="notification-time">{{ formatNotificationDate(notification.createdAt) }}</span>
-                    </div>
-                    @if (!notification.isRead) {
-                      <button type="button" class="btn btn-link btn-sm p-0 notification-action" (click)="markNotificationAsRead(notification, $event)">Mark read</button>
-                    }
-                  </div>
-                }
-              </div>
-            } @else {
-              <div class="notification-menu-empty">No notifications yet.</div>
-            }
+            <button type="button" class="btn-view-all" (click)="goToNotificationsPage()">View all</button>
           </div>
-        }
+
+          <div *ngIf="notificationsLoading()" class="notification-menu-empty">
+            <div class="spinner-small"></div>
+            <p>Loading...</p>
+          </div>
+
+          <div *ngIf="!notificationsLoading() && notificationsError()" class="notification-menu-empty">
+            {{ notificationsError() }}
+          </div>
+
+          <div *ngIf="!notificationsLoading() && !notificationsError() && notifications().length" class="notification-list">
+            <div *ngFor="let notification of notifications().slice(0, 5); trackBy: trackNotification" 
+              class="notification-item" 
+              [class.unread]="!notification.isRead">
+              <div class="notification-item-header">
+                <div class="notification-item-title">{{ notification.title }}</div>
+                <button *ngIf="!notification.isRead" 
+                  type="button" 
+                  class="notification-check-btn" 
+                  title="Mark as read"
+                  (click)="markNotificationAsRead(notification, $event)">
+                  <i class="bi bi-check"></i>
+                </button>
+                <i *ngIf="notification.isRead" class="bi bi-check-circle-fill text-success"></i>
+              </div>
+              <span class="notification-time">{{ formatNotificationDate(notification.createdAt) }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="!notificationsLoading() && !notificationsError() && !notifications().length" class="notification-menu-empty">
+            No notifications
+          </div>
+        </div>
       </div>
 
       <div class="dropdown">

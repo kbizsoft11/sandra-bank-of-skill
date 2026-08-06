@@ -233,7 +233,7 @@ router.post(
 router.get(
     '/:id/skills',
     authenticate,
-    allowRoles('admin', 'company'),
+    allowRoles('admin', 'company', 'employee'),
     validateParams(userIdParamSchema),
     userController.getEmployeeSkills
 );

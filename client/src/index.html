@@ -2,10 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Client</title>
+  <title>Bank of Skill</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">  
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  
+  <style>
+    /* Prevent FOUC - Hide app until Angular is ready */
+    app-root > div.app-hidden {
+      visibility: hidden;
+      opacity: 0;
+    }
+    
+    /* Loading indicator style */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+  </style>
 </head>
 <body>
   <app-root></app-root>

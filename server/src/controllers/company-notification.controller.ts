@@ -1,95 +1,19 @@
 import { Request, Response } from 'express';
-import { CompanyNotificationModel, ICompanyNotification } from '../models/company-notification.model';
-import { NotificationModel } from '../models/notification.model';
-import { UserModel } from '../models/user.model';
+import { CompanyNotificationModel } from '../models/company-notification.model';
 import { sendResponse } from '../utils/api-response';
 import { asyncHandler } from '../utils/async-handler';
+import { dispatchCompanyNotificationScalable, processCompanyScheduledNotificationsScalable } from '../services/scalable-notification.service';
 
 /**
- * Helper to dispatch in-app notifications to targeted employees
- */
-const dispatchNotificationToEmployees = async (notification: ICompanyNotification): Promise<number> => {
-  const filter: any = {
-    tenantId: notification.tenantId,
-    organisationId: notification.organisationId,
-    role: 'employee',
-  };
-
-  if (notification.targetAudience === 'role' && notification.targetDesignationId) {
-    filter.designationId = notification.targetDesignationId;
-  } else if (notification.targetAudience === 'department' && notification.targetDepartment) {
-    filter.department = notification.targetDepartment;
-  }
-
-  const targetEmployees = await UserModel.find(filter).select('_id');
-
-  if (targetEmployees.length > 0) {
-    const mapTypeToSystemType = (type: string): 'info' | 'warning' | 'error' | 'success' => {
-      switch (type) {
-        case 'warning':
-          return 'warning';
-        case 'assessment':
-          return 'info';
-        case 'announcement':
-          return 'success';
-        default:
-          return 'info';
-      }
-    };
-
-    const notificationDocs = targetEmployees.map((emp) => ({
-      userId: emp._id.toString(),
-      title: notification.title,
-      message: notification.message,
-      type: mapTypeToSystemType(notification.type),
-      isRead: false,
-      relatedTo: 'company_notification',
-      relatedId: notification._id.toString(),
-    }));
-
-    await NotificationModel.insertMany(notificationDocs);
-  }
-
-  notification.status = 'sent';
-  notification.sentAt = new Date();
-  notification.recipientCount = targetEmployees.length;
-  await notification.save();
-
-  return targetEmployees.length;
-};
-
-/**
- * Check and auto-dispatch any due scheduled notifications
- */
-const processDueScheduledNotifications = async (tenantId: string, organisationId: string) => {
-  const dueNotifications = await CompanyNotificationModel.find({
-    tenantId,
-    organisationId,
-    status: 'scheduled',
-    scheduledAt: { $lte: new Date() },
-  });
-
-  for (const notification of dueNotifications) {
-    try {
-      await dispatchNotificationToEmployees(notification);
-    } catch (err) {
-      console.error(`Failed to dispatch scheduled notification ${notification._id}:`, err);
-    }
-  }
-};
-
-/**
- * Get all company notifications
+ * GET /company-notifications
+ * Get all company notifications (paginated)
  */
 export const getNotifications = asyncHandler(async (req: Request, res: Response) => {
   const user = (req as any).user;
+  const { status, type, search, page = 1, limit = 10 } = req.query;
 
-  // Process any due scheduled notifications for this company
-  if (user.tenantId && user.organisationId) {
-    await processDueScheduledNotifications(user.tenantId, user.organisationId).catch(() => {});
-  }
-
-  const { status, type, search } = req.query;
+  // Process any due scheduled notifications using scalable method
+  await processCompanyScheduledNotificationsScalable(user.organisationId, user.tenantId).catch(() => {});
 
   const query: any = {
     tenantId: user.tenantId,
@@ -111,15 +35,25 @@ export const getNotifications = asyncHandler(async (req: Request, res: Response)
     ];
   }
 
-  const notifications = await CompanyNotificationModel.find(query)
-    .sort({ createdAt: -1 })
-    .lean();
+  const pageNum = Math.max(1, parseInt(page as string) || 1);
+  const pageSize = Math.max(1, Math.min(100, parseInt(limit as string) || 10));
+  const skip = (pageNum - 1) * pageSize;
 
-  return sendResponse(res, 200, 'Company notifications fetched successfully', notifications);
+  const [notifications, total] = await Promise.all([
+    CompanyNotificationModel.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize)
+      .lean(),
+    CompanyNotificationModel.countDocuments(query),
+  ]);
+
+  return sendResponse(res, 200, 'Notifications retrieved successfully', notifications);
 });
 
 /**
- * Get notification details by ID
+ * GET /company-notifications/:id
+ * Get single notification by ID
  */
 export const getNotificationById = asyncHandler(async (req: Request, res: Response) => {
   const user = (req as any).user;
@@ -135,27 +69,29 @@ export const getNotificationById = asyncHandler(async (req: Request, res: Respon
     return sendResponse(res, 404, 'Notification not found', null);
   }
 
-  return sendResponse(res, 200, 'Notification fetched successfully', notification);
+  return sendResponse(res, 200, 'Notification retrieved successfully', notification);
 });
 
 /**
+ * POST /company-notifications
  * Create a new notification (Send now or Schedule)
  */
 export const createNotification = asyncHandler(async (req: Request, res: Response) => {
   const user = (req as any).user;
-  const {
-    title,
-    message,
-    type,
-    targetAudience,
-    targetDesignationId,
-    targetDepartment,
-    deliveryMethod,
-    scheduledAt,
-  } = req.body;
+  const { title, message, type, targetAudience, targetEmployeeIds, deliveryMethod, scheduledAt } = req.body;
 
+  // Validate required fields
   if (!title || !message) {
     return sendResponse(res, 400, 'Title and message are required', null);
+  }
+
+  if (!targetAudience) {
+    return sendResponse(res, 400, 'Target audience is required', null);
+  }
+
+  // Validate specific employee IDs if provided
+  if (targetAudience === 'specific' && (!targetEmployeeIds || targetEmployeeIds.length === 0)) {
+    return sendResponse(res, 400, 'Please select at least one employee', null);
   }
 
   const isScheduled = deliveryMethod === 'scheduled' && scheduledAt;
@@ -165,9 +101,8 @@ export const createNotification = asyncHandler(async (req: Request, res: Respons
     title,
     message,
     type: type || 'info',
-    targetAudience: targetAudience || 'all',
-    targetDesignationId: targetDesignationId || undefined,
-    targetDepartment: targetDepartment || undefined,
+    targetAudience,
+    targetEmployeeIds: targetAudience === 'specific' ? targetEmployeeIds : [],
     deliveryMethod: deliveryMethod || 'now',
     scheduledAt: isScheduled ? new Date(scheduledAt) : undefined,
     status: initialStatus,
@@ -176,8 +111,39 @@ export const createNotification = asyncHandler(async (req: Request, res: Respons
     organisationId: user.organisationId,
   });
 
+  // If delivery is immediate, dispatch now using scalable service
   if (deliveryMethod === 'now') {
-    await dispatchNotificationToEmployees(notification);
+    try {
+      const dispatchResult = await dispatchCompanyNotificationScalable(
+        {
+          _id: notification._id.toString(),
+          title,
+          message,
+          type: type || 'info',
+          targetAudience,
+          targetEmployeeIds: targetAudience === 'specific' ? targetEmployeeIds : [],
+        },
+        user.organisationId,
+        user.tenantId
+      );
+
+      // Update notification with dispatch results
+      notification.status = 'sent';
+      notification.sentAt = new Date();
+      notification.recipientCount = dispatchResult.totalCount;
+      await notification.save();
+
+      console.log(`✅ Notification dispatched and saved - sent to ${dispatchResult.totalCount} employees`);
+    } catch (error) {
+      console.error('Error dispatching notification:', error);
+      // Notification created but dispatch failed - return error
+      return sendResponse(
+        res,
+        500,
+        'Notification created but failed to dispatch. Please try again.',
+        notification
+      );
+    }
   }
 
   return sendResponse(
@@ -193,22 +159,13 @@ export const createNotification = asyncHandler(async (req: Request, res: Respons
 });
 
 /**
+ * PUT /company-notifications/:id
  * Update notification
  */
 export const updateNotification = asyncHandler(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const { id } = req.params;
-  const {
-    title,
-    message,
-    type,
-    targetAudience,
-    targetDesignationId,
-    targetDepartment,
-    deliveryMethod,
-    scheduledAt,
-    status,
-  } = req.body;
+  const { title, message, type, targetAudience, targetEmployeeIds, deliveryMethod, scheduledAt, status } = req.body;
 
   const notification = await CompanyNotificationModel.findOne({
     _id: id,
@@ -220,16 +177,19 @@ export const updateNotification = asyncHandler(async (req: Request, res: Respons
     return sendResponse(res, 404, 'Notification not found', null);
   }
 
+  // Cannot edit sent notifications
   if (notification.status === 'sent') {
     return sendResponse(res, 400, 'Cannot edit a notification that has already been sent', null);
   }
 
+  // Update fields
   if (title) notification.title = title;
   if (message) notification.message = message;
   if (type) notification.type = type;
-  if (targetAudience) notification.targetAudience = targetAudience;
-  if (targetDesignationId !== undefined) notification.targetDesignationId = targetDesignationId || undefined;
-  if (targetDepartment !== undefined) notification.targetDepartment = targetDepartment || undefined;
+  if (targetAudience) {
+    notification.targetAudience = targetAudience;
+    notification.targetEmployeeIds = targetAudience === 'specific' ? targetEmployeeIds : [];
+  }
 
   if (deliveryMethod) {
     notification.deliveryMethod = deliveryMethod;
@@ -247,14 +207,40 @@ export const updateNotification = asyncHandler(async (req: Request, res: Respons
 
   await notification.save();
 
-  if (deliveryMethod === 'now' && status === 'sent') {
-    await dispatchNotificationToEmployees(notification);
+  // If status changed to 'sent', dispatch now
+  if (status === 'sent' && deliveryMethod === 'now') {
+    try {
+      const dispatchResult = await dispatchCompanyNotificationScalable(
+        {
+          _id: notification._id.toString(),
+          title: notification.title,
+          message: notification.message,
+          type: notification.type,
+          targetAudience: notification.targetAudience,
+          targetEmployeeIds: notification.targetEmployeeIds || [],
+        },
+        user.organisationId,
+        user.tenantId
+      );
+
+      // Update with dispatch results
+      notification.status = 'sent';
+      notification.sentAt = new Date();
+      notification.recipientCount = dispatchResult.totalCount;
+      await notification.save();
+
+      console.log(`✅ Notification sent and updated - sent to ${dispatchResult.totalCount} employees`);
+    } catch (error) {
+      console.error('Error dispatching notification:', error);
+      return sendResponse(res, 500, 'Notification updated but failed to dispatch', null);
+    }
   }
 
   return sendResponse(res, 200, 'Notification updated successfully', notification);
 });
 
 /**
+ * DELETE /company-notifications/:id
  * Delete notification
  */
 export const deleteNotification = asyncHandler(async (req: Request, res: Response) => {
@@ -275,7 +261,8 @@ export const deleteNotification = asyncHandler(async (req: Request, res: Respons
 });
 
 /**
- * Schedule or Reschedule notification
+ * POST /company-notifications/:id/schedule
+ * Schedule a notification for later delivery
  */
 export const scheduleNotification = asyncHandler(async (req: Request, res: Response) => {
   const user = (req as any).user;
@@ -283,7 +270,7 @@ export const scheduleNotification = asyncHandler(async (req: Request, res: Respo
   const { scheduledAt } = req.body;
 
   if (!scheduledAt) {
-    return sendResponse(res, 400, 'Scheduled date and time is required', null);
+    return sendResponse(res, 400, 'Scheduled date/time is required', null);
   }
 
   const notification = await CompanyNotificationModel.findOne({
@@ -300,17 +287,8 @@ export const scheduleNotification = asyncHandler(async (req: Request, res: Respo
     return sendResponse(res, 400, 'Cannot schedule a notification that has already been sent', null);
   }
 
-  const scheduleDate = new Date(scheduledAt);
-
-  // If scheduled for right now or past, dispatch immediately
-  if (scheduleDate.getTime() <= Date.now() + 60000) {
-    notification.deliveryMethod = 'now';
-    await dispatchNotificationToEmployees(notification);
-    return sendResponse(res, 200, 'Notification sent immediately', notification);
-  }
-
   notification.deliveryMethod = 'scheduled';
-  notification.scheduledAt = scheduleDate;
+  notification.scheduledAt = new Date(scheduledAt);
   notification.status = 'scheduled';
   await notification.save();
 
@@ -318,7 +296,8 @@ export const scheduleNotification = asyncHandler(async (req: Request, res: Respo
 });
 
 /**
- * Cancel scheduled notification
+ * POST /company-notifications/:id/cancel
+ * Cancel a scheduled notification
  */
 export const cancelScheduledNotification = asyncHandler(async (req: Request, res: Response) => {
   const user = (req as any).user;
@@ -339,7 +318,9 @@ export const cancelScheduledNotification = asyncHandler(async (req: Request, res
   }
 
   notification.status = 'cancelled';
+  notification.scheduledAt = undefined;
   await notification.save();
 
-  return sendResponse(res, 200, 'Scheduled notification cancelled', notification);
+  return sendResponse(res, 200, 'Notification cancelled successfully', notification);
 });
+

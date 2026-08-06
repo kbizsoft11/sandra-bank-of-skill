@@ -107,6 +107,17 @@ router.get(
 );
 
 /**
+ * GET /dashboard/company/notifications
+ * Get company notifications (admin notifications sent to this company)
+ */
+router.get(
+  '/company/notifications',
+  authenticate,
+  allowRoles('company'),
+  dashboardController.getCompanyNotifications
+);
+
+/**
  * PUT /dashboard/admin/notifications/:id/read
  * Mark notification as read
  */
@@ -148,6 +159,28 @@ router.put(
   authenticate,
   allowRoles('employee'),
   dashboardController.markEmployeeNotificationAsUnread
+);
+
+/**
+ * PUT /dashboard/company/notifications/:id/read
+ * Mark company notification as read
+ */
+router.put(
+  '/company/notifications/:id/read',
+  authenticate,
+  allowRoles('company'),
+  dashboardController.markCompanyNotificationAsRead
+);
+
+/**
+ * PUT /dashboard/company/notifications/:id/unread
+ * Mark company notification as unread
+ */
+router.put(
+  '/company/notifications/:id/unread',
+  authenticate,
+  allowRoles('company'),
+  dashboardController.markCompanyNotificationAsUnread
 );
 
 /**

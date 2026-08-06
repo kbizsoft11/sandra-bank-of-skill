@@ -1,0 +1,435 @@
+:host {
+  display: block;
+}
+
+/* ============================================
+   Tokens — same as create-notification form
+   and company-dashboard for consistency
+   ============================================ */
+.notification-layout {
+  --ink: #1f2937;
+  --muted: #718096;
+  --bg: #f6f8fb;
+  --line: #edf0f4;
+  --line-strong: #e3e8f0;
+  --accent: #4966c8;
+  --accent-strong: #3157c7;
+  --blue-bg: #e8efff;   --blue-fg: #3157c7;
+  --green-bg: #e4f6ed;  --green-fg: #16804f;
+  --orange-bg: #fff1df; --orange-fg: #bd6b0c;
+  --red-bg: #ffe8e8;    --red-fg: #dc3545;
+  --active: #20a36a;
+  --select-border: #d5dce6;
+
+  color: var(--ink);
+
+  * { box-sizing: border-box; }
+}
+
+/* ============================================
+   Header
+   ============================================ */
+.notification-layout .dashboard-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.notification-layout .eyebrow {
+  color: var(--accent);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin: 0 0 .35rem;
+}
+
+.notification-layout h1 { margin: 0; font-size: 1.5rem; line-height: 1.2; }
+
+.notification-layout .subtitle {
+  color: var(--muted);
+  margin: .35rem 0 0;
+  font-size: .9rem;
+  max-width: 640px;
+}
+
+.notification-layout .dashboard-heading .btn-primary {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ============================================
+   Panels
+   ============================================ */
+.notification-layout .panel {
+  background: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 4px 16px rgba(31, 41, 55, .04);
+}
+
+.notification-layout .full-panel { margin-top: .75rem; }
+.notification-layout .full-panel + .full-panel { margin-top: .75rem; }
+
+.notification-layout .panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.notification-layout .panel-heading h2 { font-size: .95rem; margin: 0; }
+.notification-layout .panel-heading p { color: var(--muted); margin: .3rem 0 0; font-size: .82rem; }
+.notification-layout .panel-count { color: var(--muted); font-size: .82rem; white-space: nowrap; }
+
+/* ============================================
+   Status pills
+   ============================================ */
+.notification-layout .status-pills-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.notification-layout .status-pills-wrapper::-webkit-scrollbar { display: none; }
+
+.notification-layout .status-pills {
+  display: flex;
+  gap: .5rem;
+  min-width: max-content;
+}
+
+.notification-layout .status-pill-btn {
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: .45rem .9rem;
+  font-size: .85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  transition: all .15s ease;
+
+  &:hover { background: var(--bg); color: var(--ink); }
+
+  &.active {
+    background: var(--accent-strong);
+    color: #fff;
+    border-color: var(--accent-strong);
+  }
+
+  .badge {
+    font-size: .72rem;
+  }
+}
+
+/* ============================================
+   Toolbar — search + type filter
+   ============================================ */
+.notification-layout .notification-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.notification-layout .search-shell {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  border: 1px solid var(--select-border);
+  border-radius: 8px;
+  background: var(--bg);
+  padding: .6rem .85rem;
+  min-width: 0;
+
+  i { color: var(--muted); flex-shrink: 0; }
+
+  input {
+    border: 0;
+    outline: 0;
+    background: transparent;
+    width: 100%;
+    min-width: 0;
+    color: var(--ink);
+    font-size: .9rem;
+
+    &::placeholder { color: var(--muted); }
+  }
+}
+
+.notification-layout .form-select {
+  border: 1px solid var(--select-border);
+  border-radius: 8px;
+  font-size: .88rem;
+
+  &:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 .2rem rgba(73, 102, 200, .15);
+  }
+}
+
+/* ============================================
+   Loading / empty states
+   ============================================ */
+.notification-layout .loading-state {
+  min-height: 12rem;
+  display: grid;
+  place-items: center;
+}
+
+.notification-layout .empty-state {
+  display: grid;
+  place-items: center;
+  gap: .6rem;
+  min-height: 14rem;
+  text-align: center;
+  color: var(--muted);
+  padding: 1.25rem 0;
+
+  h3 { margin: 0; color: var(--ink); font-size: 1.05rem; }
+  p { margin: 0; max-width: 380px; font-size: .88rem; }
+}
+
+.notification-layout .empty-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--blue-bg);
+  color: var(--blue-fg);
+  font-size: 1.25rem;
+}
+
+/* ============================================
+   Mobile cards
+   ============================================ */
+.notification-layout .mobile-notification-card {
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 1rem;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(31, 41, 55, .04);
+  margin-bottom: .75rem;
+
+  &:last-child { margin-bottom: 0; }
+}
+
+.notification-layout .notification-card-top,
+.notification-layout .notification-meta,
+.notification-layout .notification-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+}
+
+.notification-layout .notification-card-top {
+  justify-content: space-between;
+  margin-bottom: .75rem;
+}
+
+.notification-layout .mobile-notification-card h4 {
+  font-size: .95rem;
+  font-weight: 700;
+  margin: 0 0 .35rem;
+  color: var(--ink);
+}
+
+.notification-layout .mobile-notification-card p {
+  color: var(--muted);
+  margin: 0 0 .75rem;
+  font-size: .88rem;
+}
+
+.notification-layout .notification-meta {
+  color: var(--muted);
+  font-size: .8rem;
+  margin-bottom: .85rem;
+
+  i { margin-right: .3rem; }
+}
+
+.notification-layout .notification-actions { justify-content: flex-end; }
+
+/* ============================================
+   Desktop table
+   ============================================ */
+.notification-layout .notification-table-shell {
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.notification-layout .table {
+  margin-bottom: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.notification-layout .table thead {
+  background: var(--bg);
+}
+
+.notification-layout .table th {
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.notification-layout .table th:nth-child(1),
+.notification-layout .table td:nth-child(1) { width: 34%; }
+.notification-layout .table th:nth-child(2),
+.notification-layout .table td:nth-child(2) { width: 18%; }
+.notification-layout .table th:nth-child(3),
+.notification-layout .table td:nth-child(3) { width: 12%; }
+.notification-layout .table th:nth-child(4),
+.notification-layout .table td:nth-child(4) { width: 16%; }
+.notification-layout .table th:nth-child(5),
+.notification-layout .table td:nth-child(5) { width: 20%; }
+
+.notification-layout .table td {
+  vertical-align: middle;
+  border-bottom: 1px solid var(--line);
+  font-size: .88rem;
+  overflow: hidden;
+}
+
+.notification-layout .table tr:last-child td { border-bottom: 0; }
+
+.notification-layout .table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .4rem;
+}
+
+.notification-layout .type-icon-box {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--blue-bg);
+  color: var(--blue-fg);
+  flex-shrink: 0;
+}
+
+.notification-layout .table td:first-child > .d-flex {
+  min-width: 0;
+}
+
+.notification-layout .notification-title-cell {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.notification-layout .notification-title-cell p {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notification-layout .notification-title-cell .d-flex {
+  min-width: 0;
+}
+
+/* ============================================
+   Type / status color helpers
+   ============================================ */
+.notification-layout .text-purple { color: var(--purple-fg) !important; }
+.notification-layout .bg-purple-subtle { background-color: var(--purple-bg) !important; }
+.notification-layout .text-purple-emphasis { color: var(--purple-fg) !important; }
+.notification-layout .border-purple-subtle { border-color: var(--purple-fg) !important; }
+
+.notification-layout .text-info-emphasis { color: var(--blue-fg) !important; }
+.notification-layout .bg-info-subtle { background-color: var(--blue-bg) !important; }
+.notification-layout .border-info-subtle { border-color: var(--blue-fg) !important; }
+
+.notification-layout .text-success-emphasis { color: var(--green-fg) !important; }
+.notification-layout .bg-success-subtle { background-color: var(--green-bg) !important; }
+.notification-layout .border-success-subtle { border-color: var(--green-fg) !important; }
+
+.notification-layout .text-warning-emphasis { color: var(--orange-fg) !important; }
+.notification-layout .bg-warning-subtle { background-color: var(--orange-bg) !important; }
+.notification-layout .border-warning-subtle { border-color: var(--orange-fg) !important; }
+
+.notification-layout .text-primary { color: var(--accent-strong) !important; }
+.notification-layout .text-success { color: var(--green-fg) !important; }
+
+/* ============================================
+   Schedule modal
+   ============================================ */
+.notification-layout ~ .modal .modal-content,
+.modal-content {
+  border-radius: 14px;
+}
+
+.modal-content .btn-primary {
+  background-color: var(--accent-strong);
+  border-color: var(--accent-strong);
+
+  &:hover, &:focus {
+    background-color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  &:disabled {
+    background-color: var(--accent-strong);
+    border-color: var(--accent-strong);
+    opacity: .65;
+  }
+}
+
+.modal-content .modal-title i.text-primary {
+  color: var(--accent-strong) !important;
+}
+
+/* ============================================
+   Focus states
+   ============================================ */
+.notification-layout .status-pill-btn:focus-visible,
+.notification-layout .btn:focus-visible,
+.notification-layout .form-select:focus-visible,
+.notification-layout .search-shell input:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   Responsive breakpoints
+   ============================================ */
+@media (min-width: 640px) {
+  .notification-layout {
+    .dashboard-heading { flex-direction: row; align-items: center; justify-content: space-between; }
+    .dashboard-heading .btn-primary { width: auto; }
+
+    h1 { font-size: clamp(1.6rem, 2.4vw, 2.1rem); }
+
+    .panel { padding: 1.5rem; }
+
+    .notification-toolbar { flex-direction: row; align-items: center; }
+    .search-shell { flex: 1; min-width: 300px; }
+    .form-select { min-width: 200px;}
+  }
+}
+
+@media (min-width: 900px) {
+  .notification-layout .type-icon-box {
+    width: 2.9rem;
+    height: 2.9rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .notification-layout { padding: 0 .5rem; }
+}

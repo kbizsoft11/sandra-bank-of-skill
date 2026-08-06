@@ -1232,6 +1232,42 @@ export const markEmployeeNotificationAsUnread = async (req: Request, res: Respon
 };
 
 /**
+ * GET /dashboard/company/notifications
+ * Get company notifications (admin notifications sent to this company)
+ */
+export const getCompanyNotifications = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    if (!userId || userRole !== 'company') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+    }
+
+    const filter = (req.query.filter as 'recent' | 'unread' | 'read') || 'recent';
+    const page = Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1);
+    const limit = Math.min(20, Math.max(1, parseInt(String(req.query.limit || '5'), 10) || 5));
+
+    const data = await AdminDashboardService.getCompanyNotifications(userId, filter, page, limit);
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error: any) {
+    console.error('Error fetching company notifications:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching notifications',
+      error: error.message,
+    });
+  }
+};
+
+/**
  * GET /dashboard/admin/recent-activities
  * Get recent activities
  */
@@ -1261,6 +1297,72 @@ export const getAdminRecentActivities = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Error fetching recent activities',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * PUT /dashboard/company/notifications/:id/read
+ * Mark company notification as read
+ */
+export const markCompanyNotificationAsRead = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+    const notificationId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    if (!userId || userRole !== 'company') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+    }
+
+    await AdminDashboardService.markCompanyNotificationAsRead(notificationId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Notification marked as read',
+    });
+  } catch (error: any) {
+    console.error('Error marking company notification as read:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error marking notification as read',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * PUT /dashboard/company/notifications/:id/unread
+ * Mark company notification as unread
+ */
+export const markCompanyNotificationAsUnread = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+    const notificationId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    if (!userId || userRole !== 'company') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+    }
+
+    await AdminDashboardService.markCompanyNotificationAsUnread(notificationId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Notification marked as unread',
+    });
+  } catch (error: any) {
+    console.error('Error marking company notification as unread:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error marking notification as unread',
       error: error.message,
     });
   }

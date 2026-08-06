@@ -17,9 +17,13 @@ import waitlistRouter from './waitlist.route';
 import companySkillCategoryRoutes from './company-skill-category.route';
 import organisationRouter from './organisation.routes';
 import systemSettingsRouter from './system-settings.routes';
+import publicSettingsRouter from './public-settings.routes';
 import companyNotificationRoutes from './company-notification.route';
+import adminNotificationRoutes from './admin-notification.routes';
+import scalableNotificationRoutes from './scalable-notification.routes';
 import documentRouter from './document.route';
 import assessmentsRouter from './assessments.route';
+import activityRouter from './activity.route';
 
 const router = Router();
 
@@ -29,6 +33,9 @@ router.get('/', (_, res) => {
     message: 'Bank of Skill',
   });
 });
+
+// Public endpoints (no authentication required)
+router.use('/public', publicSettingsRouter);
 
 router.use('/users', userRouter);
 router.use('/auth', authRouter);
@@ -42,11 +49,14 @@ router.use('/skill-categories', authenticate, skillCategoryRoutes);
 router.use('/company-skill-categories', authenticate, companySkillCategoryRoutes);
 router.use('/organisations', authenticate, organisationRouter);
 router.use('/admin/system-settings', authenticate, systemSettingsRouter);
+router.use('/admin/notifications', authenticate, adminNotificationRoutes);
+router.use('/scalable-notifications', authenticate, scalableNotificationRoutes);
 router.use("/skills", authenticate, skillRoutes);
 router.use("/skill-users", authenticate, skillUserRoutes);
 router.use("/company-categories", authenticate, companyCategoryRoutes);
 router.use("/questionnaires", authenticate, questionnaireRoutes);
 router.use("/roles", roleRoutes);
-router.use("/company-notifications", companyNotificationRoutes)
+router.use("/company-notifications", companyNotificationRoutes);
+router.use("/activities", activityRouter);
 
 export default router;

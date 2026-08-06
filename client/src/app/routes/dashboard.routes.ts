@@ -155,6 +155,14 @@ export const dashboardRoutes: Routes = [
   },
 
   {
+    path: 'activity-logs',
+    canActivate: [roleGuard],
+    data: { roles: ['admin', 'company'] },
+    loadComponent: () =>
+      import('../features/admin-activity-logs/admin-activity-logs').then((c) => c.AdminActivityLogs),
+  },
+
+  {
     path: 'users/create',
     canActivate: [roleGuard],
     data: { roles: ['admin'] },
@@ -543,23 +551,84 @@ export const dashboardRoutes: Routes = [
   },
 
   {
+    path: 'notifications/edit/:id',
+    canActivate: [roleGuard],
+    data: { roles: ['company'] },
+    loadComponent: () =>
+      import('../features/company-notifications/create-notification/create-notification').then(
+        (c) => c.CreateNotification,
+      ),
+  },
+
+  {
+    path: 'notifications/view/:id',
+    canActivate: [roleGuard],
+    data: { roles: ['company'] },
+    loadComponent: () =>
+      import('../features/company-notifications/create-notification/create-notification').then(
+        (c) => c.CreateNotification,
+      ),
+  },
+
+  // Unified notifications page - routes to correct component based on role
+  {
+    path: 'my-notifications',
+    canActivate: [roleGuard],
+    data: { roles: ['employee', 'company'] },
+    loadComponent: () =>
+      import('../features/notifications-unified/notifications-unified').then(
+        (c) => c.NotificationsUnified,
+      ),
+  },
+
+  // Admin Notifications routes (Admin only)
+  {
+    path: 'admin-notifications',
+    canActivate: [roleGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () =>
+      import('../features/admin-notifications/notification-list/notification-list').then(
+        (c) => c.AdminNotificationListComponent,
+      ),
+  },
+
+  {
+    path: 'admin-notifications/create',
+    canActivate: [roleGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () =>
+      import('../features/admin-notifications/create-notification/create-notification').then(
+        (c) => c.CreateAdminNotificationComponent,
+      ),
+  },
+
+  {
+    path: 'admin-notifications/edit/:id',
+    canActivate: [roleGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () =>
+      import('../features/admin-notifications/create-notification/create-notification').then(
+        (c) => c.CreateAdminNotificationComponent,
+      ),
+  },
+
+  {
+    path: 'admin-notifications/view/:id',
+    canActivate: [roleGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () =>
+      import('../features/admin-notifications/create-notification/create-notification').then(
+        (c) => c.CreateAdminNotificationComponent,
+      ),
+  },
+
+  {
     path: 'notifications/:id/edit',
     canActivate: [roleGuard],
     data: { roles: ['company'] },
     loadComponent: () =>
       import('../features/company-notifications/edit-notification/edit-notification').then(
         (c) => c.EditNotification,
-      ),
-  },
-
-  // Employee notifications page
-  {
-    path: 'my-notifications',
-    canActivate: [roleGuard],
-    data: { roles: ['employee'] },
-    loadComponent: () =>
-      import('../features/employee-notifications/employee-notifications').then(
-        (c) => c.EmployeeNotifications,
       ),
   },
 

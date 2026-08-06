@@ -39,6 +39,18 @@ export const getEmployeeNotifications = async (
 };
 
 /**
+ * Get company notifications (admin notifications sent to this company)
+ */
+export const getCompanyNotifications = async (
+  userId: string,
+  filter: 'recent' | 'unread' | 'read' = 'recent',
+  page: number = 1,
+  limit: number = 10
+) => {
+  return AdminDashboardRepository.getUserNotifications(userId, filter, page, limit);
+};
+
+/**
  * Mark notification as read
  */
 export const markNotificationAsRead = async (notificationId: string) => {
@@ -63,6 +75,20 @@ export const markEmployeeNotificationAsRead = async (notificationId: string) => 
  * Mark employee notification as unread
  */
 export const markEmployeeNotificationAsUnread = async (notificationId: string) => {
+  return AdminDashboardRepository.markUserNotificationAsUnread(notificationId);
+};
+
+/**
+ * Mark company notification as read
+ */
+export const markCompanyNotificationAsRead = async (notificationId: string) => {
+  return AdminDashboardRepository.markUserNotificationAsRead(notificationId);
+};
+
+/**
+ * Mark company notification as unread
+ */
+export const markCompanyNotificationAsUnread = async (notificationId: string) => {
   return AdminDashboardRepository.markUserNotificationAsUnread(notificationId);
 };
 

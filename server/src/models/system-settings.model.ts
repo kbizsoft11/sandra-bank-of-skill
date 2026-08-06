@@ -3,7 +3,6 @@ import { Schema, model, Document } from 'mongoose';
 export interface ISystemSettings extends Document {
   // General Settings
   platformName?: string;
-  logo?: string; // Base64 or URL
   favicon?: string; // Base64 or URL
   supportEmail?: string;
 
@@ -12,6 +11,7 @@ export interface ISystemSettings extends Document {
   smtpPort?: number;
   smtpUsername?: string;
   smtpPassword?: string; // Stored encrypted
+  smtpEncryption?: 'tls' | 'ssl'; // TLS (port 587) or SSL (port 465)
   fromEmail?: string;
 
   // Security Settings
@@ -36,10 +36,6 @@ const systemSettingsSchema = new Schema<ISystemSettings>(
       type: String,
       default: 'Bank of Skill',
       trim: true,
-    },
-    logo: {
-      type: String,
-      default: '',
     },
     favicon: {
       type: String,
@@ -73,6 +69,11 @@ const systemSettingsSchema = new Schema<ISystemSettings>(
       type: String,
       default: '',
       select: false, // Don't return password by default
+    },
+    smtpEncryption: {
+      type: String,
+      enum: ['tls', 'ssl'],
+      default: 'tls',
     },
     fromEmail: {
       type: String,

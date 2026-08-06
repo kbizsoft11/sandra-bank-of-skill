@@ -4,6 +4,8 @@ import { asyncHandler } from '../utils/async-handler';
 import { sendResponse } from '../utils/api-response';
 
 import { authService } from '../services/auth.service';
+import activityService, { ActivityService } from '../services/activity.service';
+import { ACTIVITY_TYPES, RESOURCE_TYPES } from '../constants/activity-types';
 
 import { LoginDto } from '../dto/login.dto';
 import { 
@@ -41,7 +43,11 @@ export const registerStep1 = asyncHandler(
     console.log('\n🟡 registerStep1 CONTROLLER called');
     console.log('🟡 Request body:', req.body);
     
-    const result = await authService.registerStep1(req.body as RegisterStep1Dto);
+    // Extract IP and user agent from request
+    const ipAddress = ActivityService.getClientIp(req);
+    const userAgent = ActivityService.getUserAgent(req);
+    
+    const result = await authService.registerStep1(req.body as RegisterStep1Dto, ipAddress, userAgent);
 
     console.log('🟡 Service result:', result);
 
@@ -121,7 +127,11 @@ export const completeRegistration = asyncHandler(
       throw new Error('Authentication required');
     }
 
-    const result = await authService.completeRegistration(userId);
+    // Extract IP and user agent from request
+    const ipAddress = ActivityService.getClientIp(req);
+    const userAgent = ActivityService.getUserAgent(req);
+
+    const result = await authService.completeRegistration(userId, ipAddress, userAgent);
 
     return sendResponse(
       res,
@@ -206,7 +216,21 @@ export const getMe = asyncHandler(
  */
 export const login = asyncHandler(
   async (req: Request, res: Response) => {
-    const result = await authService.login(req.body as LoginDto);
+    console.log('🟢 LOGIN CONTROLLER: Starting login process');
+    console.log('🟢 LOGIN CONTROLLER: Extracting IP address and user agent');
+    
+    // Extract IP address from request
+    const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
+      (req.connection.remoteAddress) ||
+      'unknown';
+    
+    // Extract user agent from request
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    
+    console.log('🟢 LOGIN CONTROLLER: IP Address:', ipAddress);
+    console.log('🟢 LOGIN CONTROLLER: User Agent:', userAgent);
+    
+    const result = await authService.login(req.body as LoginDto, ipAddress, userAgent);
 
     return sendResponse(
       res,
@@ -225,21 +249,58 @@ export const logout = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?.userId;
     const userFullName = req.user?.fullName || 'User';
-    const tenantId = req.user?.tenantId;
+    const userEmail = req.user?.email || '';
+    const userRole = (req.user?.role as 'admin' | 'company' | 'employee') || 'employee';
     const organisationId = req.user?.organisationId;
 
+    console.log('🔵 LOGOUT: Attempting to log logout activity');
+    console.log('🔵 LOGOUT: userId =', userId, 'type =', typeof userId);
+    console.log('🔵 LOGOUT: userFullName =', userFullName);
+    console.log('🔵 LOGOUT: userRole =', userRole);
+    console.log('🔵 LOGOUT: organisationId =', organisationId);
+
+    // Extract IP address from request
+    const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
+      (req.socket?.remoteAddress) ||
+      'unknown';
+    
+    // Extract user agent from request
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    
+    console.log('🔵 LOGOUT: IP Address:', ipAddress);
+    console.log('🔵 LOGOUT: User Agent:', userAgent);
+
     if (userId) {
-      const AdminDashboardService = require('../services/admin-dashboard.service');
-      await AdminDashboardService.createActivity(
-        userId,
-        userFullName,
-        'Logged out successfully',
-        'logout',
-        {
-          tenantId,
-          organisationId,
-        }
-      );
+      // Ensure userId is a string
+      const userIdStr = String(userId);
+      const resourceIdStr = String(userId);
+      const companyIdStr = organisationId ? String(organisationId) : undefined;
+
+      console.log('🔵 LOGOUT: Calling logActivity with:');
+      console.log('  - userId:', userIdStr);
+      console.log('  - resourceId:', resourceIdStr);
+      console.log('  - companyId:', companyIdStr);
+      console.log('  - ipAddress:', ipAddress);
+      console.log('  - userAgent:', userAgent);
+
+      // Log logout activity using new activity service
+      const result = await activityService.logActivity({
+        userId: userIdStr,
+        userName: userFullName,
+        userEmail: userEmail,
+        userRole: userRole,
+        actionType: ACTIVITY_TYPES.LOGOUT,
+        resource: RESOURCE_TYPES.USER,
+        resourceId: resourceIdStr,
+        resourceName: userFullName,
+        description: `${userFullName} logged out successfully`,
+        status: 'success',
+        companyId: companyIdStr,
+        ipAddress: ipAddress,
+        userAgent: userAgent,
+      });
+
+      console.log('🔵 LOGOUT: Activity logged, result:', !!result);
     }
 
     return sendResponse(

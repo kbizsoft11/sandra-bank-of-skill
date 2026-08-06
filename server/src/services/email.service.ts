@@ -1,6 +1,7 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { Transporter } from 'nodemailer';
 import { env } from '../config/env';
 import dns from "node:dns";
+import { settingsCacheService } from './settings-cache.service';
 
 dns.setDefaultResultOrder("ipv4first");
 
@@ -11,47 +12,126 @@ interface EmailOptions {
     text?: string;
 }
 
-const smtpAuth = env.SMTP_USER && env.SMTP_PASSWORD
-    ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD }
-    : undefined;
+/**
+ * Create email transporter with current settings
+ * Uses database settings if available, falls back to environment variables
+ */
+function createTransporter(): Transporter {
+    const cachedSettings = settingsCacheService.getSync();
+    
+    // Prefer database settings, fall back to env variables
+    const smtpHost = cachedSettings?.smtpHost || env.SMTP_HOST || 'smtp.gmail.com';
+    const smtpPort = cachedSettings?.smtpPort || env.SMTP_PORT || 587;
+    const smtpUser = cachedSettings?.smtpUsername || env.SMTP_USER;
+    const smtpPass = cachedSettings?.smtpPassword || env.SMTP_PASSWORD;
+    const smtpEncryption = cachedSettings?.smtpEncryption || 'tls' as 'tls' | 'ssl';
+    const fromEmail = cachedSettings?.fromEmail || env.EMAIL_FROM;
 
-const isGmail = env.SMTP_SERVICE === 'gmail' || (env.SMTP_HOST || '').toLowerCase().includes('gmail');
+    const smtpAuth = smtpUser && smtpPass
+        ? { user: smtpUser, pass: smtpPass }
+        : undefined;
 
-const transporter = nodemailer.createTransport(
-    isGmail
-        ? {
-            service: 'gmail',
-            auth: smtpAuth,
-            requireTLS: true,
-            tls: {
-                rejectUnauthorized: false,
-            },
-        }
-        : {
-            host: env.SMTP_HOST || 'smtp.gmail.com',
-            port: env.SMTP_PORT || 587,
-            secure: env.SMTP_SECURE,
-            auth: smtpAuth,
-            tls: {
-                rejectUnauthorized: false,
-            },
-        }
-);
+    const isGmail = (smtpHost || '').toLowerCase().includes('gmail');
+    const isMailtrap = (smtpHost || '').toLowerCase().includes('mailtrap');
 
+    // Determine secure flag based on encryption type and port
+    // SSL (port 465): secure = true
+    // TLS (port 587): secure = false (STARTTLS will be used)
+    let secure = false;
+    if (smtpEncryption === 'ssl' || smtpPort === 465) {
+        secure = true; // SSL requires secure: true
+    }
+
+    console.log('\n🔧 ============ CREATING EMAIL TRANSPORTER ============');
+    console.log('SMTP Host:', smtpHost);
+    console.log('SMTP Port:', smtpPort);
+    console.log('Encryption:', smtpEncryption);
+    console.log('Secure (TLS/SSL):', secure);
+    console.log('Username:', smtpUser ? '***' : 'NOT SET');
+    console.log('Password:', smtpPass ? '***' : 'NOT SET');
+    console.log('From Email:', fromEmail);
+    console.log('Is Gmail:', isGmail);
+    console.log('Is Mailtrap:', isMailtrap);
+    console.log('Auth Object:', smtpAuth ? { user: '***', pass: '***' } : 'NO AUTH');
+    console.log('Source:', cachedSettings?.smtpHost ? 'DATABASE (CACHED)' : 'ENVIRONMENT VARIABLES');
+    console.log('=====================================================\n');
+
+    const transportConfig: any = {
+        host: smtpHost,
+        port: smtpPort,
+        secure,
+        auth: smtpAuth,
+        tls: {
+            rejectUnauthorized: false,
+        },
+    };
+
+    // Special handling for Gmail
+    if (isGmail) {
+        transportConfig.service = 'gmail';
+        transportConfig.requireTLS = true;
+    }
+
+    const transporter = nodemailer.createTransport(transportConfig);
+
+    return transporter;
+}
+
+let transporter = createTransporter();
+
+/**
+ * Reinitialize transporter with new settings
+ * Called when system settings are updated
+ */
+export function reinitializeEmailTransporter(): void {
+    try {
+        transporter = createTransporter();
+        console.log('✅ Email transporter reinitialized');
+        
+        transporter.verify((error) => {
+            if (error) {
+                console.error('⚠️ SMTP connection error after reinitialization:', error);
+            } else {
+                console.log('✅ SMTP server is ready to send emails');
+            }
+        });
+    } catch (error) {
+        console.error('❌ Error reinitializing email transporter:', error);
+    }
+}
+
+// Initial verification
 transporter.verify((error) => {
     if (error) {
-        console.error('SMTP connection error:', error);
+        console.error('⚠️ Initial SMTP connection error:', error);
     } else {
-        console.log('SMTP server is ready to send emails');
+        console.log('✅ SMTP server is ready to send emails');
     }
 });
 
 /**
  * Send email using Nodemailer
  */
-const sendEmail = async (options: EmailOptions): Promise<void> => {
+export const sendEmail = async (options: EmailOptions): Promise<void> => {
+    const cachedSettings = settingsCacheService.getSync();
+    const fromEmail = cachedSettings?.fromEmail || env.EMAIL_FROM;
+
+    // 🔍 LOG CREDENTIALS BEING USED
+    console.log('\n📧 ============ SENDING EMAIL ============');
+    console.log('Recipient:', options.to);
+    console.log('Subject:', options.subject);
+    console.log('From Email:', fromEmail);
+    console.log('\n🔐 SMTP CREDENTIALS BEING USED:');
+    console.log('Host:', cachedSettings?.smtpHost || env.SMTP_HOST || 'NOT SET');
+    console.log('Port:', cachedSettings?.smtpPort || env.SMTP_PORT || 'NOT SET');
+    console.log('Username:', cachedSettings?.smtpUsername || env.SMTP_USER || 'NOT SET');
+    console.log('Encryption:', cachedSettings?.smtpEncryption || 'tls');
+    console.log('Password Set:', !!(cachedSettings?.smtpPassword || env.SMTP_PASSWORD));
+    console.log('Source:', cachedSettings?.smtpHost ? 'DATABASE' : 'ENVIRONMENT VARIABLES');
+    console.log('========================================\n');
+
     const mailOptions = {
-        from: env.EMAIL_FROM,
+        from: fromEmail,
         to: options.to,
         subject: options.subject,
         text: options.text || '',
@@ -59,14 +139,38 @@ const sendEmail = async (options: EmailOptions): Promise<void> => {
     };
 
     try {
+        console.log('📤 Attempting to send email...');
         const info = await transporter.sendMail(mailOptions);
-        console.log('✅ Email sent successfully:', info.messageId);
+        console.log('✅ Email sent successfully!');
+        console.log('Message ID:', info.messageId);
         if (process.env.NODE_ENV !== 'production') {
             console.log('📧 Preview URL:', nodemailer.getTestMessageUrl(info) || 'No preview available');
         }
-    } catch (error) {
-        console.error('❌ Failed to send email:', error);
-        throw new Error('Email sending failed');
+    } catch (error: any) {
+        console.error('\n❌ ============ EMAIL SENDING FAILED ============');
+        console.error('Error Code:', error.code);
+        console.error('Error Message:', error.message);
+        console.error('Response Code:', error.responseCode);
+        console.error('SMTP Response:', error.response);
+        console.error('Full Error:', error);
+        console.error('==============================================\n');
+        
+        // Re-throw with detailed error information
+        let errorMessage = 'Email sending failed';
+        
+        if (error.code === 'EAUTH') {
+            errorMessage = 'SMTP Authentication Failed: Invalid username or password. Please check your SMTP credentials.';
+        } else if (error.code === 'ECONNREFUSED') {
+            errorMessage = 'Cannot connect to SMTP server. Please check the host and port.';
+        } else if (error.code === 'ETIMEDOUT') {
+            errorMessage = 'Connection to SMTP server timed out. Please check your network and SMTP settings.';
+        } else if (error.response) {
+            errorMessage = `SMTP Error ${error.responseCode}: ${error.response}`;
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        throw new Error(errorMessage);
     }
 };
 
@@ -331,7 +435,7 @@ export const sendPasswordResetNotificationEmail = async (
         
         Your New Temporary Password: ${password}
         
-        ⚠️ IMPORTANT: Please change this password after logging in.
+        ⚠️ IMPORTANT: Please change this password after logged in.
         
         🔒 SECURITY NOTICE: If you didn't request this password reset, please contact your administrator immediately.
         

@@ -13,7 +13,9 @@ import { HttpClient } from '@angular/common/http';
 import {
     Observable,
     switchMap,
-    tap
+    tap,
+    catchError,
+    of
 } from 'rxjs';
 
 import { LoginRequest } from '../../shared/interfaces/login-request.interface';
@@ -299,8 +301,25 @@ export class AuthService {
 
     logoutWithTracking(): Observable<any> {
         // Call the logout endpoint to track the logout activity
-        return this.http.post(`${API_CONFIG.BASE_URL}/auth/logout`, {}).pipe(
-            tap(() => this.logout())
+        console.log('👤 [AUTH SERVICE] logoutWithTracking called');
+        console.log('👤 [AUTH SERVICE] Current token:', !!this.token());
+        
+        const url = `${API_CONFIG.BASE_URL}/auth/logout`;
+        console.log('👤 [AUTH SERVICE] Making POST request to:', url);
+        
+        return this.http.post<any>(url, {}).pipe(
+            tap((response) => {
+                console.log('👤 [AUTH SERVICE] Logout endpoint success:', response);
+                // DON'T call logout here - let caller decide when to clear session
+            }),
+            // Add error handling but don't rethrow - we want to logout anyway
+            catchError((error) => {
+                console.error('👤 [AUTH SERVICE] Logout endpoint error:', error);
+                console.error('👤 [AUTH SERVICE] Error status:', error.status);
+                console.error('👤 [AUTH SERVICE] Error message:', error.message);
+                // Return successful observable so caller doesn't think it failed
+                return of({ success: true, message: 'Logged out (with error)', error: error.message });
+            })
         );
     }
 

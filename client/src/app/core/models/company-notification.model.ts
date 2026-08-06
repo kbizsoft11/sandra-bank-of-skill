@@ -1,5 +1,5 @@
-export type NotificationType = 'info' | 'warning' | 'announcement' | 'assessment';
-export type TargetAudience = 'all' | 'role' | 'department';
+export type NotificationType = 'info' | 'warning' | 'announcement' | 'assessment' | 'alert' | 'error' | 'success';
+export type TargetAudience = 'all' | 'role' | 'department' | 'specific';
 export type DeliveryMethod = 'now' | 'scheduled';
 export type CompanyNotificationStatus = 'draft' | 'scheduled' | 'sent' | 'cancelled';
 

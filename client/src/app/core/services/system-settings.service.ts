@@ -14,13 +14,14 @@ export interface PasswordPolicy {
 export interface SystemSettings {
   _id?: string;
   platformName?: string;
-  logo?: string;
   favicon?: string;
   supportEmail?: string;
   smtpHost?: string;
   smtpPort?: number;
   smtpUsername?: string;
+  smtpPassword?: string; // Hidden by default from API
   fromEmail?: string;
+  smtpEncryption?: 'tls' | 'ssl';
   jwtExpiry?: string;
   passwordPolicy?: PasswordPolicy;
   sessionTimeout?: number;
@@ -68,7 +69,6 @@ export class SystemSettingsService {
    */
   updateGeneralSettings(data: {
     platformName?: string;
-    logo?: string;
     favicon?: string;
     supportEmail?: string;
   }): Observable<ApiResponse<SystemSettings>> {
@@ -83,6 +83,7 @@ export class SystemSettingsService {
     smtpPort?: number;
     smtpUsername?: string;
     smtpPassword?: string;
+    smtpEncryption?: 'tls' | 'ssl';
     fromEmail?: string;
   }): Observable<ApiResponse<SystemSettings>> {
     return this.http.patch<ApiResponse<SystemSettings>>(`${this.apiUrl}/email`, data);
@@ -104,5 +105,14 @@ export class SystemSettingsService {
    */
   resetSettings(): Observable<ApiResponse<SystemSettings>> {
     return this.http.post<ApiResponse<SystemSettings>>(`${this.apiUrl}/reset`, {});
+  }
+
+  /**
+   * Send a test email to verify SMTP configuration
+   */
+  testEmailSettings(testEmail?: string): Observable<ApiResponse<{ success: boolean; messageId?: string }>> {
+    return this.http.post<ApiResponse<{ success: boolean; messageId?: string }>>(`${this.apiUrl}/email/test`, { 
+      testEmail: testEmail || ''
+    });
   }
 }

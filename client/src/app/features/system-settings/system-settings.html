@@ -87,25 +87,6 @@
               }
             </div>
 
-            <!-- Logo Upload -->
-            <div class="mb-4">
-              <label for="logoUpload" class="form-label fw-medium">Platform Logo</label>
-              <div class="input-group">
-                <input
-                  type="file"
-                  class="form-control"
-                  id="logoUpload"
-                  accept="image/*"
-                  (change)="onLogoUpload($event)" />
-                <span class="input-group-text">JPG, PNG, SVG</span>
-              </div>
-              @if (logoPreview()) {
-                <div class="mt-3">
-                  <img [src]="logoPreview()!" alt="Logo Preview" class="img-thumbnail" style="max-width: 200px;" />
-                </div>
-              }
-            </div>
-
             <!-- Favicon Upload -->
             <div class="mb-4">
               <label for="faviconUpload" class="form-label fw-medium">Favicon</label>
@@ -213,18 +194,58 @@
 
             <!-- SMTP Password -->
             <div class="mb-4">
-              <label for="smtpPassword" class="form-label fw-medium">SMTP Password</label>
-              <input
-                type="password"
-                class="form-control"
-                [class.is-invalid]="emailForm()!.get('smtpPassword')?.invalid && emailForm()!.get('smtpPassword')?.touched"
-                id="smtpPassword"
-                formControlName="smtpPassword"
-                placeholder="••••••••" />
+              <label for="smtpPassword" class="form-label fw-medium">
+                SMTP Password
+                @if (passwordExists()) {
+                  <span class="badge bg-success">Optional</span>
+                }
+              </label>
+              <div class="input-group">
+                <input
+                  [type]="passwordVisible() ? 'text' : 'password'"
+                  class="form-control"
+                  [class.is-invalid]="emailForm()!.get('smtpPassword')?.invalid && emailForm()!.get('smtpPassword')?.touched"
+                  id="smtpPassword"
+                  formControlName="smtpPassword"
+                  [placeholder]="passwordExists() ? 'Leave blank to keep existing password' : '••••••••'" />
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  (click)="togglePasswordVisibility()"
+                  title="Toggle password visibility">
+                  <i [class]="passwordVisible() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
+              </div>
               @if (emailForm()!.get('smtpPassword')?.hasError('required')) {
                 <div class="invalid-feedback">SMTP Password is required</div>
               }
-              <small class="text-muted">Password is stored securely in the database</small>
+              @if (emailForm()!.get('smtpPassword')?.value) {
+                <small class="text-muted d-block mt-2">
+                  <i class="bi bi-check-circle text-success"></i>
+                  Password will be updated with the new value
+                </small>
+              } @else if (passwordExists()) {
+                <small class="text-muted d-block mt-2">
+                  <i class="bi bi-info-circle text-info"></i>
+                  Password is already set. Leave blank to keep the existing password.
+                </small>
+              }
+            </div>
+
+            <!-- SMTP Encryption -->
+            <div class="mb-4">
+              <label for="smtpEncryption" class="form-label fw-medium">Encryption Type</label>
+              <select
+                class="form-select"
+                id="smtpEncryption"
+                formControlName="smtpEncryption">
+                <option value="tls">TLS (STARTTLS - Port 587)</option>
+                <option value="ssl">SSL/TLS (Port 465)</option>
+              </select>
+              <small class="text-muted d-block mt-2">
+                <strong>TLS:</strong> Uses STARTTLS on port 587 (recommended for most services like Mailtrap)<br>
+                <strong>SSL:</strong> Uses direct SSL/TLS connection on port 465
+              </small>
             </div>
 
             <!-- From Email -->
@@ -247,7 +268,7 @@
           </form>
 
           <!-- Action Buttons -->
-          <div class="d-flex gap-2">
+          <div class="d-flex gap-2 flex-wrap">
             <button
               type="button"
               class="btn btn-primary"
@@ -258,8 +279,16 @@
             </button>
             <button
               type="button"
+              class="btn btn-info"
+              [disabled]="testing() || saving() || !emailForm()!.valid"
+              (click)="testEmailConfiguration()">
+              <i class="bi bi-send me-2"></i>
+              Send Test Email
+            </button>
+            <button
+              type="button"
               class="btn btn-outline-secondary"
-              [disabled]="saving()"
+              [disabled]="saving() || testing()"
               (click)="resetEmailForm()">
               <i class="bi bi-arrow-clockwise me-2"></i>
               Reset
@@ -270,3 +299,68 @@
     }
   }
 </div>
+
+<!-- Test Email Modal -->
+@if (showTestModal()) {
+  <div class="modal-backdrop fade show" style="display: block; z-index: 1040;"></div>
+  <div class="modal fade show d-block" style="z-index: 1050; display: block;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title">
+            <i class="bi bi-send me-2"></i>
+            Send Test Email
+          </h5>
+          <button
+            type="button"
+            class="btn-close btn-close-white"
+            aria-label="Close"
+            (click)="closeTestModal()"
+            [disabled]="testEmailLoading()"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted mb-3">
+            Enter the email address where you want to receive the test email. This will help verify your SMTP configuration is working correctly.
+          </p>
+          <div class="mb-3">
+            <label for="testEmail" class="form-label fw-medium">Recipient Email Address</label>
+            <input
+              type="email"
+              class="form-control"
+              id="testEmail"
+              [(ngModel)]="testEmailAddress"
+              [disabled]="testEmailLoading()"
+              placeholder="your-email@example.com" />
+            <small class="text-muted">You'll receive a verification email at this address</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            (click)="closeTestModal()"
+            [disabled]="testEmailLoading()">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-info"
+            (click)="sendTestEmail()"
+            [disabled]="testEmailLoading() || !testEmailAddress().trim()">
+            @if (testEmailLoading()) {
+              <span>
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" style="width: 0.9rem; height: 0.9rem; border-width: 0.15em;"></span>
+                Sending...
+              </span>
+            } @else {
+              <span>
+                <i class="bi bi-send me-2"></i>
+                Send Test Email
+              </span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

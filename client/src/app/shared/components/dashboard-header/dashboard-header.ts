@@ -65,17 +65,23 @@ export class DashboardHeader implements OnInit, OnDestroy {
   }
 
   loadEmployeeNotifications(): void {
-    if (this.auth.role() !== 'employee') {
+    const role = this.auth.role();
+    if (role === 'employee') {
+      this.loadEmployeeNotificationsData();
+    } else if (role === 'company') {
+      this.loadCompanyNotificationsData();
+    } else {
       this.notifications.set([]);
       this.notificationsLoading.set(false);
       this.notificationsError.set(null);
-      return;
     }
+  }
 
+  private loadEmployeeNotificationsData(): void {
     this.notificationsLoading.set(true);
     this.notificationsError.set(null);
 
-    this.dashboardService.getEmployeeNotifications('recent', 1, 5)
+    this.dashboardService.getEmployeeNotificationsScalable('recent', 1, 5)
       .pipe(take(1))
       .subscribe({
         next: (response) => {
@@ -84,6 +90,34 @@ export class DashboardHeader implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error loading employee notifications:', error);
+          this.notificationsError.set('Unable to load notifications right now.');
+          this.notificationsLoading.set(false);
+        }
+      });
+  }
+
+  private loadCompanyNotificationsData(): void {
+    this.notificationsLoading.set(true);
+    this.notificationsError.set(null);
+
+    this.dashboardService.getCompanyNotificationsScalable('recent', 1, 5)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          // Convert company notifications to same format as employee notifications
+          const notifications = (response.data?.notifications || []).map((notif: any) => ({
+            _id: notif._id || notif.notificationId,
+            title: notif.title,
+            message: notif.message,
+            createdAt: notif.createdAt,
+            isRead: notif.isRead,
+            type: notif.type || 'info' as const,
+          }));
+          this.notifications.set(notifications);
+          this.notificationsLoading.set(false);
+        },
+        error: (error) => {
+          console.error('Error loading company notifications:', error);
           this.notificationsError.set('Unable to load notifications right now.');
           this.notificationsLoading.set(false);
         }
@@ -102,7 +136,7 @@ export class DashboardHeader implements OnInit, OnDestroy {
       return '/employee/my-notifications';
     }
     if (role === 'company') {
-      return '/company/notifications';
+      return '/company/my-notifications';
     }
     return '/admin/dashboard';
   }
@@ -172,16 +206,26 @@ export class DashboardHeader implements OnInit, OnDestroy {
       return;
     }
 
-    this.dashboardService.markEmployeeNotificationAsRead(notification._id)
-      .pipe(take(1))
+    const role = this.auth.role();
+    const endpoint = role === 'company' 
+      ? this.dashboardService.markCompanyNotificationAsReadScalable(notification._id)
+      : this.dashboardService.markEmployeeNotificationAsReadScalable(notification._id);
+
+    endpoint.pipe(take(1))
       .subscribe({
         next: () => {
           this.notifications.update((list) => list.map((item) => item._id === notification._id ? { ...item, isRead: true } : item));
+          this.alertService.toast('Marked as read', 'success');
         },
         error: (error) => {
           console.error('Error marking notification as read:', error);
+          this.alertService.error('Failed to mark as read');
         }
       });
+  }
+
+  trackNotification(index: number, notification: EmployeeNotification): string {
+    return notification._id || index.toString();
   }
 
   formatNotificationDate(value?: string | null): string {
@@ -199,16 +243,43 @@ export class DashboardHeader implements OnInit, OnDestroy {
   }
 
   logout(): void {
+    console.log('📍 [HEADER] logout() called');
     this.alertService.confirm(
       'You will be logged out of your account.',
       'Are you sure you want to logout?',
       'Yes, logout',
       'Cancel'
     ).then((confirmed) => {
+      console.log('📍 [HEADER] Logout confirmed:', confirmed);
       if (confirmed) {
-        this.authService.logout();
-        this.router.navigate(['/auth/login']);
-        this.alertService.toast('Logged out successfully', 'success');
+        console.log('📍 [HEADER] Calling auth.logoutWithTracking()');
+        // Use logoutWithTracking to ensure backend logs the activity
+        this.authService.logoutWithTracking().subscribe({
+          next: (response) => {
+            console.log('📍 [HEADER] logoutWithTracking success:', response);
+            console.log('📍 [HEADER] Response received, now clearing session');
+            
+            // Add a small delay to ensure activity is logged on backend
+            setTimeout(() => {
+              console.log('📍 [HEADER] Clearing local session');
+              this.authService.logout();
+              console.log('📍 [HEADER] Navigating to login');
+              this.router.navigate(['/auth/login']);
+              this.alertService.toast('Logged out successfully', 'success');
+            }, 500);
+          },
+          error: (err) => {
+            console.error('📍 [HEADER] logoutWithTracking error:', err);
+            console.log('📍 [HEADER] Error occurred, still logging out locally');
+            
+            // Still logout locally even if tracking fails
+            setTimeout(() => {
+              this.authService.logout();
+              this.router.navigate(['/auth/login']);
+              this.alertService.toast('Logged out successfully', 'success');
+            }, 500);
+          }
+        });
       }
     });
   }

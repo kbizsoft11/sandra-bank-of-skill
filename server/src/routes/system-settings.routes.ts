@@ -40,6 +40,18 @@ router.patch('/general', authenticate, allowRoles('admin'), systemSettingsContro
 router.patch('/email', authenticate, allowRoles('admin'), systemSettingsController.updateEmailSettings);
 
 /**
+ * POST /admin/system-settings/email/test
+ * Send a test email to verify SMTP configuration
+ */
+router.post('/email/test', authenticate, allowRoles('admin'), systemSettingsController.testEmailSettings);
+
+/**
+ * GET /admin/system-settings/debug/smtp
+ * Debug endpoint - shows current SMTP configuration (without password)
+ */
+router.get('/debug/smtp', authenticate, allowRoles('admin'), systemSettingsController.debugSmtpSettings);
+
+/**
  * PATCH /admin/system-settings/security
  * Update only security settings
  */

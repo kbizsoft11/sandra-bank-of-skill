@@ -2,6 +2,8 @@ import { SkillCategoryRepository } from "../repositories/skill-category.reposito
 import { StatusCodes } from "http-status-codes";
 import { ApiError } from "../utils/api-error";
 import { CreateSkillCategoryDto, UpdateSkillCategoryDto } from '../dto/skill-category.dto';
+import activityService from './activity.service';
+import { ACTIVITY_TYPES, RESOURCE_TYPES } from '../constants/activity-types';
 
 export class SkillCategoryService {
 
@@ -12,17 +14,44 @@ export class SkillCategoryService {
     payload: CreateSkillCategoryDto,
     userId: string,
     userRole: string,
-    companyId?: string
+    companyId?: string,
+    userData?: { fullName: string; email: string },
+    ipAddress?: string,
+    userAgent?: string
   ) {
     const createdType = userRole === "admin" ? "ADMIN" : "COMPANY";
     
-    return this.repository.create({
+    const category = this.repository.create({
       name: payload.name,
       description: payload.description,
       createdBy: userId,
       createdType,
       companyId: companyId
     } as any);
+
+    // Log activity
+    try {
+      activityService.logActivity({
+        userId,
+        userName: userData?.fullName || 'Unknown',
+        userEmail: userData?.email || '',
+        userRole: userRole as 'admin' | 'company' | 'employee',
+        actionType: ACTIVITY_TYPES.CREATE,
+        resource: RESOURCE_TYPES.SKILL_CATEGORY,
+        resourceId: (category as any)._id?.toString(),
+        resourceName: payload.name,
+        description: `Skill Category "${payload.name}" created${createdType === "COMPANY" ? " by company" : " by admin"}`,
+        status: 'success',
+        companyId,
+        ipAddress: ipAddress || 'unknown',
+        userAgent: userAgent || 'unknown',
+        details: { createdType },
+      }).catch(err => console.error('Error logging skill category creation activity:', err));
+    } catch (err) {
+      console.error('Error logging skill category creation activity:', err);
+    }
+
+    return category;
   }
 
   getAll(filters?: {
@@ -43,7 +72,10 @@ export class SkillCategoryService {
     id: string,
     payload: UpdateSkillCategoryDto,
     userRole?: string,
-    companyId?: string
+    companyId?: string,
+    userData?: { fullName: string; email: string },
+    ipAddress?: string,
+    userAgent?: string
   ) {
     // If company role, verify ownership
     if (userRole === "company" && companyId) {
@@ -66,10 +98,36 @@ export class SkillCategoryService {
       }
     }
 
-    return this.repository.update(
-      id,
-      payload
-    );
+    const updated = await this.repository.update(id, payload);
+
+    if (!updated) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Category not found');
+    }
+
+    // Log activity
+    try {
+      const updatedFields = Object.keys(payload).join(', ');
+      activityService.logActivity({
+        userId: userData?.fullName ? (updated as any).createdBy?.toString() : 'unknown',
+        userName: userData?.fullName || 'Unknown',
+        userEmail: userData?.email || '',
+        userRole: (userRole || 'admin') as 'admin' | 'company' | 'employee',
+        actionType: ACTIVITY_TYPES.UPDATE,
+        resource: RESOURCE_TYPES.SKILL_CATEGORY,
+        resourceId: id,
+        resourceName: updated.name,
+        description: `Skill Category "${updated.name}" updated (${updatedFields})`,
+        status: 'success',
+        companyId,
+        ipAddress: ipAddress || 'unknown',
+        userAgent: userAgent || 'unknown',
+        details: { updatedFields: Object.keys(payload) },
+      }).catch(err => console.error('Error logging skill category update activity:', err));
+    } catch (err) {
+      console.error('Error logging skill category update activity:', err);
+    }
+
+    return updated;
   }
 
   async updateStatus(id: string, isActive: boolean, userRole?: string, companyId?: string) {

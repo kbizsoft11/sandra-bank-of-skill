@@ -1,0 +1,243 @@
+<div class="notification-layout">
+  <header class="dashboard-heading">
+    <div>
+      <p class="eyebrow">Admin workspace</p>
+      <h1>Admin notifications</h1>
+      <p class="subtitle">Manage announcements, reminders, and scheduled messages for companies and employees.</p>
+    </div>
+
+    <button (click)="createNotification()" class="btn btn-primary d-inline-flex align-items-center gap-2 justify-content-center">
+      <i class="bi bi-plus-circle-fill"></i>
+      <span>New notification</span>
+    </button>
+  </header>
+
+  <section class="panel full-panel">
+    <div class="panel-heading">
+      <div>
+        <h2>Notification controls</h2>
+        <p>Filter the feed by status, type, or keyword before you act.</p>
+      </div>
+      <span class="panel-count">{{ notifications().length }} total</span>
+    </div>
+
+    <div class="status-pills-wrapper mb-3">
+      <div class="status-pills">
+        <button type="button" class="status-pill-btn" [class.active]="statusFilter() === 'all'" (click)="setStatusFilter('all')">
+          All
+          <span class="badge rounded-pill bg-light text-dark ms-1">{{ notifications().length }}</span>
+        </button>
+
+        <button type="button" class="status-pill-btn" [class.active]="statusFilter() === 'scheduled'" (click)="setStatusFilter('scheduled')">
+          <i class="bi bi-clock-history me-1"></i>
+          Scheduled
+        </button>
+
+        <button type="button" class="status-pill-btn" [class.active]="statusFilter() === 'sent'" (click)="setStatusFilter('sent')">
+          <i class="bi bi-check2-circle me-1"></i>
+          Sent
+        </button>
+
+        <button type="button" class="status-pill-btn" [class.active]="statusFilter() === 'draft'" (click)="setStatusFilter('draft')">
+          <i class="bi bi-file-earmark me-1"></i>
+          Drafts
+        </button>
+
+        <button type="button" class="status-pill-btn" [class.active]="statusFilter() === 'cancelled'" (click)="setStatusFilter('cancelled')">
+          <i class="bi bi-x-circle me-1"></i>
+          Cancelled
+        </button>
+      </div>
+    </div>
+
+    <div class="notification-toolbar">
+      <div class="search-shell">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search notifications by title or message" [value]="searchTerm()" (input)="onSearchChange($event)">
+      </div>
+
+      <select class="form-select" [value]="typeFilter()" (change)="onTypeFilterChange($event)">
+        <option value="all">All notification types</option>
+        <option value="info">Information</option>
+        <option value="announcement">Announcement</option>
+        <option value="warning">Warning</option>
+        <option value="alert">Alert</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="panel full-panel">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+      </div>
+    } @else if (filteredNotifications().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon"><i class="bi bi-bell-slash"></i></div>
+        <h3>No notifications found</h3>
+        <p>
+          @if (searchTerm() || statusFilter() !== 'all' || typeFilter() !== 'all') {
+            No notifications match your current search and filter criteria.
+          } @else {
+            You have not created any notifications yet. Start by sending an announcement or scheduling one for your users.
+          }
+        </p>
+        @if (searchTerm() || statusFilter() !== 'all' || typeFilter() !== 'all') {
+          <button type="button" class="btn btn-outline-secondary" (click)="setStatusFilter('all'); searchTerm.set(''); typeFilter.set('all')">Reset filters</button>
+        } @else {
+          <button type="button" class="btn btn-primary" (click)="createNotification()">Create first notification</button>
+        }
+      </div>
+    } @else {
+      <div class="d-block d-md-none notification-stack">
+        @for (notification of filteredNotifications(); track notification._id) {
+          <article class="mobile-notification-card">
+            <div class="notification-card-top">
+              <div class="d-flex align-items-center gap-2">
+                <i [class]="getTypeIcon(notification.type) + ' fs-5'"></i>
+                <span class="badge border small" [class]="getTypeBadgeClass(notification.type)">{{ notification.type | titlecase }}</span>
+              </div>
+              <span class="badge" [class]="getStatusBadgeClass(notification.status)">{{ notification.status | titlecase }}</span>
+            </div>
+            <h4>{{ notification.title }}</h4>
+            <p>{{ notification.message }}</p>
+            <div class="notification-meta">
+              <span><i class="bi bi-people-fill"></i>{{ getTargetLabel(notification) }}</span>
+              @if (notification.status === 'sent') {
+                <span class="text-success"><i class="bi bi-check-all"></i>{{ notification.recipientCount }} recipient(s)</span>
+              } @else if (notification.status === 'scheduled' && notification.scheduledAt) {
+                <span class="text-primary"><i class="bi bi-calendar-event"></i>{{ formatDate(notification.scheduledAt) }}</span>
+              }
+            </div>
+            <div class="notification-actions">
+              @if (notification.status !== 'sent') {
+                <button type="button" class="btn btn-sm btn-outline-success" (click)="sendNow(notification)"><i class="bi bi-send-fill me-1"></i>Send now</button>
+                <button type="button" class="btn btn-sm btn-outline-primary" (click)="openScheduleModal(notification)"><i class="bi bi-clock-history"></i></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="editNotification(notification)"><i class="bi bi-pencil"></i></button>
+              } @else {
+                <span class="small text-muted">Sent {{ formatDate(notification.sentAt) }}</span>
+              }
+              @if (notification.status === 'scheduled') {
+                <button type="button" class="btn btn-sm btn-outline-warning" (click)="cancelSchedule(notification)"><i class="bi bi-x-circle"></i></button>
+              }
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteNotification(notification)"><i class="bi bi-trash"></i></button>
+            </div>
+          </article>
+        }
+      </div>
+
+      <div class="d-none d-md-block notification-table-shell">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Notification</th>
+                <th>Target recipient</th>
+                <th>Status</th>
+                <th>Date / time</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (notification of filteredNotifications(); track notification._id) {
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-start gap-3">
+                      <div class="type-icon-box">
+                        <i [class]="getTypeIcon(notification.type) + ' fs-4'"></i>
+                      </div>
+                      <div class="notification-title-cell">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                          <span class="badge border small" [class]="getTypeBadgeClass(notification.type)">{{ notification.type | titlecase }}</span>
+                          <p class="fw-semibold mb-0 text-dark text-truncate">{{ notification.title }}</p>
+                        </div>
+                        <p class="text-secondary small mb-0 text-truncate">{{ notification.message }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-dark border"><i class="bi bi-people me-1 text-primary"></i>{{ getTargetLabel(notification) }}</span>
+                    @if (notification.status === 'sent') {
+                      <div class="small text-success mt-1"><i class="bi bi-check2-all me-1"></i>{{ notification.recipientCount }} sent</div>
+                    }
+                  </td>
+                  <td><span class="badge px-2 py-1" [class]="getStatusBadgeClass(notification.status)">{{ notification.status | titlecase }}</span></td>
+                  <td class="text-secondary small">
+                    @if (notification.status === 'sent' && notification.sentAt) {
+                      <div>Sent: {{ formatDate(notification.sentAt) }}</div>
+                    } @else if (notification.status === 'scheduled' && notification.scheduledAt) {
+                      <div class="text-primary fw-medium">Scheduled: {{ formatDate(notification.scheduledAt) }}</div>
+                    } @else {
+                      <div>Created: {{ formatDate(notification.createdAt) }}</div>
+                    }
+                  </td>
+                  <td class="text-end">
+                    <div class="table-actions">
+                      @if (notification.status !== 'sent') {
+                        <button type="button" class="btn btn-sm btn-outline-success" (click)="sendNow(notification)"><i class="bi bi-send-fill"></i><span class="ms-1">Send now</span></button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" (click)="openScheduleModal(notification)"><i class="bi bi-clock-history"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="editNotification(notification)"><i class="bi bi-pencil"></i></button>
+                      }
+                      @if (notification.status === 'scheduled') {
+                        <button type="button" class="btn btn-sm btn-outline-warning" (click)="cancelSchedule(notification)"><i class="bi bi-x-circle"></i></button>
+                      }
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteNotification(notification)"><i class="bi bi-trash"></i></button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </section>
+</div>
+
+@if (showScheduleModal()) {
+  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-clock-history text-primary"></i>
+            <span>Schedule notification</span>
+          </h5>
+          <button type="button" class="btn-close" (click)="closeScheduleModal()"></button>
+        </div>
+
+        <form [formGroup]="scheduleForm" (ngSubmit)="confirmSchedule()">
+          <div class="modal-body p-4">
+            <p class="text-secondary small mb-3">
+              Set the exact date and time for <strong>"{{ selectedNotification()?.title }}"</strong> to be automatically dispatched to targeted recipients.
+            </p>
+
+            <div class="mb-3">
+              <label class="form-label fw-medium">Delivery date & time</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-secondary"><i class="bi bi-calendar-event"></i></span>
+                <input type="datetime-local" class="form-control" formControlName="scheduledAt" [class.is-invalid]="scheduleForm.get('scheduledAt')?.invalid && scheduleForm.get('scheduledAt')?.touched">
+              </div>
+              @if (scheduleForm.get('scheduledAt')?.invalid && scheduleForm.get('scheduledAt')?.touched) {
+                <div class="invalid-feedback d-block mt-1">Please select a valid future date and time.</div>
+              }
+            </div>
+          </div>
+
+          <div class="modal-footer border-top bg-light rounded-bottom-4">
+            <button type="button" class="btn btn-light border" (click)="closeScheduleModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-2" [disabled]="isScheduling() || scheduleForm.invalid">
+              @if (isScheduling()) {
+                <span class="spinner-border spinner-border-sm"></span>
+                <span>Scheduling...</span>
+              } @else {
+                <i class="bi bi-calendar-check-fill"></i>
+                <span>Confirm schedule</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

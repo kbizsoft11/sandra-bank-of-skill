@@ -1,11 +1,14 @@
 import { Request, Response } from 'express';
 import { systemSettingsService } from '../services/system-settings.service';
+import { settingsCacheService } from '../services/settings-cache.service';
 import {
   UpdateSystemSettingsDTO,
   UpdateGeneralSettingsDTO,
   UpdateEmailSettingsDTO,
   UpdateSecuritySettingsDTO,
 } from '../dto/system-settings.dto';
+import { getUserFullName } from '../utils/user.util';
+import { ActivityService } from '../services/activity.service';
 
 export const systemSettingsController = {
   /**
@@ -86,8 +89,18 @@ export const systemSettingsController = {
   updateGeneralSettings: async (req: Request, res: Response): Promise<void> => {
     try {
       const data: UpdateGeneralSettingsDTO = req.body;
+      const userId = (req as any).user?.userId;
+      const fullNameFromToken = (req as any).user?.fullName;
+      const userEmail = (req as any).user?.email;
 
-      const settings = await systemSettingsService.updateGeneralSettings(data);
+      // Get full name from token or database
+      const userName = await getUserFullName(fullNameFromToken, userId);
+      
+      // Extract IP and user agent from request
+      const ipAddress = ActivityService.getClientIp(req);
+      const userAgent = ActivityService.getUserAgent(req);
+
+      const settings = await systemSettingsService.updateGeneralSettings(data, userId, userName, userEmail, ipAddress, userAgent);
 
       res.json({
         success: true,
@@ -110,8 +123,18 @@ export const systemSettingsController = {
   updateEmailSettings: async (req: Request, res: Response): Promise<void> => {
     try {
       const data: UpdateEmailSettingsDTO = req.body;
+      const userId = (req as any).user?.userId;
+      const fullNameFromToken = (req as any).user?.fullName;
+      const userEmail = (req as any).user?.email;
 
-      const settings = await systemSettingsService.updateEmailSettings(data);
+      // Get full name from token or database
+      const userName = await getUserFullName(fullNameFromToken, userId);
+      
+      // Extract IP and user agent from request
+      const ipAddress = ActivityService.getClientIp(req);
+      const userAgent = ActivityService.getUserAgent(req);
+
+      const settings = await systemSettingsService.updateEmailSettings(data, userId, userName, userEmail, ipAddress, userAgent);
 
       res.json({
         success: true,
@@ -169,6 +192,74 @@ export const systemSettingsController = {
       res.status(400).json({
         success: false,
         error: error.message || 'Failed to reset system settings',
+      });
+    }
+  },
+
+  /**
+   * POST /admin/system-settings/email/test
+   * Send a test email to verify SMTP configuration
+   */
+  testEmailSettings: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = (req as any).user?.userId;
+      const userEmail = (req as any).user?.email;
+      const fullNameFromToken = (req as any).user?.fullName;
+      const testEmail = req.body?.testEmail || userEmail; // Allow custom email from request body
+
+      // Get full name from token or database
+      const userName = await getUserFullName(fullNameFromToken, userId);
+
+      if (!testEmail) {
+        res.status(400).json({
+          success: false,
+          error: 'No email address provided. Please enter an email address.',
+        });
+        return;
+      }
+
+      const result = await systemSettingsService.sendTestEmail(testEmail, userName);
+
+      res.json({
+        success: true,
+        data: result,
+        message: 'Test email sent successfully to ' + testEmail + '. Please check your inbox.',
+      });
+    } catch (error: any) {
+      console.error('Error in testEmailSettings:', error);
+      console.error('Error message:', error.message);
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to send test email. Please check your SMTP configuration.',
+      });
+    }
+  },
+
+  /**
+   * GET /admin/system-settings/debug/smtp
+   * Debug endpoint - shows current SMTP configuration (without password)
+   */
+  debugSmtpSettings: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const cachedSettings = settingsCacheService.getSync();
+
+      res.json({
+        success: true,
+        data: {
+          source: cachedSettings ? 'database (cached)' : 'environment variables',
+          smtpHost: cachedSettings?.smtpHost || process.env.SMTP_HOST || 'not set',
+          smtpPort: cachedSettings?.smtpPort || process.env.SMTP_PORT || 'not set',
+          smtpUsername: cachedSettings?.smtpUsername || process.env.SMTP_USER || 'not set',
+          smtpEncryption: cachedSettings?.smtpEncryption || process.env.SMTP_ENCRYPTION || 'tls',
+          fromEmail: cachedSettings?.fromEmail || process.env.EMAIL_FROM || 'not set',
+          passwordSet: !!(cachedSettings?.smtpPassword || process.env.SMTP_PASSWORD),
+        },
+      });
+    } catch (error: any) {
+      console.error('Error in debugSmtpSettings:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message,
       });
     }
   },

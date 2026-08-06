@@ -25,6 +25,8 @@ import {
 import { generateTenantIdFromName } from '../utils/tenant.util';
 import { sendVerificationEmail, sendWelcomeEmail } from './email.service';
 import * as AdminDashboardService from './admin-dashboard.service';
+import activityService from './activity.service';
+import { ACTIVITY_TYPES, RESOURCE_TYPES } from '../constants/activity-types';
 
 
 const logOtpForDevelopment = (
@@ -93,6 +95,7 @@ export const authService = {
       userId: user._id,
       email: user.email,
       role: user.role,
+      fullName: user.fullName,
       tenantId: user.tenantId,
       organisationId: user.organisationId,
     });
@@ -113,7 +116,7 @@ export const authService = {
   /**
    * Step 1: Initial registration - Create user account and send OTP
    */
-  registerStep1: async (payload: RegisterStep1Dto) => {
+  registerStep1: async (payload: RegisterStep1Dto, ipAddress?: string, userAgent?: string) => {
     console.log('\n🔵 registerStep1 called');
     console.log('Environment:', process.env.NODE_ENV);
     console.log('Payload body:', payload);
@@ -190,6 +193,27 @@ export const authService = {
       onboardingStatus: 'registered',
     });
 
+    // Log activity
+    try {
+      await activityService.logActivity({
+        userId: user._id.toString(),
+        userName: fullName,
+        userEmail: payload.email,
+        userRole: 'company',
+        actionType: ACTIVITY_TYPES.CREATE,
+        resource: RESOURCE_TYPES.USER,
+        resourceId: user._id.toString(),
+        resourceName: fullName,
+        description: `New user registered: ${fullName} (${payload.email})`,
+        status: 'success',
+        ipAddress: ipAddress || 'unknown',
+        userAgent: userAgent || 'unknown',
+        details: { registrationType: 'step1_registration', email: payload.email },
+      });
+    } catch (err) {
+      console.error('Error logging user registration activity:', err);
+    }
+
     // Send OTP email
     try {
       await sendVerificationEmail(payload.email, otp, fullName);
@@ -248,6 +272,7 @@ export const authService = {
       userId: user._id,
       email: user.email,
       role: user.role,
+      fullName: user.fullName,
       tenantId: user.tenantId,
       organisationId: user.organisationId,
     });
@@ -333,7 +358,7 @@ export const authService = {
   /**
    * Step 4: Complete registration
    */
-  completeRegistration: async (userId: string) => {
+  completeRegistration: async (userId: string, ipAddress?: string, userAgent?: string) => {
     // Find user
     const user = await userRepository.findById(userId);
 
@@ -363,9 +388,31 @@ export const authService = {
       userId: updatedUser?._id,
       email: updatedUser?.email,
       role: updatedUser?.role,
+      fullName: updatedUser?.fullName,
       tenantId: updatedUser?.tenantId,
       organisationId: updatedUser?.organisationId,
     });
+
+    // Log activity
+    try {
+      await activityService.logActivity({
+        userId: updatedUser?._id?.toString() || userId,
+        userName: updatedUser?.fullName || 'Unknown',
+        userEmail: updatedUser?.email || '',
+        userRole: updatedUser?.role as 'admin' | 'company' | 'employee',
+        actionType: ACTIVITY_TYPES.CREATE,
+        resource: RESOURCE_TYPES.USER,
+        resourceId: userId,
+        resourceName: updatedUser?.fullName,
+        description: `User registration completed for ${updatedUser?.fullName}`,
+        status: 'success',
+        ipAddress: ipAddress || 'unknown',
+        userAgent: userAgent || 'unknown',
+        details: { registrationType: 'registration_completed', organisationId: updatedUser?.organisationId },
+      });
+    } catch (err) {
+      console.error('Error logging user registration completion activity:', err);
+    }
 
     return {
       message: 'Registration completed successfully',
@@ -501,6 +548,7 @@ export const authService = {
       userId: updatedUser?._id,
       email: updatedUser?.email,
       role: updatedUser?.role,
+      fullName: updatedUser?.fullName,
       tenantId: updatedUser?.tenantId,
       organisationId: updatedUser?.organisationId,
     });
@@ -523,7 +571,7 @@ export const authService = {
   /**
    * Login method
    */
-  login: async (payload: LoginDto) => {
+  login: async (payload: LoginDto, ipAddress?: string, userAgent?: string) => {
     const user = await userRepository.findByEmail(payload.email);
 
     if (!user) {
@@ -568,21 +616,28 @@ export const authService = {
       }
     }
 
-    await AdminDashboardService.createActivity(
-      user._id.toString(),
-      user.fullName,
-      'Logged in successfully',
-      'login',
-      {
-        tenantId: user.tenantId,
-        organisationId: user.organisationId,
-      }
-    );
+    // Log login activity
+    await activityService.logActivity({
+      userId: user._id.toString(),
+      userName: user.fullName,
+      userEmail: user.email,
+      userRole: user.role,
+      actionType: ACTIVITY_TYPES.LOGIN,
+      resource: RESOURCE_TYPES.USER,
+      resourceId: user._id.toString(),
+      resourceName: user.fullName,
+      description: `${user.fullName} logged in successfully`,
+      status: 'success',
+      companyId: user.organisationId,
+      ipAddress: ipAddress || 'unknown',
+      userAgent: userAgent || 'unknown',
+    });
 
     const token = generateToken({
       userId: user._id,
       email: user.email,
       role: user.role,
+      fullName: user.fullName,
       tenantId: user.tenantId,
       organisationId: user.organisationId,
     });

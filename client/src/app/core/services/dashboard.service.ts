@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { API_CONFIG } from '../config/api.config';
 import { ApiResponse } from '../../shared/interfaces/api-response.interface';
+import { AuthService } from './auth.service';
 
 export interface AdminStats {
   totalUsers: number;
@@ -147,6 +148,7 @@ export interface EmployeeStats {
 
 export interface EmployeeNotification {
   _id?: string;
+  notificationId?: string;
   title: string;
   message: string;
   type: 'success' | 'warning' | 'info' | 'error';
@@ -204,6 +206,7 @@ export interface CompanyAssessments {
 })
 export class DashboardService {
   private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
 
   /**
    * Get admin dashboard statistics
@@ -243,6 +246,16 @@ export class DashboardService {
   }
 
   /**
+   * Get company notifications (for companies receiving admin notifications)
+   */
+  getCompanyNotifications(filter: 'recent' | 'unread' | 'read' = 'recent', page = 1, limit = 5): Observable<ApiResponse<{ notifications: EmployeeNotification[]; pagination: any }>> {
+    return this.http.get<ApiResponse<{ notifications: EmployeeNotification[]; pagination: any }>>(
+      `${API_CONFIG.BASE_URL}/dashboard/company/notifications`,
+      { params: { filter, page: page.toString(), limit: limit.toString() } }
+    );
+  }
+
+  /**
    * Mark employee notification as read
    */
   markEmployeeNotificationAsRead(notificationId: string): Observable<ApiResponse<void>> {
@@ -259,6 +272,101 @@ export class DashboardService {
     return this.http.put<ApiResponse<void>>(
       `${API_CONFIG.BASE_URL}/dashboard/employee/notifications/${notificationId}/unread`,
       {}
+    );
+  }
+
+  /**
+   * Mark company notification as read
+   */
+  markCompanyNotificationAsRead(notificationId: string): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(
+      `${API_CONFIG.BASE_URL}/dashboard/company/notifications/${notificationId}/read`,
+      {}
+    );
+  }
+
+  /**
+   * Mark company notification as unread
+   */
+  markCompanyNotificationAsUnread(notificationId: string): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(
+      `${API_CONFIG.BASE_URL}/dashboard/company/notifications/${notificationId}/unread`,
+      {}
+    );
+  }
+
+  /**
+   * SCALABLE NOTIFICATION ENDPOINTS (for 100k+ users)
+   */
+
+  /**
+   * Get employee notifications (scalable - uses read receipts)
+   */
+  getEmployeeNotificationsScalable(filter: 'recent' | 'unread' | 'read' = 'recent', page = 1, limit = 5): Observable<ApiResponse<{ notifications: EmployeeNotification[]; pagination: any }>> {
+    return this.http.get<ApiResponse<{ notifications: EmployeeNotification[]; pagination: any }>>(
+      `${API_CONFIG.BASE_URL}/scalable-notifications/employee/notifications`,
+      { params: { filter, page: page.toString(), limit: limit.toString() } }
+    );
+  }
+
+  /**
+   * Get company notifications (scalable - uses read receipts)
+   */
+  getCompanyNotificationsScalable(filter: 'recent' | 'unread' | 'read' = 'recent', page = 1, limit = 5): Observable<ApiResponse<{ notifications: EmployeeNotification[]; pagination: any }>> {
+    return this.http.get<ApiResponse<{ notifications: EmployeeNotification[]; pagination: any }>>(
+      `${API_CONFIG.BASE_URL}/scalable-notifications/company/notifications`,
+      { params: { filter, page: page.toString(), limit: limit.toString() } }
+    );
+  }
+
+  /**
+   * Mark employee notification as read (scalable)
+   */
+  markEmployeeNotificationAsReadScalable(notificationId: string): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(
+      `${API_CONFIG.BASE_URL}/scalable-notifications/employee/notifications/${notificationId}/read`,
+      {}
+    );
+  }
+
+  /**
+   * Mark employee notification as unread (scalable)
+   */
+  markEmployeeNotificationAsUnreadScalable(notificationId: string): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(
+      `${API_CONFIG.BASE_URL}/scalable-notifications/employee/notifications/${notificationId}/unread`,
+      {}
+    );
+  }
+
+  /**
+   * Mark company notification as read (scalable)
+   */
+  markCompanyNotificationAsReadScalable(notificationId: string): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(
+      `${API_CONFIG.BASE_URL}/scalable-notifications/company/notifications/${notificationId}/read`,
+      {}
+    );
+  }
+
+  /**
+   * Mark company notification as unread (scalable)
+   */
+  markCompanyNotificationAsUnreadScalable(notificationId: string): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(
+      `${API_CONFIG.BASE_URL}/scalable-notifications/company/notifications/${notificationId}/unread`,
+      {}
+    );
+  }
+
+  /**
+   * Get unread notification count (scalable)
+   */
+  getUnreadNotificationCountScalable(): Observable<ApiResponse<{ unreadCount: number }>> {
+    const role = this.auth.role();
+    const endpoint = role === 'company' ? 'company' : 'employee';
+    return this.http.get<ApiResponse<{ unreadCount: number }>>(
+      `${API_CONFIG.BASE_URL}/scalable-notifications/${endpoint}/unread-count`
     );
   }
 

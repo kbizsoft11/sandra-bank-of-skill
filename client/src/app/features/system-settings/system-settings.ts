@@ -6,13 +6,14 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { SystemSettingsService, SystemSettings, PasswordPolicy } from '../../core/services/system-settings.service';
 import { AlertService } from '../../core/services/alert.service';
 
 @Component({
   selector: 'app-system-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './system-settings.html',
   styleUrl: './system-settings.scss',
 })
@@ -28,10 +29,21 @@ export class SystemSettingsComponent implements OnInit {
   // State signals
   readonly loading = signal(false);
   readonly saving = signal(false);
+  readonly testing = signal(false);
   readonly activeTab = signal<'general' | 'email'>('general');
 
+  // Password visibility signal
+  readonly passwordVisible = signal(false);
+  
+  // Track if password already exists in DB
+  readonly passwordExists = signal(false);
+  
+  // Test email modal state
+  readonly showTestModal = signal(false);
+  readonly testEmailAddress = signal('');
+  readonly testEmailLoading = signal(false);
+
   // File upload signals
-  readonly logoPreview = signal<string | null>(null);
   readonly faviconPreview = signal<string | null>(null);
 
   // Defaults
@@ -57,7 +69,6 @@ export class SystemSettingsComponent implements OnInit {
       this.fb.group({
         platformName: ['', [Validators.required, Validators.minLength(3)]],
         supportEmail: ['', [Validators.required, Validators.email]],
-        logo: [''],
         favicon: [''],
       })
     );
@@ -67,7 +78,8 @@ export class SystemSettingsComponent implements OnInit {
         smtpHost: ['', [Validators.required, Validators.minLength(3)]],
         smtpPort: [587, [Validators.required, Validators.min(1), Validators.max(65535)]],
         smtpUsername: ['', Validators.required],
-        smtpPassword: ['', Validators.required],
+        smtpPassword: ['', Validators.required], // Will be updated to optional in populateForms
+        smtpEncryption: ['tls', Validators.required],
         fromEmail: ['', [Validators.required, Validators.email]],
       })
     );
@@ -105,9 +117,6 @@ export class SystemSettingsComponent implements OnInit {
         supportEmail: data.supportEmail,
       });
 
-      if (data.logo) {
-        this.logoPreview.set(data.logo);
-      }
       if (data.favicon) {
         this.faviconPreview.set(data.favicon);
       }
@@ -119,8 +128,24 @@ export class SystemSettingsComponent implements OnInit {
         smtpHost: data.smtpHost,
         smtpPort: data.smtpPort || 587,
         smtpUsername: data.smtpUsername,
+        smtpEncryption: data.smtpEncryption || 'tls',
         fromEmail: data.fromEmail,
       });
+
+      // Check if password already exists in database
+      // If it does, make password field optional
+      const passwordControl = this.emailForm()!.get('smtpPassword');
+      if (data.smtpPassword) {
+        // Password exists in DB - make it optional
+        this.passwordExists.set(true);
+        passwordControl?.setValidators([]); // Remove all validators
+        passwordControl?.updateValueAndValidity();
+      } else {
+        // No password in DB - make it required
+        this.passwordExists.set(false);
+        passwordControl?.setValidators([Validators.required]);
+        passwordControl?.updateValueAndValidity();
+      }
     }
   }
 
@@ -161,10 +186,26 @@ export class SystemSettingsComponent implements OnInit {
 
     this.saving.set(true);
 
-    this.systemSettingsService.updateEmailSettings(this.emailForm()!.value).subscribe({
+    // Build the data to send - only include password if it has a value
+    const formData = this.emailForm()!.value;
+    const dataToSend: any = {
+      smtpHost: formData.smtpHost,
+      smtpPort: formData.smtpPort,
+      smtpUsername: formData.smtpUsername,
+      smtpEncryption: formData.smtpEncryption,
+      fromEmail: formData.fromEmail,
+    };
+
+    // Only include password if it has a value (not empty string)
+    if (formData.smtpPassword && formData.smtpPassword.trim()) {
+      dataToSend.smtpPassword = formData.smtpPassword;
+    }
+
+    this.systemSettingsService.updateEmailSettings(dataToSend).subscribe({
       next: (response) => {
         if (response.success) {
           this.alertService.success('Email settings saved successfully');
+          this.loadSettings(); // Reload to get fresh state
         }
         this.saving.set(false);
       },
@@ -203,24 +244,6 @@ export class SystemSettingsComponent implements OnInit {
   }
 
   /**
-   * Handle file upload for logo
-   */
-  onLogoUpload(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const file = target.files?.[0];
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const base64String = e.target?.result as string;
-        this.logoPreview.set(base64String);
-        this.generalForm()!.patchValue({ logo: base64String });
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  /**
    * Handle file upload for favicon
    */
   onFaviconUpload(event: Event): void {
@@ -253,7 +276,6 @@ export class SystemSettingsComponent implements OnInit {
    */
   resetGeneralForm(): void {
     this.generalForm()!.reset();
-    this.logoPreview.set(null);
     this.faviconPreview.set(null);
     this.loadSettings();
   }
@@ -264,6 +286,80 @@ export class SystemSettingsComponent implements OnInit {
   resetEmailForm(): void {
     this.emailForm()!.reset();
     this.loadSettings();
+  }
+
+  /**
+   * Test email configuration
+   */
+  testEmailConfiguration(): void {
+    console.log('testEmailConfiguration called');
+    console.log('emailForm valid:', this.emailForm()!.valid);
+    
+    if (!this.emailForm()!.valid) {
+      this.alertService.error('Please fill in all required email settings first');
+      return;
+    }
+
+    // Set test email to current user's email by default
+    this.testEmailAddress.set('');
+    console.log('Setting showTestModal to true');
+    this.showTestModal.set(true);
+    console.log('showTestModal signal:', this.showTestModal());
+  }
+
+  /**
+   * Send test email
+   */
+  sendTestEmail(): void {
+    const email = this.testEmailAddress().trim();
+
+    if (!email) {
+      this.alertService.error('Please enter an email address');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      this.alertService.error('Please enter a valid email address');
+      return;
+    }
+
+    this.testEmailLoading.set(true);
+
+    this.systemSettingsService.testEmailSettings(email).subscribe({
+      next: (response) => {
+        if (response.success) {
+          const message = (response as any).message || `Test email sent to ${email}`;
+          this.alertService.success(message);
+          this.showTestModal.set(false);
+          this.testEmailAddress.set('');
+        } else {
+          this.alertService.error((response as any).error || 'Test email failed');
+        }
+        this.testEmailLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Error testing email settings:', error);
+        this.alertService.error(error.error?.error || 'Failed to send test email. Please check your SMTP configuration.');
+        this.testEmailLoading.set(false);
+      },
+    });
+  }
+
+  /**
+   * Close test email modal
+   */
+  closeTestModal(): void {
+    this.showTestModal.set(false);
+    this.testEmailAddress.set('');
+  }
+
+  /**
+   * Toggle password visibility
+   */
+  togglePasswordVisibility(): void {
+    this.passwordVisible.set(!this.passwordVisible());
   }
 
   /**

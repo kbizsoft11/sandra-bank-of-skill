@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export type NotificationType = 'info' | 'warning' | 'announcement' | 'assessment';
-export type TargetAudience = 'all' | 'role' | 'department';
+export type NotificationType = 'info' | 'warning' | 'announcement' | 'assessment' | 'alert' | 'error' | 'success';
+export type TargetAudience = 'all' | 'role' | 'department' | 'specific';
 export type DeliveryMethod = 'now' | 'scheduled';
 export type CompanyNotificationStatus = 'draft' | 'scheduled' | 'sent' | 'cancelled';
 
@@ -12,6 +12,7 @@ export interface ICompanyNotification extends Document {
   targetAudience: TargetAudience;
   targetDesignationId?: string;
   targetDepartment?: string;
+  targetEmployeeIds?: string[]; // For 'specific' audience type
   deliveryMethod: DeliveryMethod;
   scheduledAt?: Date;
   sentAt?: Date;
@@ -38,12 +39,12 @@ const CompanyNotificationSchema = new Schema<ICompanyNotification>(
     },
     type: {
       type: String,
-      enum: ['info', 'warning', 'announcement', 'assessment'],
+      enum: ['info', 'warning', 'announcement', 'assessment', 'alert', 'error', 'success'],
       default: 'info',
     },
     targetAudience: {
       type: String,
-      enum: ['all', 'role', 'department'],
+      enum: ['all', 'role', 'department', 'specific'],
       default: 'all',
     },
     targetDesignationId: {
@@ -55,6 +56,10 @@ const CompanyNotificationSchema = new Schema<ICompanyNotification>(
       type: String,
       default: null,
       trim: true,
+    },
+    targetEmployeeIds: {
+      type: [String],
+      default: [],
     },
     deliveryMethod: {
       type: String,

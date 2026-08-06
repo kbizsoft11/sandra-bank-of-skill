@@ -1,0 +1,15 @@
+// Hide app until Angular is fully bootstrapped
+.app-hidden {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0.1s ease-in-out, opacity 0.1s ease-in-out;
+}
+
+// Show app when ready
+div {
+  &:not(.app-hidden) {
+    visibility: visible;
+    opacity: 1;
+    transition: visibility 0.1s ease-in-out, opacity 0.1s ease-in-out;
+  }
+}

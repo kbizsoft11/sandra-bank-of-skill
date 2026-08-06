@@ -111,16 +111,43 @@ export class DashboardSidebar implements OnInit, OnDestroy {
   }
 
   logout(): void {
+    console.log('🔴 [SIDEBAR] logout() called');
     this.alertService.confirm(
       'You will be logged out of your account.',
       'Are you sure you want to logout?',
       'Yes, logout',
       'Cancel'
     ).then((confirmed) => {
+      console.log('🔴 [SIDEBAR] Logout confirmed:', confirmed);
       if (confirmed) {
-        this.auth.logout();
-        this.router.navigate(['/auth/login']);
-        this.alertService.toast('Logged out successfully', 'success');
+        console.log('🔴 [SIDEBAR] Calling auth.logoutWithTracking()');
+        // Use firstValueFrom to wait for the HTTP request to complete
+        this.auth.logoutWithTracking().subscribe({
+          next: (response) => {
+            console.log('🔴 [SIDEBAR] logoutWithTracking success:', response);
+            console.log('🔴 [SIDEBAR] Response received, now clearing session');
+            
+            // Add a small delay to ensure activity is logged on backend
+            setTimeout(() => {
+              console.log('🔴 [SIDEBAR] Clearing local session');
+              this.auth.logout();
+              console.log('🔴 [SIDEBAR] Navigating to login');
+              this.router.navigate(['/auth/login']);
+              this.alertService.toast('Logged out successfully', 'success');
+            }, 500);
+          },
+          error: (err) => {
+            console.error('🔴 [SIDEBAR] logoutWithTracking error:', err);
+            console.log('🔴 [SIDEBAR] Error occurred, still logging out locally');
+            
+            // Still logout locally even if tracking fails
+            setTimeout(() => {
+              this.auth.logout();
+              this.router.navigate(['/auth/login']);
+              this.alertService.toast('Logged out successfully', 'success');
+            }, 500);
+          }
+        });
       }
     });
   }
@@ -159,28 +186,95 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       icon: 'bi bi-building-fill',
       roles: ['admin'],
     },
-    // {
-    //   label: 'All Users',
-    //   path: 'users-admin',
-    //   icon: 'bi bi-people-fill',
-    //   roles: ['admin'],
-    // },
+    // Alerts dropdown for companies
     {
-      label: 'Employees',
-      path: 'users',
-      icon: 'bi bi-people-fill',
+      label: 'Alerts',
+      icon: 'bi bi-bell-fill',
+      roles: ['company'],
+      isDropdown: true,
+      children: [
+        {
+          label: 'My Notifications',
+          path: 'my-notifications',
+          icon: 'bi bi-bell',
+          roles: ['company'],
+        },
+        {
+          label: 'Send Notifications',
+          path: 'notifications',
+          icon: 'bi bi-send',
+          roles: ['company'],
+        },
+      ],
+    },
+    // Employee Manager dropdown for companies
+    {
+      label: 'Employee Manager',
+      icon: 'bi bi-people',
+      roles: ['company'],
+      isDropdown: true,
+      children: [
+        {
+          label: 'Employees',
+          path: 'users',
+          icon: 'bi bi-person-check',
+          roles: ['company'],
+        },
+        {
+          label: 'Roles',
+          path: 'roles',
+          icon: 'bi bi-briefcase',
+          roles: ['company'],
+        },
+      ],
+    },
+    // Skills Manager dropdown for companies
+    {
+      label: 'Skills Manager',
+      icon: 'bi bi-lightbulb',
+      roles: ['company'],
+      isDropdown: true,
+      children: [
+        {
+          label: 'Company Skills',
+          path: 'company-skills',
+          icon: 'bi bi-star-fill',
+          roles: ['company'],
+        },
+        {
+          label: 'Skill Categories',
+          path: 'company-skill-categories',
+          icon: 'bi bi-tags-fill',
+          roles: ['company'],
+        },
+      ],
+    },
+    // Questionnaires dropdown for companies
+    {
+      label: 'Questionnaires',
+      icon: 'bi bi-clipboard-check',
+      roles: ['company'],
+      isDropdown: true,
+      children: [
+        {
+          label: 'My Questionnaires',
+          path: 'questionnaires',
+          icon: 'bi bi-clipboard2-check',
+          roles: ['company'],
+        },
+      ],
+    },
+    // Regular items for company
+    {
+      label: 'Organisation',
+      path: 'organisation',
+      icon: 'bi bi-building-fill',
       roles: ['company'],
     },
     {
-      label: 'Employee Activity',
-      path: 'employee-activity',
-      icon: 'bi bi-activity',
-      roles: ['company', 'admin'],
-    },
-    {
-      label: 'Roles',
-      path: 'roles',
-      icon: 'bi bi-briefcase',
+      label: 'Activity Logs',
+      path: 'activity-logs',
+      icon: 'bi bi-clock-history',
       roles: ['company'],
     },
     {
@@ -189,10 +283,57 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       icon: 'bi bi-search',
       roles: ['company'],
     },
+    // Document Manager dropdown for companies
+    {
+      label: 'Document Manager',
+      icon: 'bi bi-file-earmark',
+      roles: ['company'],
+      isDropdown: true,
+      children: [
+        {
+          label: 'Requirements',
+          path: 'document-requirements',
+          icon: 'bi bi-file-earmark-check',
+          roles: ['company'],
+        },
+        {
+          label: 'Review',
+          path: 'document-review',
+          icon: 'bi bi-file-earmark-check-fill',
+          roles: ['company'],
+        },
+      ],
+    },
+    // Employee items
+    {
+      label: 'My Skills',
+      path: 'my-skills',
+      icon: 'bi bi-lightbulb-fill',
+      roles: ['employee'],
+    },
+    {
+      label: 'My Questionnaires',
+      path: 'my-questionnaires',
+      icon: 'bi bi-clipboard-check',
+      roles: ['employee'],
+    },
+    {
+      label: 'Notifications',
+      path: 'my-notifications',
+      icon: 'bi bi-bell-fill',
+      roles: ['employee'],
+    },
+    // Admin items
     {
       label: 'Global Search',
       path: 'admin-global-search',
       icon: 'bi bi-search',
+      roles: ['admin'],
+    },
+    {
+      label: 'Activity Logs',
+      path: 'activity-logs',
+      icon: 'bi bi-clock-history',
       roles: ['admin'],
     },
     {
@@ -248,64 +389,16 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       ],
     },
     {
-      label: 'Questionnaires',
-      path: 'questionnaires',
-      icon: 'bi bi-clipboard-check',
-      roles: ['company'],
-    },
-    {
-      label: 'My Questionnaires',
-      path: 'my-questionnaires',
-      icon: 'bi bi-clipboard-check',
-      roles: ['employee'],
-    },
-    {
-      label: 'Skill Management',
-      path: 'company-skills',
-      icon: 'bi bi-star-fill',
-      roles: ['company'],
-    },
-    {
-      label: 'Skills Category',
-      path: 'company-skill-categories',
-      icon: 'bi bi-tags-fill',
-      roles: ['company'],
-    },
-    {
-      label: 'Organisation',
-      path: 'organisation',
-      icon: 'bi bi-building-fill',
-      roles: ['company'],
-    },
-    {
-      label: 'My Skills',
-      path: 'my-skills',
-      icon: 'bi bi-lightbulb-fill',
-      roles: ['employee'], // Only employees can manage their own skills
-    },
-    {
       label: 'Notifications',
-      path: 'notifications',
+      path: 'admin-notifications',
       icon: 'bi bi-bell-fill',
-      roles: ['company'],
+      roles: ['admin'],
     },
     {
       label: 'System Settings',
       path: 'system-settings',
       icon: 'bi bi-sliders',
       roles: ['admin'],
-    },
-    {
-      label: 'Document Requirements',
-      path: 'document-requirements',
-      icon: 'bi bi-file-earmark-check',
-      roles: ['company'],
-    },
-    {
-      label: 'Document Review',
-      path: 'document-review',
-      icon: 'bi bi-file-earmark-check-fill',
-      roles: ['company'],
     },
   ];
 

@@ -64,6 +64,10 @@ export class SkillList implements OnInit {
   categoryList = signal<SkillCategory[]>([]);
   categories = signal<string[]>([]);
 
+  // Modal control signal
+  selectedSkillForView = signal<Skill | null>(null);
+  showSkillModal = signal<boolean>(false);
+
   // Loading signal
   isLoading = signal<boolean>(false);
 
@@ -139,12 +143,25 @@ export class SkillList implements OnInit {
   loadSkills(): void {
     this.isLoading.set(true);
     const employeeId = this.employeeId();
+    const role = this.auth.role();
     
-    // If viewing employee skills, fetch from the employee skills endpoint
-    if (this.isViewingEmployeeSkills() && employeeId) {
+    // If employee accessing their own skills, fetch their skills
+    if (role === 'employee' && !employeeId) {
+      // Get current user's ID from auth service
+      const currentUserId = this.auth.user()?._id;
+      if (currentUserId) {
+        this.loadEmployeeSkills(currentUserId);
+      } else {
+        this.alertService.error('Unable to load your skills');
+        this.isLoading.set(false);
+      }
+    }
+    // If viewing a specific employee's skills
+    else if (this.isViewingEmployeeSkills() && employeeId) {
       this.loadEmployeeSkills(employeeId);
-    } else {
-      // Otherwise load company/admin skills
+    } 
+    // Otherwise load company/admin skills
+    else {
       this.loadCompanySkills();
     }
   }
@@ -156,18 +173,39 @@ export class SkillList implements OnInit {
         const skills = response.data || [];
         
         // Transform skill user data to match Skill interface
-        const transformedSkills = skills
-          .map((su: any) => ({
-            _id: su.skillId?._id || su.skillId,
-            name: su.skillId?.name || 'Unknown Skill',
-            categoryId: su.skillId?.categoryId,
-            score: su.score || 0,
-            level: su.level || 'beginner',
-            archived: su.skillId?.archived || false,
-            status: su.skillId?.status || 'active',
-          }))
+        let transformedSkills = skills
+          .map((su: any) => {
+            const skillObj = su.skillId || {};
+            return {
+              _id: skillObj._id || su.skillId,
+              name: skillObj.name || 'Unknown Skill',
+              description: skillObj.description || skillObj.skill_desc || '',
+              categoryId: skillObj.categoryId || skillObj.cat_id,
+              createdBy: skillObj.createdBy,
+              createdType: skillObj.createdType,
+              companyId: skillObj.companyId,
+              archived: skillObj.archived || false,
+              status: skillObj.status || 'active',
+              createdAt: skillObj.createdAt,
+              updatedAt: skillObj.updatedAt,
+              // Employee-specific fields
+              score: su.score || 0,
+              level: su.level || 'beginner',
+            };
+          })
           // Filter out archived skills
           .filter((skill: any) => !skill.archived);
+        
+        console.log('Transformed skills:', transformedSkills);
+        
+        // Apply search filter
+        if (this.searchTerm()) {
+          const searchLower = this.searchTerm().toLowerCase();
+          transformedSkills = transformedSkills.filter((skill: any) =>
+            skill.name.toLowerCase().includes(searchLower) ||
+            (skill.description && skill.description.toLowerCase().includes(searchLower))
+          );
+        }
         
         this.currentSkills.set(transformedSkills);
         this.totalSkills.set(transformedSkills.length);
@@ -404,14 +442,40 @@ export class SkillList implements OnInit {
     return result;
   }
 
+  getSkillName(skill: any): string {
+    return skill?.name || skill?.skill_name || 'Unknown Skill';
+  }
+
   editSkill(skill: Skill): void {
     const role = this.auth.role();
-    const rolePrefix = role || 'admin';
 
+    console.log('editSkill called with:', skill, 'name:', skill.name);
+
+    // Employees can only view (read-only modal)
     if (role === 'employee') {
-      this.router.navigate([`/${rolePrefix}/my-skills`, skill._id, 'edit']);
+      this.selectedSkillForView.set(skill);
+      this.showSkillModal.set(true);
+      console.log('Modal opened with skill:', this.selectedSkillForView());
     } else {
+      // Admin/Company can edit
+      const rolePrefix = role || 'admin';
       this.router.navigate([`/${rolePrefix}/skills`, skill._id, 'edit']);
+    }
+  }
+
+  closeSkillModal(): void {
+    this.showSkillModal.set(false);
+    this.selectedSkillForView.set(null);
+  }
+
+  onCardHover(event: any, isEnter: boolean): void {
+    const card = event.currentTarget as HTMLElement;
+    if (isEnter) {
+      card.style.transform = 'translateY(-8px)';
+      card.style.boxShadow = '0 15px 35px rgba(0,0,0,0.15)';
+    } else {
+      card.style.transform = 'translateY(0)';
+      card.style.boxShadow = '';
     }
   }
 
