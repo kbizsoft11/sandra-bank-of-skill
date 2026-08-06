@@ -337,7 +337,28 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
     const userObjectId = new Types.ObjectId(userId);
     const userSkillFilter = { user_id: userObjectId } as any;
 
-    const skills = await Skill.find(userSkillFilter).sort({ created_at: -1 });
+    // User skill records are stored in SkillUser and reference the canonical
+    // Skill document. Reading the Skill collection directly leaves the
+    // dashboard with missing names/levels because those fields do not belong
+    // to the canonical Skill schema.
+    const skillUserRecords = await SkillUser.find({ userId: userObjectId } as any)
+      .populate('skillId', 'name categoryId')
+      .sort({ createdAt: -1 })
+      .lean();
+    const skills = skillUserRecords.map((record: any) => {
+      const skill = record.skillId && typeof record.skillId === 'object' ? record.skillId : {};
+      const skillName = skill.name || 'Unnamed skill';
+      return {
+        _id: skill._id || record.skillId || record._id,
+        name: skillName,
+        skill_name: skillName,
+        skill_level: String(record.level || 'beginner').toLowerCase(),
+        skill_score: Number(record.score) || 0,
+        interest_level: 0,
+        created_at: record.createdAt,
+        categoryId: skill.categoryId || null,
+      };
+    });
     const totalSkills = skills.length;
 
     const skillsByCategory = await Skill.aggregate([
@@ -369,10 +390,7 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
       },
     ]);
 
-    const recentSkills = await Skill.find(userSkillFilter)
-      .select('skill_name skill_level skill_score created_at')
-      .sort({ created_at: -1 })
-      .limit(5);
+    const recentSkills = skills.slice(0, 5);
 
     const questionnaireResponses = await QuestionnaireResponseModel.find({ employeeId: userId.toString() })
       .sort({ createdAt: -1 })
@@ -497,52 +515,29 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
     ]);
 
     // Get top skills by skill level (sorted highest to lowest)
-    const topSkills = await Skill.find(userSkillFilter)
-      .select('name level score')
-      .sort({ score: -1, interest_level: -1 })
-      .limit(10)
-      .lean()
-      .then((skillsList: any) =>
-        skillsList.map((skill: any) => {
-          // Calculate level from skill_score
-          const levelFromScore = skill.skill_score && skill.skill_score > 0
-            ? Math.min(5, Math.max(1, Math.round(skill.skill_score / 20)))
-            : getLevelValue(skill.skill_level);
-          
-          return {
-            _id: skill._id,
-            skillName: skill.skill_name || skill.name,
-            skillLevel: levelFromScore,
-            skillLevelLabel: getLevelLabel(skill.skill_level),
-            interestLevel: skill.interest_level || 0,
-          };
-        })
-      );
+    const topSkills = [...skills]
+      .sort((left: any, right: any) => (right.skill_score || 0) - (left.skill_score || 0))
+      .slice(0, 10)
+      .map((skill: any) => ({
+        _id: skill._id,
+        skillName: skill.skill_name || skill.name || 'Unnamed skill',
+        skillLevel: Math.min(5, Math.max(1, Math.round((skill.skill_score || 0) / 20))),
+        skillLevelLabel: getLevelLabel(skill.skill_level),
+        interestLevel: skill.interest_level || 0,
+      }));
 
     // Get top interests (skills with highest interest level)
-    const topInterests = await Skill.find({
-      ...userSkillFilter,
-      interest_level: { $gte: 1 }
-    } as any)
-      .select('name interest_level level score')
-      .sort({ interest_level: -1, score: -1 })
-      .limit(10)
-      .lean()
-      .then((skillsList: any) =>
-        skillsList.map((skill: any) => {
-          const levelFromScore = skill.skill_score && skill.skill_score > 0
-            ? Math.min(5, Math.max(1, Math.round(skill.skill_score / 20)))
-            : getLevelValue(skill.skill_level);
-          
-          return {
-            _id: skill._id,
-            skillName: skill.skill_name || skill.name,
-            interestLevel: skill.interest_level || 0,
-            skillLevel: levelFromScore,
-            skillLevelLabel: getLevelLabel(skill.skill_level),
-          };
-        })
-      );
+    const topInterests = [...skills]
+      .filter((skill: any) => (skill.interest_level || 0) >= 1)
+      .sort((left: any, right: any) => (right.interest_level || 0) - (left.interest_level || 0))
+      .slice(0, 10)
+      .map((skill: any) => ({
+        _id: skill._id,
+        skillName: skill.skill_name || skill.name || 'Unnamed skill',
+        interestLevel: skill.interest_level || 0,
+        skillLevel: Math.min(5, Math.max(1, Math.round((skill.skill_score || 0) / 20))),
+        skillLevelLabel: getLevelLabel(skill.skill_level),
+      }));
 
     const mySkills = skills.slice(0, 6).map((skill: any) => ({
       _id: skill._id,
