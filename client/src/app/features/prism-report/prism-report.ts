@@ -52,5 +52,12 @@ export class PrismReportComponent implements OnInit, AfterViewInit, OnDestroy {
     const config: ChartConfiguration<'bar'> = { type: 'bar', data: { labels: items.map((item) => item.name), datasets: [{ label, data: items.map((item) => item.score), backgroundColor: color, borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { display: false }, grid: { display: false } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } } };
     this.charts.push(new Chart(target.nativeElement, config));
   }
-  goBack(): void { this.router.navigate([this.router.url.startsWith('/employee/') ? '/employee/dashboard' : '/company/dashboard']); }
+  goBack(): void {
+    const prefix = this.router.url.startsWith('/employee/')
+      ? 'employee'
+      : this.router.url.startsWith('/admin/')
+        ? 'admin'
+        : 'company';
+    this.router.navigate([`/${prefix}/dashboard`]);
+  }
 }

@@ -1,0 +1,100 @@
+<main class="prism-reports">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">PRISM Brain Mapping</p>
+      <h1>Employee reports</h1>
+      <p class="subtitle">Review PRISM report access across all companies.</p>
+    </div>
+  </header>
+
+  <section class="panel filter-panel">
+    <div class="filter-grid">
+      <div class="field field-search">
+        <label for="reportSearch">Search employees</label>
+        <input
+          id="reportSearch"
+          type="text"
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+          (keyup.enter)="applyFilters()"
+          placeholder="Name or email">
+      </div>
+
+      <div class="field">
+        <label for="reportCompany">Company</label>
+        <select id="reportCompany" [ngModel]="selectedCompany()" (ngModelChange)="selectedCompany.set($event)">
+          <option value="">All companies</option>
+          @for (company of companies(); track company._id) {
+            <option [value]="company.organisationId || company._id">{{ company.organisationName || company.fullName }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field-actions">
+        <button type="button" class="btn btn-primary" (click)="applyFilters()">Filter</button>
+        <button type="button" class="btn btn-ghost" (click)="clearFilters()">Clear</button>
+      </div>
+    </div>
+  </section>
+
+  @if (error()) {
+    <div class="alert-error" role="alert">{{ error() }}</div>
+  }
+
+  <section class="panel table-panel">
+    @if (loading()) {
+      <div class="loading-state"><span class="spinner"></span>Loading reports...</div>
+    } @else if (!reports().length) {
+      <p class="empty-state">No unlocked PRISM reports match the selected filters.</p>
+    } @else {
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Company</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (report of reports(); track report.employeeId) {
+              <tr>
+                <td data-label="Employee">
+                  <div class="employee-cell">
+                    <strong>{{ report.fullName }}</strong>
+                    <small>{{ report.email }}</small>
+                  </div>
+                </td>
+                <td data-label="Company">{{ report.organisationName }}</td>
+                <td data-label="Role">{{ report.title || report.department || '—' }}</td>
+                <td data-label="Status">
+                  <span class="status-pill" [ngClass]="statusClass(report.reportStatus)">{{ statusLabel(report.reportStatus) }}</span>
+                </td>
+                <td data-label="Action" class="action-cell">
+                  <button
+                    type="button"
+                    class="btn btn-outline btn-sm"
+                    [disabled]="report.reportStatus !== 'unlocked'"
+                    (click)="viewReport(report)">
+                    {{ report.reportStatus === 'unlocked' ? 'View report' : 'Unlock required' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <div class="table-footer">
+      <small class="footer-count">{{ total() }} employees</small>
+      <div class="pagination-controls">
+        <button type="button" class="btn btn-outline btn-sm" [disabled]="page() <= 1 || loading()" (click)="previousPage()">Previous</button>
+        <span class="page-indicator">Page {{ page() }} of {{ totalPages() }}</span>
+        <button type="button" class="btn btn-outline btn-sm" [disabled]="page() >= totalPages() || loading()" (click)="nextPage()">Next</button>
+      </div>
+    </div>
+  </section>
+</main>

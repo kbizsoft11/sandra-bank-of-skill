@@ -11,6 +11,7 @@ import {
   unlockAssessmentReport,
   getOrganisationAssessments,
   getMyAssessments,
+  getAdminPrismReports,
 } from '../controllers/assessments.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { allowRoles } from '../middlewares/role.middleware';
@@ -19,6 +20,7 @@ const router = Router();
 
 router.use(authenticate);
 
+router.get('/admin/reports', allowRoles('admin'), getAdminPrismReports);
 router.get('/my-assessments', allowRoles('employee'), getMyAssessments);
 router.post('/', allowRoles('admin', 'company'), createAssessment);
 router.get('/:employeeId/status', getAssessmentStatus);

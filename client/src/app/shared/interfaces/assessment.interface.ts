@@ -79,6 +79,30 @@ export interface OrganisationAssessments {
   };
 }
 
+export interface AdminPrismReportRow {
+  employeeId: string;
+  fullName: string;
+  email: string;
+  department?: string;
+  title?: string;
+  organisationId: string;
+  organisationName: string;
+  isActive: boolean;
+  hasAssessment: boolean;
+  qTypeId: number | null;
+  questStatus: PrismQuestStatus;
+  questStatusLabel: string;
+  reportStatus: 'not_assigned' | 'assigned' | 'completed' | 'unlocked';
+  dateSent?: string | null;
+  dateCompleted?: string | null;
+  lastFetchedAt?: string | null;
+}
+
+export interface AdminPrismReportsResponse {
+  reports: AdminPrismReportRow[];
+  pagination: { total: number; page: number; limit: number; totalPages: number };
+}
+
 export interface MyAssessmentItem {
   entityType: string;
   qTypeId: number;

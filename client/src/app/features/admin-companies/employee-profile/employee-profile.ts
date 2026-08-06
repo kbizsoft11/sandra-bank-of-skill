@@ -205,4 +205,13 @@ export class EmployeeProfile implements OnInit {
       minute: '2-digit',
     });
   }
+
+  viewPrismReport(): void {
+    const employee = this.employee();
+    const employeeId = this.employeeId();
+    if (!employeeId || !employee?.prismAssessment) return;
+    this.router.navigate(['/admin/prism-report', employeeId], {
+      queryParams: { name: employee.fullName },
+    });
+  }
 }

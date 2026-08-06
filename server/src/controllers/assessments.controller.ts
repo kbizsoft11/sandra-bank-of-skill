@@ -22,6 +22,8 @@ import {
 } from '../types/assessment.types';
 import { env } from '../config/env';
 import { organisationRepository } from '../repositories/organisation.repository';
+import { UserModel } from '../models/user.model';
+import { Organisation } from '../models/organisation.model';
 
 const makePrismOrgId = (organisationId: string): string => `BankOfSkill${organisationId.replace(/[^A-Za-z0-9]/g, '')}`;
 
@@ -750,5 +752,92 @@ export const getOrganisationAssessments = asyncHandler(async (req: Request, res:
       completed: assessments.filter((a) => a.assessment && [3, 4].includes(a.assessment.questStatus)).length,
       unlocked: assessments.filter((a) => a.assessment && a.assessment.questStatus === 6).length,
     },
+  });
+});
+
+/**
+ * Admin PRISM report directory. This intentionally reads the employee's
+ * stored PRISM assessment state; opening a report remains the responsibility
+ * of the dedicated report endpoint, where access and PRISM data are checked.
+ */
+export const getAdminPrismReports = asyncHandler(async (req: Request, res: Response) => {
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100);
+  const search = String(req.query.search || '').trim();
+  const organisationId = String(req.query.organisationId || '').trim();
+  const conditions: any[] = [
+    { role: 'employee' },
+    { 'prismAssessment.questStatus': 6 },
+    { 'prismAssessment.questionnaire.questId': { $exists: true, $ne: '' } },
+  ];
+  if (organisationId) {
+    conditions.push({ $or: [{ organisationId }, { tenantId: organisationId }] });
+  }
+  if (search) {
+    conditions.push({
+      $or: [
+        { fullName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ],
+    });
+  }
+  const filter: any = { $and: conditions };
+
+  const [employees, total] = await Promise.all([
+    UserModel.find(filter)
+    .select('_id fullName email department title organisationId tenantId isActive prismAssessment')
+    .sort({ fullName: 1 })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .lean(),
+    UserModel.countDocuments(filter),
+  ]);
+
+  const organisationKeys = [...new Set(employees.flatMap((employee: any) => [employee.organisationId, employee.tenantId].filter(Boolean)))];
+  const organisations = await Organisation.find({
+    $or: [{ _id: { $in: organisationKeys.filter((key) => /^[a-f\d]{24}$/i.test(String(key))) } }, { tenantId: { $in: organisationKeys } }],
+  }).select('_id tenantId organisationName').lean();
+  const organisationByKey = new Map<string, any>();
+  organisations.forEach((organisation: any) => {
+    organisationByKey.set(String(organisation._id), organisation);
+    organisationByKey.set(String(organisation.tenantId), organisation);
+  });
+
+  const reports = employees.map((employee: any) => {
+    const assessment = employee.prismAssessment;
+    const questStatus = Number(assessment?.questStatus || 1) as PrismQuestStatus;
+    const hasAssessment = Boolean(assessment?.questionnaire?.questId);
+    const reportStatus = !hasAssessment
+      ? 'not_assigned'
+      : questStatus === 6
+        ? 'unlocked'
+        : [3, 4].includes(questStatus)
+          ? 'completed'
+          : 'assigned';
+    const organisation = organisationByKey.get(String(employee.organisationId))
+      || organisationByKey.get(String(employee.tenantId));
+
+    return {
+      employeeId: String(employee._id),
+      fullName: employee.fullName,
+      email: employee.email,
+      department: employee.department || '',
+      title: employee.title || '',
+      organisationId: employee.organisationId || employee.tenantId || '',
+      organisationName: organisation?.organisationName || 'Unassigned company',
+      isActive: employee.isActive !== false,
+      hasAssessment,
+      qTypeId: assessment?.questionnaire?.qTypeId || null,
+      questStatus,
+      questStatusLabel: QUEST_STATUS_LABELS[questStatus] || 'Not assigned',
+      reportStatus,
+      dateSent: assessment?.dateSent || assessment?.createdAt || null,
+      dateCompleted: assessment?.dateCompleted || null,
+      lastFetchedAt: assessment?.lastFetchedAt || null,
+    };
+  });
+  return sendResponse(res, 200, 'Admin PRISM reports retrieved', {
+    reports,
+    pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
   });
 });

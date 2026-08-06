@@ -186,6 +186,12 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       icon: 'bi bi-building-fill',
       roles: ['admin'],
     },
+    {
+      label: 'PRISM Reports',
+      path: 'prism-reports',
+      icon: 'bi bi-file-earmark-bar-graph-fill',
+      roles: ['admin'],
+    },
     // Alerts dropdown for companies
     {
       label: 'Alerts',

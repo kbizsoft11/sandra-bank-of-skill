@@ -1,7 +1,8 @@
 <div class="container-fluid py-4">
 
   <!-- Header with Back Button -->
-  <div class="d-flex align-items-center gap-3 mb-4">
+  <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
     <button (click)="goBack()" class="btn btn-light d-inline-flex align-items-center gap-2">
       <i class="bi bi-arrow-left"></i>
       Back
@@ -10,6 +11,13 @@
       <h1 class="h3 fw-semibold mb-1">Employee Profile</h1>
       <p class="text-secondary mb-0">View complete employee information</p>
     </div>
+    </div>
+    @if (employee()?.prismAssessment) {
+      <button type="button" class="btn btn-outline-primary d-inline-flex align-items-center gap-2" (click)="viewPrismReport()">
+        <i class="bi bi-file-earmark-bar-graph"></i>
+        View PRISM report
+      </button>
+    }
   </div>
 
   <!-- Loading State -->

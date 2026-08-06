@@ -24,6 +24,7 @@ import scalableNotificationRoutes from './scalable-notification.routes';
 import documentRouter from './document.route';
 import assessmentsRouter from './assessments.route';
 import activityRouter from './activity.route';
+import { getAdminPrismReports } from '../controllers/assessments.controller';
 
 const router = Router();
 
@@ -41,6 +42,10 @@ router.use('/users', userRouter);
 router.use('/auth', authRouter);
 router.use('/waitlist', waitlistRouter);
 router.use('/documents', authenticate, documentRouter);
+// Explicit admin PRISM reports route. Keep this at the API root as well as in
+// the assessments router so older deployments and proxy configurations resolve
+// the dedicated admin directory consistently.
+router.get('/assessments/admin/reports', authenticate, allowRoles('admin'), getAdminPrismReports);
 router.use('/assessments', assessmentsRouter);
 router.use('/dashboard', authenticate, dashboardRoutes);
 router.use('/admin/global-search', authenticate, adminGlobalSearchRoutes);

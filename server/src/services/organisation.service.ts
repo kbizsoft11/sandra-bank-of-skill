@@ -57,8 +57,10 @@ export const organisationService = {
 
             return {
               _id: user._id,
+              organisationId: org?._id?.toString(),
               fullName: user.fullName,
               email: user.email,
+              organisationName: org?.organisationName || 'Unnamed company',
               profileImage: '',
               accountStatus: user.isActive ? 'active' : 'inactive',
               isActive: user.isActive,
@@ -272,6 +274,7 @@ export const organisationService = {
           isActive: 1,
           accountStatus: 1,
           createdAt: 1,
+          prismAssessment: 1,
           skillsCount: { $size: '$skills' },
         },
       },

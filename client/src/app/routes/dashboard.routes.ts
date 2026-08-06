@@ -18,6 +18,13 @@ export const dashboardRoutes: Routes = [
   },
 
   {
+    path: 'prism-reports',
+    canActivate: [roleGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () => import('../features/admin-prism-reports/admin-prism-reports').then((c) => c.AdminPrismReports),
+  },
+
+  {
     path: 'profile',
     loadComponent: () => import('../features/profile/profile').then((c) => c.Profile),
   },

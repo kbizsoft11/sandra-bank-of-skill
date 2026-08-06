@@ -18,6 +18,7 @@ import {
   UnlockAssessmentResponse,
   OrganisationAssessments,
   MyAssessmentItem,
+  AdminPrismReportsResponse,
 } from '../../shared/interfaces/assessment.interface';
 
 @Injectable({
@@ -200,6 +201,22 @@ export class AssessmentService {
         },
       })
     );
+  }
+
+  getAdminPrismReports(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    organisationId?: string;
+    status?: string;
+  } = {}): Observable<ApiResponse<AdminPrismReportsResponse>> {
+    let httpParams = new HttpParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        httpParams = httpParams.set(key, String(value));
+      }
+    });
+    return this.http.get<ApiResponse<AdminPrismReportsResponse>>(`${this.apiUrl}/admin/reports`, { params: httpParams });
   }
 
   clearError(): void {
