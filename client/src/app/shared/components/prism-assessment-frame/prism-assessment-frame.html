@@ -6,7 +6,7 @@
     </header>
 
     @if (safeUrl) {
-      <iframe class="prism-frame-iframe" src="safeUrl" [title]="title" loading="eager" allow="fullscreen; payment" ></iframe>
+      <iframe class="prism-frame-iframe" [src]="safeUrl" [title]="title" loading="eager" allow="fullscreen; payment"></iframe>
     } @else {
       <div class="prism-frame-error">
         <i class="bi bi-exclamation-circle"></i>
