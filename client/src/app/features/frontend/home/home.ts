@@ -1,5 +1,6 @@
-import { AfterViewInit, Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { AfterViewInit, Component, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 import Swiper from 'swiper';
 import { Navigation, Autoplay } from 'swiper/modules';
 
@@ -12,6 +13,18 @@ import { Navigation, Autoplay } from 'swiper/modules';
 })
 
 export class HomeComponent implements AfterViewInit {
+
+  readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
+  async goToDashboard(): Promise<void> {
+    await this.auth.waitForUserLoad();
+
+    const dashboardPath = this.auth.getRoleDashboardPath();
+    if (dashboardPath !== '/auth/login') {
+      await this.router.navigateByUrl(dashboardPath);
+    }
+  }
 
   ngAfterViewInit(): void {
 

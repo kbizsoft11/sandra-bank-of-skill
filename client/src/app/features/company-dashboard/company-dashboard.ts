@@ -12,6 +12,7 @@ import {
 } from '../../core/services/dashboard.service';
 import { AssessmentService } from '../../core/services/assessment.service';
 import { AlertService } from '../../core/services/alert.service';
+import { PrismAssessmentFrameComponent } from '../../shared/components/prism-assessment-frame/prism-assessment-frame';
 import {
   OrganisationAssessments,
   EmployeeAssessment,
@@ -26,7 +27,7 @@ type CompanyDashboardTab = 'summary' | 'skills' | 'trends' | 'assessments' | 'ab
 @Component({
   selector: 'app-company-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, PrismAssessmentFrameComponent],
   templateUrl: './company-dashboard.html',
   styleUrl: './company-dashboard.scss',
 })
@@ -58,6 +59,7 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
   readonly about = signal<CompanyAbout | null>(null);
   readonly assessments = signal<CompanyAssessments | null>(null);
   readonly prismAssessments = signal<OrganisationAssessments | null>(null);
+  readonly prismActionUrl = signal<string | null>(null);
   readonly activeTab = signal<CompanyDashboardTab>('summary');
   readonly loading = signal(true);
   readonly tabLoading = signal(false);
@@ -455,7 +457,12 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openPrismAction(url?: string): void {
-    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+    console.log('the url is: ', url);
+    if (url) this.prismActionUrl.set(url);
+  }
+
+  closePrismAction(): void {
+    this.prismActionUrl.set(null);
   }
 
   getStatusBadgeClass(status: PrismQuestStatus | undefined): string {

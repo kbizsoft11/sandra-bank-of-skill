@@ -184,21 +184,16 @@ export class StorageService {
     }
 
     /**
-     * Store token based on Remember Me preference
+     * Store the authenticated token in localStorage so the session is
+     * available when the user opens the application in another tab.
+     *
+     * The previous sessionStorage-only behavior made every new tab look
+     * logged out because sessionStorage is isolated per tab.
      */
-    setToken(token: string, rememberMe: boolean): void {
+    setToken(token: string, _rememberMe: boolean): void {
         if (isPlatformBrowser(this.platformId)) {
-            if (rememberMe) {
-                // Persistent storage
-                localStorage.setItem(ACCESS_TOKEN_KEY, token);
-                // Clear from session storage if it exists
-                sessionStorage.removeItem(ACCESS_TOKEN_KEY);
-            } else {
-                // Session-based storage
-                sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
-                // Clear from localStorage if it exists
-                localStorage.removeItem(ACCESS_TOKEN_KEY);
-            }
+            localStorage.setItem(ACCESS_TOKEN_KEY, token);
+            sessionStorage.removeItem(ACCESS_TOKEN_KEY);
         }
     }
 

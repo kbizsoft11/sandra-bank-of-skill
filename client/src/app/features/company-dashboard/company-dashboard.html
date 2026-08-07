@@ -1,3 +1,7 @@
+@if (prismActionUrl()) {
+  <app-prism-assessment-frame [url]="prismActionUrl()" title="PRISM assessment" (closed)="closePrismAction()"></app-prism-assessment-frame>
+}
+
 <div class="company-dashboard">
   @if (loading()) {
     <div class="loading-state"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>
