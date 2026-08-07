@@ -22,6 +22,8 @@ import { RoleService } from '../../../core/services/role.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { QuestionType, QuestionnaireStatus } from '../../../core/models/questionnaire.model';
+import { CompanySkillCategoryService } from '../../../core/services/company-skill-category.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
     selector: 'app-create-questionnaire',
@@ -39,6 +41,7 @@ export class CreateQuestionnaire {
     private readonly router = inject(Router);
     private readonly questionnaireService = inject(QuestionnaireService);
     private readonly skillCategoryService = inject(SkillCategoryService);
+    private readonly companySkillCategoryService = inject(CompanySkillCategoryService);
     private readonly skillService = inject(SkillService);
     private readonly roleService = inject(RoleService);
     private readonly auth = inject(AuthService);
@@ -79,9 +82,45 @@ export class CreateQuestionnaire {
     }
 
     loadSkillCategories(): void {
-        this.skillCategoryService.getAll().subscribe({
-            next: (response) => {
-                this.skillCategories.set(response.data || []);
+        forkJoin({
+            categories: this.skillCategoryService.getAll({ limit: 1000 }),
+            mappings: this.companySkillCategoryService.getAll(),
+        }).subscribe({
+            next: ({ categories, mappings }) => {
+                const result = categories.data as any;
+                const allCategories = Array.isArray(result) ? result : result?.categories || [];
+                const selectedAdminCategoryIds = new Set(
+                    (mappings.data || []).map((mapping: any) => String(mapping.skillCategoryId || mapping.categoryId))
+                );
+                const currentUser = this.auth.user();
+                // Support both current organisation ownership and legacy records
+                // that stored the company user's id in companyId.
+                const companyIdentityIds = new Set(
+                    [currentUser?.organisationId, currentUser?._id]
+                        .filter(Boolean)
+                        .map(String)
+                );
+                const accessibleCategories = allCategories.filter((category: any) => {
+                    if (category.status === 'inactive' || category.archived) return false;
+
+                    const categoryCompanyId = typeof category.companyId === 'object'
+                        ? category.companyId?._id
+                        : category.companyId;
+                    const categoryCreatedBy = typeof category.createdBy === 'object'
+                        ? category.createdBy?._id
+                        : category.createdBy;
+
+                    // Match the ownership rule used by company category management,
+                    // including legacy records stored against the creating user.
+                    const isCompanyCategory = category.createdType === 'COMPANY'
+                        && (companyIdentityIds.has(String(categoryCompanyId))
+                            || companyIdentityIds.has(String(categoryCreatedBy)));
+
+                    return isCompanyCategory
+                        || (category.createdType === 'ADMIN' && selectedAdminCategoryIds.has(String(category._id)));
+                });
+
+                this.skillCategories.set(accessibleCategories);
             },
             error: (err) => {
                 console.error(err);
@@ -97,9 +136,9 @@ export class CreateQuestionnaire {
             return;
         }
 
-        this.skillService.getSkills({ cat_id: categoryId }).subscribe({
+        this.skillService.getSkills({ categoryId, status: 'active', limit: '1000' }).subscribe({
             next: (response) => {
-                const skills = response.data.skills || [];
+                const skills = response.data?.skills || [];
                 this.skills.set(skills);
                 this.setQuestionsForSkills(skills);
             },
@@ -128,12 +167,14 @@ export class CreateQuestionnaire {
     }
 
     createQuestionFormGroup(skill?: any): FormGroup {
+        const skillName = skill?.name || skill?.skill_name || '';
+
         return this.fb.nonNullable.group({
             questionId: [''],
             skillId: [skill?._id || ''],
-            skillName: [skill?.skill_name || ''],
+            skillName: [skillName],
             questionText: [
-                 '',
+                skillName ? `Tell us about your experience with ${skillName}.` : '',
                 [Validators.required, Validators.minLength(5)]
             ],
             questionType: [

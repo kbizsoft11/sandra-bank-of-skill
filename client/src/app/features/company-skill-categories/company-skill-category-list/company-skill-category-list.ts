@@ -6,6 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 import { CompanySkillCategoryService } from '../../../core/services/company-skill-category.service';
 import { SkillCategoryService } from '../../../core/services/skill-category.service';
 import { SkillService } from '../../../core/services/skill.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { CompanySkillCategoryMapping, SkillCategory } from '../../../shared/interfaces/skill-category.interface';
 
@@ -21,6 +22,7 @@ export class CompanySkillCategoryList implements OnInit {
   private readonly categoryService = inject(SkillCategoryService);
   private readonly skillService = inject(SkillService);
   private readonly alertService = inject(AlertService);
+  private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
 
   // Data signals
@@ -162,8 +164,30 @@ export class CompanySkillCategoryList implements OnInit {
         allCategories = result.categories;
       }
 
-      // Separate admin and company categories
-      const own = allCategories.filter((cat: any) => cat.createdType === 'COMPANY');
+      const currentUser = this.auth.user();
+      const companyIdentityIds = new Set(
+        [currentUser?.organisationId, currentUser?._id]
+          .filter(Boolean)
+          .map(String)
+      );
+
+      // Only show categories owned by the current company. Support both the
+      // current organisationId format and legacy records that used the user id.
+      const own = allCategories.filter((cat: any) => {
+        if (cat.createdType !== 'COMPANY') return false;
+
+        const categoryCompanyId = typeof cat.companyId === 'object'
+          ? cat.companyId?._id
+          : cat.companyId;
+        const categoryCreatedBy = typeof cat.createdBy === 'object'
+          ? cat.createdBy?._id
+          : cat.createdBy;
+
+        return companyIdentityIds.has(String(categoryCompanyId))
+          || companyIdentityIds.has(String(categoryCreatedBy));
+      });
+
+      // Separate admin categories from the current company's categories
       const admin = allCategories.filter((cat: any) => cat.createdType === 'ADMIN');
       this.ownCategories.set(own);
       this.adminCategories.set(admin);

@@ -32,7 +32,7 @@
                   (change)="onSkillCategoryChange()">
                   <option value="">Select category</option>
                   @for (category of skillCategories(); track category._id) {
-                    <option [value]="category._id">{{ category.cat_name }}</option>
+                    <option [value]="category._id">{{ category.name || category.cat_name || category.displayName }}</option>
                   }
                 </select>
               </div>
