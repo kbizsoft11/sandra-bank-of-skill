@@ -9,7 +9,6 @@ import { AuthService } from '../../core/services/auth.service';
 import { DashboardService, EmployeeNotification } from '../../core/services/dashboard.service';
 import { DocumentService } from '../../core/services/document.service';
 import { AssessmentService } from '../../core/services/assessment.service';
-import { PrismAssessmentFrameComponent } from '../../shared/components/prism-assessment-frame/prism-assessment-frame';
 
 Chart.register(...registerables);
 
@@ -39,7 +38,7 @@ export interface Document {
 @Component({
   selector: 'app-employee-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, PrismAssessmentFrameComponent],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './employee-dashboard.html',
   styleUrl: './employee-dashboard.scss',
 })
@@ -49,7 +48,6 @@ export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
   private readonly documentService = inject(DocumentService);
   private readonly assessmentService = inject(AssessmentService);
   private readonly router = inject(Router);
-  readonly prismActionUrl = signal<string | null>(null);
 
   @ViewChild('skillDistributionChart') skillDistributionChart?: ElementRef<HTMLCanvasElement>;
   @ViewChild('topSkillsChart') topSkillsChart?: ElementRef<HTMLCanvasElement>;
@@ -616,11 +614,7 @@ export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
   }
 
   takeAssessment(url: string): void {
-    if (url) this.prismActionUrl.set(url);
-  }
-
-  closePrismAction(): void {
-    this.prismActionUrl.set(null);
+    if (url) window.open(url, '_blank');
   }
 
   @HostListener('window:focus')
