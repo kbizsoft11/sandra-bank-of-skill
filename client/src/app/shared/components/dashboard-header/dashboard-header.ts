@@ -106,7 +106,8 @@ export class DashboardHeader implements OnInit, OnDestroy {
         next: (response) => {
           // Convert company notifications to same format as employee notifications
           const notifications = (response.data?.notifications || []).map((notif: any) => ({
-            _id: notif._id || notif.notificationId,
+            _id: notif.notificationId || notif._id,
+            notificationId: notif.notificationId || notif._id,
             title: notif.title,
             message: notif.message,
             createdAt: notif.createdAt,
@@ -202,19 +203,22 @@ export class DashboardHeader implements OnInit, OnDestroy {
       event.stopPropagation();
     }
 
-    if (!notification._id || notification.isRead) {
+    const notificationId = notification.notificationId || notification._id;
+    if (!notificationId || notification.isRead) {
       return;
     }
 
     const role = this.auth.role();
     const endpoint = role === 'company' 
-      ? this.dashboardService.markCompanyNotificationAsReadScalable(notification._id)
-      : this.dashboardService.markEmployeeNotificationAsReadScalable(notification._id);
+      ? this.dashboardService.markCompanyNotificationAsReadScalable(notificationId)
+      : this.dashboardService.markEmployeeNotificationAsReadScalable(notificationId);
 
     endpoint.pipe(take(1))
       .subscribe({
         next: () => {
-          this.notifications.update((list) => list.map((item) => item._id === notification._id ? { ...item, isRead: true } : item));
+          this.notifications.update((list) => list.map((item) =>
+            (item.notificationId || item._id) === notificationId ? { ...item, isRead: true } : item
+          ));
           this.alertService.toast('Marked as read', 'success');
         },
         error: (error) => {

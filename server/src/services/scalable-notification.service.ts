@@ -1,6 +1,41 @@
 import { AdminNotificationModel, IAdminNotification } from '../models/admin-notification.model';
 import { NotificationReadReceiptModel, INotificationReadReceipt } from '../models/notification-read-receipt.model';
+import { CompanyNotificationModel } from '../models/company-notification.model';
 import { UserModel } from '../models/user.model';
+
+type NotificationReceiptType = 'info' | 'warning' | 'error' | 'success' | 'announcement' | 'alert';
+
+const getNotificationDetails = async (notificationId: string) => {
+  const projection = '_id title message type';
+  const adminNotification = await AdminNotificationModel.findById(notificationId)
+    .select(projection)
+    .lean();
+
+  if (adminNotification) {
+    return {
+      title: adminNotification.title,
+      message: adminNotification.message,
+      type: adminNotification.type,
+      source: 'admin' as const,
+    };
+  }
+
+  const companyNotification = await CompanyNotificationModel.findById(notificationId)
+    .select(projection)
+    .lean();
+
+  if (companyNotification) {
+    return {
+      title: companyNotification.title,
+      message: companyNotification.message,
+      // Read receipts do not support the company-only `assessment` type.
+      type: (companyNotification.type === 'assessment' ? 'info' : companyNotification.type) as NotificationReceiptType,
+      source: 'company' as const,
+    };
+  }
+
+  throw new Error(`Notification ${notificationId} not found`);
+};
 
 /**
  * Dispatch admin notification to all target users using bulk insert
@@ -227,18 +262,29 @@ export const markNotificationAsReadScalable = async (
     // Try to find existing read receipt
     let receipt = await NotificationReadReceiptModel.findOne({ notificationId, userId });
 
+    // Older clients used the read-receipt _id in this endpoint.
+    if (!receipt) {
+      receipt = await NotificationReadReceiptModel.findOne({ _id: notificationId, userId });
+    }
+
     if (!receipt) {
       console.log(`⚠️ No read receipt found, creating one...`);
-      // If read receipt doesn't exist (old notification), create it
+      const notificationDetails = await getNotificationDetails(notificationId);
+
       receipt = await NotificationReadReceiptModel.create({
         notificationId,
         userId,
         isRead: true,
         readAt: new Date(),
+        ...notificationDetails,
       });
       console.log(`✅ Created read receipt:`, receipt);
     } else {
       console.log(`✅ Found existing read receipt, updating...`);
+      if (!receipt.title || !receipt.message) {
+        Object.assign(receipt, await getNotificationDetails(notificationId));
+      }
+
       // Update existing read receipt
       receipt.isRead = true;
       receipt.readAt = new Date();
@@ -262,16 +308,27 @@ export const markNotificationAsUnreadScalable = async (
     // Try to find existing read receipt
     let receipt = await NotificationReadReceiptModel.findOne({ notificationId, userId });
 
+    // Older clients used the read-receipt _id in this endpoint.
     if (!receipt) {
-      // If read receipt doesn't exist (old notification), create it
+      receipt = await NotificationReadReceiptModel.findOne({ _id: notificationId, userId });
+    }
+
+    if (!receipt) {
+      const notificationDetails = await getNotificationDetails(notificationId);
+
       receipt = await NotificationReadReceiptModel.create({
         notificationId,
         userId,
         isRead: false,
         readAt: undefined,
+        ...notificationDetails,
       });
       console.log(`✅ Created read receipt for notification ${notificationId} for user ${userId}`);
     } else {
+      if (!receipt.title || !receipt.message) {
+        Object.assign(receipt, await getNotificationDetails(notificationId));
+      }
+
       // Update existing read receipt
       receipt.isRead = false;
       receipt.readAt = undefined;
