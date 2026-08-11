@@ -1,7 +1,11 @@
 import {
+  AfterViewInit,
   Component,
+  ElementRef,
   inject,
+  OnDestroy,
   OnInit,
+  ViewChild,
   signal,
   computed
 } from '@angular/core';
@@ -9,17 +13,25 @@ import {
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { take } from 'rxjs';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
 import { SkillService } from '../../../core/services/skill.service';
 import { SkillCategoryService } from '../../../core/services/skill-category.service';
 import { UserService } from '../../../core/services/user.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { AssessmentService } from '../../../core/services/assessment.service';
 
 import { Skill } from '../../../shared/interfaces/skill.interface';
 import { SkillCategory } from '../../../shared/interfaces/skill-category.interface';
+import { AssessmentReport, MyAssessmentItem } from '../../../shared/interfaces/assessment.interface';
 
 import { TableActions } from '../../../shared/components/table-actions/table-actions';
+
+Chart.register(...registerables);
+
+type ReportSection = Record<string, any>;
 
 @Component({
   selector: 'app-skill-list',
@@ -30,14 +42,16 @@ import { TableActions } from '../../../shared/components/table-actions/table-act
     TableActions,
     FormsModule
   ],
-  templateUrl: './skill-list.html'
+  templateUrl: './skill-list.html',
+  styleUrl: './skill-list.scss'
 })
-export class SkillList implements OnInit {
+export class SkillList implements OnInit, AfterViewInit, OnDestroy {
 
   private readonly service = inject(SkillService);
   private readonly categoryService = inject(SkillCategoryService);
   private readonly userService = inject(UserService);
   private readonly alertService = inject(AlertService);
+  private readonly assessmentService = inject(AssessmentService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -70,6 +84,21 @@ export class SkillList implements OnInit {
 
   // Loading signal
   isLoading = signal<boolean>(false);
+
+  // PRISM Assessment signals
+  readonly myAssessments = this.assessmentService.myAssessments;
+  readonly assessmentLoading = this.assessmentService.assessmentLoading;
+  readonly assessmentError = this.assessmentService.assessmentError;
+  readonly prismReport = signal<AssessmentReport | null>(null);
+  readonly prismReportLoading = signal<boolean>(false);
+  readonly prismReportError = signal<string | null>(null);
+
+  @ViewChild('behaviourChart') behaviourChart?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('aptitudeChart') aptitudeChart?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('eiChart') eiChart?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('fourDChart') fourDChart?: ElementRef<HTMLCanvasElement>;
+
+  private prismCharts: Array<{ destroy: () => void }> = [];
 
   // Computed values
   totalPages = computed(() => Math.ceil(this.totalSkills() / this.pageSize()));
@@ -106,6 +135,28 @@ export class SkillList implements OnInit {
 
     this.loadCategories();
     this.loadSkills();
+
+    if (this.canShowPrismAssessments()) {
+      this.loadMyAssessments();
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (this.prismReport()) {
+      this.renderPrismCharts();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroyPrismCharts();
+  }
+
+  canShowPrismAssessments(): boolean {
+    return this.auth.role() === 'employee' && !this.isViewingEmployeeSkills();
+  }
+
+  hasCompletedPrismAssessment(assessments: MyAssessmentItem[] = this.myAssessments()): boolean {
+    return assessments.some((assessment) => !assessment.error && assessment.isCompleted && assessment.isPaidFor);
   }
 
   loadCategories(): void {
@@ -661,5 +712,158 @@ export class SkillList implements OnInit {
         });
       }
     });
+  }
+
+  private loadMyAssessments(): void {
+    this.assessmentService.fetchMyAssessments().pipe(take(1)).subscribe({
+      next: (response) => {
+        const assessments = response.data?.assessments || [];
+
+        if (this.hasCompletedPrismAssessment(assessments)) {
+          this.loadMyPrismReport();
+        } else {
+          this.prismReport.set(null);
+          this.prismReportError.set(null);
+          this.destroyPrismCharts();
+        }
+      },
+      error: (err) => console.error('Error loading PRISM assessments:', err),
+    });
+  }
+
+  takeAssessment(url: string): void {
+    if (url) window.open(url, '_blank');
+  }
+
+  private loadMyPrismReport(): void {
+    const employee = this.auth.user();
+    if (!employee?._id) return;
+
+    this.prismReportLoading.set(true);
+    this.prismReportError.set(null);
+
+    this.assessmentService.getAssessmentReport(employee._id).pipe(take(1)).subscribe({
+      next: (response) => {
+        this.prismReport.set(response.data);
+        this.prismReportLoading.set(false);
+        setTimeout(() => this.renderPrismCharts(), 0);
+      },
+      error: (err) => {
+        this.prismReport.set(null);
+        this.prismReportLoading.set(false);
+        this.prismReportError.set(err.error?.message || 'Unable to load your PRISM report.');
+        this.destroyPrismCharts();
+      },
+    });
+  }
+
+  getAssessmentActionLabel(assessment: any): string {
+    if (assessment.error) return 'Error';
+    if (!assessment.isCompleted) return 'Take Assessment';
+    if (assessment.isCompleted && !assessment.isPaidFor) return 'Complete Payment';
+    return 'Report available';
+  }
+
+  getAssessmentStatusBadgeClass(questStatus: number): string {
+    if (questStatus === 1 || questStatus === 2) return 'badge-blue';
+    if (questStatus === 3 || questStatus === 4) return 'badge-yellow';
+    if (questStatus === 6) return 'badge-green';
+    return 'badge-gray';
+  }
+
+  get prismAssessmentData(): ReportSection {
+    return (this.prismReport()?.reportData as any)?.assessmentData || {};
+  }
+
+  get prismEmotionalIntelligenceData(): ReportSection {
+    return (this.prismReport()?.reportData as any)?.emotionalIntelligenceData || {};
+  }
+
+  get fourDText(): string {
+    return String(this.prismAssessmentData['fourDText'] || '').trim();
+  }
+
+  get fourDData(): Array<{ name: string; score: number }> {
+    const output = (this.prismReport()?.reportData as any)?.fourDRawOutput?.Output4D || [];
+    return output.map((item: any) => ({ name: item.Name || `Quadrant ${item.QuadID}`, score: Number(item.Value) || 0 }));
+  }
+
+  get behaviourItems(): Array<{ name: string; score: number }> {
+    return (this.prismAssessmentData['dtBehData'] || []).map((item: any) => ({
+      name: String(item.value || '').split('|')[0] || 'Behaviour',
+      score: Number(item.key) || 0,
+    }));
+  }
+
+  get aptitudeItems(): Array<{ name: string; score: number }> {
+    return (this.prismAssessmentData['dtWAData'] || []).map((item: any) => ({
+      name: item.apt_title || 'Work aptitude',
+      score: Number(item.score) || 0,
+    }));
+  }
+
+  get eiItems(): Array<{ name: string; score: number }> {
+    return [
+      ...(this.prismEmotionalIntelligenceData['CDAItems'] || []),
+      ...(this.prismEmotionalIntelligenceData['EQItems'] || []),
+      ...(this.prismEmotionalIntelligenceData['MTItems'] || []),
+    ]
+      .filter((item: any) => item.item_title || item.itemTitle)
+      .map((item: any) => ({ name: item.item_title || item.itemTitle, score: Number(item.item_score ?? item.score) || 0 }));
+  }
+
+  get topBehaviours(): Array<{ name: string; description: string }> {
+    return (this.prismAssessmentData['dtTopBehData'] || []).slice(0, 4).map((item: any) => ({
+      name: item.value || 'Behaviour',
+      description: this.cleanHtml(item.key || ''),
+    }));
+  }
+
+  private cleanHtml(value: string): string {
+    return value.replace(/<[^>]*>/g, '').replace(/&#8217;/g, "'");
+  }
+
+  private destroyPrismCharts(): void {
+    this.prismCharts.forEach((chart) => chart.destroy());
+    this.prismCharts = [];
+  }
+
+  private renderPrismCharts(): void {
+    if (typeof window === 'undefined') return;
+
+    this.destroyPrismCharts();
+    this.createPrismChart(this.behaviourChart, this.behaviourItems, 'PRISM profile value', '#5669d9');
+    this.createPrismChart(this.aptitudeChart, this.aptitudeItems, 'PRISM profile value', '#e69a3a');
+    this.createPrismChart(this.eiChart, this.eiItems.slice(0, 12), 'PRISM profile value', '#35a77a');
+    this.createPrismChart(this.fourDChart, this.fourDData, 'PRISM profile value', '#7c3aed');
+  }
+
+  private createPrismChart(
+    target: ElementRef<HTMLCanvasElement> | undefined,
+    items: Array<{ name: string; score: number }>,
+    label: string,
+    color: string
+  ): void {
+    if (!target || !items.length) return;
+
+    const config: ChartConfiguration<'bar'> = {
+      type: 'bar',
+      data: {
+        labels: items.map((item) => item.name),
+        datasets: [{ label, data: items.map((item) => item.score), backgroundColor: color, borderRadius: 6 }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        scales: {
+          x: { beginAtZero: true, ticks: { display: false }, grid: { display: false } },
+          y: { grid: { display: false } },
+        },
+        plugins: { legend: { display: false } },
+      },
+    };
+
+    this.prismCharts.push(new Chart(target.nativeElement, config));
   }
 }

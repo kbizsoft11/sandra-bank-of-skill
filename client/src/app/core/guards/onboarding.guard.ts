@@ -1,6 +1,8 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { QuestionnaireService } from '../services/questionnaire.service';
 
 /**
  * Onboarding Guard
@@ -10,6 +12,7 @@ import { AuthService } from '../services/auth.service';
 export const onboardingGuard: CanActivateFn = async (route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
+  const questionnaireService = inject(QuestionnaireService);
 
 
   // Wait for user to be loaded if not already
@@ -37,6 +40,27 @@ export const onboardingGuard: CanActivateFn = async (route, state) => {
   // If already on the questionnaires page, allow access
   if (state.url.includes('/my-questionnaires')) {
     return true;
+  }
+
+  try {
+    const response = await firstValueFrom(questionnaireService.getAssignedQuestionnaires());
+    const assignedQuestionnaires = Array.isArray(response?.data) ? response.data : [];
+
+    if (assignedQuestionnaires.length === 0) {
+      return true;
+    }
+
+    const hasIncompleteQuestionnaire = assignedQuestionnaires.some(
+      (questionnaire: any) => questionnaire.status !== 'completed'
+    );
+
+    if (!hasIncompleteQuestionnaire) {
+      await firstValueFrom(auth.getCurrentUser());
+      auth.setNeedsOnboarding(false);
+      return true;
+    }
+  } catch (error) {
+    console.error('Unable to verify questionnaire completion before onboarding redirect:', error);
   }
 
   // Employee hasn't completed onboarding - redirect to my-questionnaires

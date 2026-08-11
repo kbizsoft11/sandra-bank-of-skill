@@ -1,14 +1,13 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject, signal, computed } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { take } from 'rxjs';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
 import { AuthService } from '../../core/services/auth.service';
 import { DashboardService, EmployeeNotification } from '../../core/services/dashboard.service';
 import { DocumentService } from '../../core/services/document.service';
-import { AssessmentService } from '../../core/services/assessment.service';
 
 Chart.register(...registerables);
 
@@ -46,8 +45,6 @@ export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly dashboardService = inject(DashboardService);
   private readonly documentService = inject(DocumentService);
-  private readonly assessmentService = inject(AssessmentService);
-  private readonly router = inject(Router);
 
   @ViewChild('skillDistributionChart') skillDistributionChart?: ElementRef<HTMLCanvasElement>;
   @ViewChild('topSkillsChart') topSkillsChart?: ElementRef<HTMLCanvasElement>;
@@ -112,11 +109,6 @@ export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
       .slice(0, 6);
   });
 
-  // PRISM Assessment signals
-  readonly myAssessments = this.assessmentService.myAssessments;
-  readonly assessmentLoading = this.assessmentService.assessmentLoading;
-  readonly assessmentError = this.assessmentService.assessmentError;
-
   // Expose Math to template
   Math = Math;
   parseFloat = parseFloat;
@@ -126,7 +118,6 @@ export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
     this.loadEmployeeNotifications();
     this.loadDocuments();
     this.loadDocumentSummary();
-    this.loadMyAssessments();
   }
 
   ngAfterViewInit(): void {
@@ -606,42 +597,4 @@ export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   }
 
-  // PRISM Assessment methods
-  private loadMyAssessments(): void {
-    this.assessmentService.fetchMyAssessments().pipe(take(1)).subscribe({
-      error: (err) => console.error('Error loading PRISM assessments:', err),
-    });
-  }
-
-  takeAssessment(url: string): void {
-    if (url) window.open(url, '_blank');
-  }
-
-  @HostListener('window:focus')
-  refreshAssessmentsOnFocus(): void {
-    this.loadMyAssessments();
-  }
-
-  viewAssessmentReport(): void {
-    const employee = this.authService.user();
-    if (!employee?._id) return;
-    this.router.navigate(['/employee/prism-report', employee._id], {
-      queryParams: { name: employee.fullName },
-    });
-  }
-
-  getAssessmentActionLabel(assessment: any): string {
-    if (assessment.error) return 'Error';
-    if (!assessment.isCompleted) return 'Take Assessment';
-    if (assessment.isCompleted && !assessment.isPaidFor) return 'Complete Payment';
-    if (assessment.isCompleted && assessment.isPaidFor) return 'View Report';
-    return 'View';
-  }
-
-  getAssessmentStatusBadgeClass(questStatus: number): string {
-    if (questStatus === 1 || questStatus === 2) return 'badge-blue';
-    if (questStatus === 3 || questStatus === 4) return 'badge-yellow';
-    if (questStatus === 6) return 'badge-green';
-    return 'badge-gray';
-  }
 }

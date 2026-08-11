@@ -507,7 +507,7 @@ export const dispatchCompanyNotificationScalable = async (
           userId: employee._id.toString(),
           isRead: false,
           readAt: null,
-          type: notification.type,
+          type: notification.type === 'assessment' ? 'info' : notification.type,
           title: notification.title,
           message: notification.message,
           source: 'company',

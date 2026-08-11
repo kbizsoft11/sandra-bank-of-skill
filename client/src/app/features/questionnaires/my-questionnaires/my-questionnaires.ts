@@ -456,8 +456,21 @@ export class MyQuestionnaires implements OnInit {
                 questionnaires: this.allQuestionnaires(),
                 completedAt: new Date().toISOString(),
             });
+            this.refreshCompletedOnboardingState();
             this.alertService.success('🎉 All assessments completed successfully!');
         }
+    }
+
+    private refreshCompletedOnboardingState(): void {
+        this.auth.getCurrentUser().subscribe({
+            next: () => {
+                this.auth.setNeedsOnboarding(false);
+            },
+            error: (err) => {
+                console.error('Failed to refresh onboarding state:', err);
+                this.auth.setNeedsOnboarding(false);
+            }
+        });
     }
 
     moveToQuestionnaire(index: number): void {

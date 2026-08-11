@@ -1,29 +1,262 @@
-<div class="rounded-4 border bg-white shadow-sm overflow-hidden">
+@if (canShowPrismAssessments()) {
+  @if (hasCompletedPrismAssessment()) {
+    <section class="prism-report-shell">
+      @if (prismReportLoading()) {
+        <div class="panel loading-state p-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-muted">Loading your PRISM report...</p>
+        </div>
+      } @else if (prismReportError()) {
+        <div class="alert alert-danger">
+          <i class="bi bi-exclamation-circle me-2"></i>
+          <div>
+            <strong>Unable to load PRISM report</strong>
+            <p class="mb-0">{{ prismReportError() }}</p>
+          </div>
+        </div>
+      } @else if (prismReport()) {
+        <section class="visual-grid">
+          @if (behaviourItems.length) {
+            <article class="panel chart-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">PRISM profile values</p>
+                  <h2>Natural behaviour dimensions</h2>
+                </div>
+              </div>
+              <div class="chart-canvas">
+                <canvas #behaviourChart></canvas>
+              </div>
+            </article>
+          }
 
-  <div class="d-flex align-items-center justify-content-between border-bottom px-4 py-3">
+          @if (aptitudeItems.length) {
+            <article class="panel chart-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">PRISM profile values</p>
+                  <h2>Preferred work activities</h2>
+                </div>
+              </div>
+              <div class="chart-canvas">
+                <canvas #aptitudeChart></canvas>
+              </div>
+            </article>
+          }
+        </section>
 
-    <div class="d-flex align-items-center gap-2">
+        @if (eiItems.length) {
+          <section class="panel chart-panel wide-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">PRISM profile values</p>
+                <h2>EI and mental toughness dimensions</h2>
+              </div>
+            </div>
+            <div class="chart-canvas tall">
+              <canvas #eiChart></canvas>
+            </div>
+          </section>
+        }
+
+        @if (fourDText) {
+          <section class="panel wide-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Four-colour behavioural profile</p>
+                <h2>Work-style summary</h2>
+              </div>
+            </div>
+            <p class="report-copy">{{ fourDText }}</p>
+          </section>
+        }
+
+        @if (topBehaviours.length) {
+          <section class="panel wide-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Behaviour insights</p>
+                <h2>How this profile may show up at work</h2>
+              </div>
+            </div>
+            <div class="behaviour-grid">
+              @for (item of topBehaviours; track item.name) {
+                <article class="behaviour-card">
+                  <h3>{{ item.name }}</h3>
+                  <p>{{ item.description }}</p>
+                </article>
+              }
+            </div>
+          </section>
+        }
+
+        @if ((prismAssessmentData['dtKeyData1'] || []).length || (prismAssessmentData['dtKeyData2'] || []).length) {
+          <section class="prism-content-grid">
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Strength indicators</p>
+                  <h2>Likely strengths</h2>
+                </div>
+              </div>
+              @if ((prismAssessmentData['dtKeyData1'] || []).length) {
+                <div style="padding: 1rem;">
+                  <ul class="trait-list">
+                  @for (item of prismAssessmentData['dtKeyData1'] || []; track $index) {
+                    <li>{{ item }}</li>
+                  }
+                </ul>
+                </div>
+              } @else {
+                <p class="empty-state">No strength indicators available.</p>
+              }
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Development focus</p>
+                  <h2>Possible growth areas</h2>
+                </div>
+              </div>
+              @if ((prismAssessmentData['dtKeyData2'] || []).length) {
+                <div style="padding: 1rem;">
+                <ul class="trait-list">
+                  @for (item of prismAssessmentData['dtKeyData2'] || []; track $index) {
+                    <li>{{ item }}</li>
+                  }
+                </ul>
+                </div>
+              } @else {
+                <p class="empty-state">No development areas available.</p>
+              }
+            </article>
+          </section>
+        }
+      }
+    </section>
+  } @else if (assessmentLoading()) {
+    <section class="panel prism-assessment-panel">
+      <div class="loading-state p-4">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Loading assessments...</p>
+      </div>
+    </section>
+  } @else if (assessmentError()) {
+    <section class="panel prism-assessment-panel">
+      <div class="alert alert-danger m-3">
+        <i class="bi bi-exclamation-circle me-2"></i>
+        <div>
+          <strong>Error Loading Assessments</strong>
+          <p class="mb-0">{{ assessmentError() }}</p>
+        </div>
+      </div>
+    </section>
+  } @else if (myAssessments().length > 0) {
+    <section class="panel prism-assessment-panel">
+      <div class="assessments-list">
+        @for (assessment of myAssessments(); track $index) {
+          <div class="assessment-card" [class.assessment-error]="assessment.error">
+            <div class="assessment-header">
+              <div class="assessment-info">
+                <h3>{{ assessment.entityType }}</h3>
+                <span class="badge" [ngClass]="getAssessmentStatusBadgeClass(assessment.questStatus)">
+                  <i class="bi bi-circle-fill me-1"></i>
+                  {{ assessment.questStatusLabel }}
+                </span>
+              </div>
+
+              @if (!assessment.error && !assessment.isCompleted && assessment.takeAssessmentUrl) {
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  (click)="takeAssessment(assessment.takeAssessmentUrl)">
+                  <i class="bi bi-arrow-right-circle me-2"></i>
+                  {{ getAssessmentActionLabel(assessment) }}
+                </button>
+              }
+              @if (!assessment.error && assessment.isCompleted && !assessment.isPaidFor) {
+                <button
+                  type="button"
+                  class="btn btn-warning payment-action"
+                  [disabled]="!assessment.takeAssessmentUrl"
+                  [title]="assessment.takeAssessmentUrl ? 'Open the PRISM payment page' : 'PRISM has not returned a payment URL yet'"
+                  (click)="assessment.takeAssessmentUrl && takeAssessment(assessment.takeAssessmentUrl)">
+                  <i class="bi bi-credit-card me-2"></i>
+                  {{ assessment.takeAssessmentUrl ? 'Complete Payment' : 'Payment Link Unavailable' }}
+                </button>
+              }
+            </div>
+
+            <div class="assessment-details">
+              <div class="detail-item">
+                <i class="bi bi-calendar3"></i>
+                <span>Sent: {{ assessment.dateSent | date: 'MMM d, y' }}</span>
+              </div>
+              @if (assessment.dateCompleted) {
+                <div class="detail-item">
+                  <i class="bi bi-check-circle"></i>
+                  <span>Completed: {{ assessment.dateCompleted | date: 'MMM d, y' }}</span>
+                </div>
+              }
+              @if (assessment.isCompleted && !assessment.isPaidFor) {
+                <div class="detail-item payment-notice">
+                  <i class="bi bi-exclamation-triangle"></i>
+                  <span>
+                    Payment is required to unlock the full report.
+                    @if (!assessment.takeAssessmentUrl) { <small> Please contact your manager because PRISM has not returned a payment URL.</small> }
+                  </span>
+                </div>
+              }
+              @if (assessment.error) {
+                <div class="detail-item text-danger">
+                  <i class="bi bi-x-circle"></i>
+                  <span>{{ assessment.errorMessage || 'Failed to load assessment status' }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  } @else {
+    <section class="panel prism-assessment-panel">
+      <div class="empty-state p-4 p-md-5">
+        <i class="bi bi-inbox display-4 d-block mb-3 text-muted"></i>
+        <h3>No Assessments Assigned Yet</h3>
+        <p class="text-muted">Your manager will notify you when a PRISM assessment has been assigned to you.</p>
+      </div>
+    </section>
+  }
+}
+
+<div class="rounded-4 border bg-white shadow-sm overflow-hidden skills-panel">
+
+  <div class="skills-panel-header border-bottom px-3 px-md-4 py-3">
+
+    <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
       @if (isViewingEmployeeSkills()) {
-        <a [routerLink]="getBackRoute()" class="btn btn-light btn-sm d-inline-flex align-items-center gap-1">
+        <a [routerLink]="getBackRoute()" class="btn btn-light btn-sm d-inline-flex align-items-center gap-1 flex-shrink-0">
           <i class="bi bi-arrow-left"></i>
-          <span>Back</span>
+          <span class="d-none d-sm-inline">Back</span>
         </a>
       }
 
-      <div>
-        <h2 class="h5 fw-semibold mb-0 text-dark">
+      <div class="min-w-0">
+        <h2 class="h5 fw-semibold mb-0 text-dark text-truncate">
           {{ getPageTitle() }}
         </h2>
 
-        <p class="mt-1 mb-0 small text-secondary">
+        <p class="mt-1 mb-0 small text-secondary text-truncate">
           {{ getPageSubtitle() }}
         </p>
       </div>
     </div>
 
     @if (canModifySkills()) {
-      <a [routerLink]="getCreateRoute()" class="btn btn-primary btn-sm px-3">
-        <i class="bi bi-plus-lg"></i> Add Skill
+      <a [routerLink]="getCreateRoute()" class="btn btn-primary btn-sm px-3 flex-shrink-0">
+        <i class="bi bi-plus-lg"></i>
+        <span class="d-none d-sm-inline ms-1">Add Skill</span>
       </a>
     }
 
@@ -32,17 +265,17 @@
   <!-- Filters Section -->
   @if (!(isViewingEmployeeSkills() || auth.role() === 'employee')) {
     <!-- Admin/Company Filters -->
-    <div class="px-4 py-3 border-bottom bg-light">
-      <div class="row g-3">
+    <div class="px-3 px-md-4 py-3 border-bottom bg-light">
+      <div class="row g-2 g-md-3">
         <!-- Search -->
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <div class="input-group input-group-sm">
             <span class="input-group-text bg-white border-end-0">
               <i class="bi bi-search"></i>
             </span>
-            <input 
-              type="text" 
-              class="form-control border-start-0" 
+            <input
+              type="text"
+              class="form-control border-start-0"
               placeholder="Search skills..."
               [value]="searchTerm()"
               (input)="onSearch($any($event.target).value)"
@@ -51,8 +284,8 @@
         </div>
 
         <!-- Category Filter -->
-        <div class="col-md-3">
-          <select class="form-select form-select-sm" 
+        <div class="col-6 col-md-3">
+          <select class="form-select form-select-sm"
             [value]="selectedCategory()"
             (change)="onCategoryChange($any($event.target).value)">
             <option value="">All Categories</option>
@@ -63,8 +296,8 @@
         </div>
 
         <!-- Status Filter -->
-        <div class="col-md-3">
-          <select class="form-select form-select-sm" 
+        <div class="col-6 col-md-2">
+          <select class="form-select form-select-sm"
             [value]="statusFilter()"
             (change)="onStatusChange($any($event.target).value)">
             <option value="">All Status</option>
@@ -74,20 +307,22 @@
         </div>
 
         <!-- Reset Button -->
-        <div class="col-md-2">
-          <button 
-            type="button" 
+        <div class="col-12 col-md-1">
+          <button
+            type="button"
             class="btn btn-outline-secondary btn-sm w-100"
             (click)="resetFilters()"
-            [disabled]="!searchTerm() && !selectedCategory() && !statusFilter()">
-            <i class="bi bi-arrow-clockwise"></i> Reset
+            [disabled]="!searchTerm() && !selectedCategory() && !statusFilter()"
+            title="Reset filters">
+            <i class="bi bi-arrow-clockwise"></i>
+            <span class="d-md-none ms-1">Reset</span>
           </button>
         </div>
       </div>
 
       <!-- Results Info -->
       <div class="mt-2 small text-muted">
-        Showing 
+        Showing
         <strong>{{ currentSkills().length > 0 ? (currentPage() - 1) * pageSize() + 1 : 0 }}</strong>
         to
         <strong>{{ Math.min(currentPage() * pageSize(), totalSkills()) }}</strong>
@@ -98,21 +333,20 @@
     </div>
   } @else {
     <!-- Employee Filters - Compact (Search Only) -->
-    <div class="px-4 py-2 border-bottom bg-light">
+    <div class="px-3 px-md-4 py-2 border-bottom bg-light">
       <div class="row g-2">
         <!-- Search Only -->
         <div class="col-12">
           <div class="input-group input-group-sm">
-            <span class="input-group-text bg-white border-end-0" style="font-size: 0.85rem;">
+            <span class="input-group-text bg-white border-end-0">
               <i class="bi bi-search"></i>
             </span>
-            <input 
-              type="text" 
-              class="form-control border-start-0" 
+            <input
+              type="text"
+              class="form-control border-start-0"
               placeholder="Search your skills..."
               [value]="searchTerm()"
               (input)="onSearch($any($event.target).value)"
-              style="font-size: 0.9rem;"
             >
           </div>
         </div>
@@ -150,19 +384,19 @@
   } @else {
     @if (isViewingEmployeeSkills() || auth.role() === 'employee') {
       <!-- Employee Skills - Professional Compact Card Grid -->
-      <div class="px-4 py-4">
+      <div class="px-3 px-md-4 py-3 py-md-4">
         <div class="row g-3">
           @for(skill of currentSkills(); track skill._id) {
-            <div class="col-sm-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm transition-all" style="transition: all 0.2s ease; cursor: pointer;" (mouseenter)="onCardHover($event, true)" (mouseleave)="onCardHover($event, false)">
+            <div class="col-12 col-sm-6 col-lg-4">
+              <div class="card h-100 border-0 shadow-sm skill-tile" (click)="editSkill(skill)">
                 <!-- Card Header -->
-                <div class="card-header bg-primary border-0 px-3 py-2" style="background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%); color: white;">
+                <div class="card-header border-0 px-3 py-2 skill-tile-header">
                   <div class="d-flex justify-content-between align-items-start gap-2">
-                    <div>
-                      <h6 class="card-title fw-bold mb-0" style="font-size: 0.95rem; color: white;">{{ skill.name }}</h6>
-                      <small style="opacity: 0.85; font-size: 0.8rem;">{{ getCategoryName(skill) }}</small>
+                    <div class="min-w-0">
+                      <h6 class="card-title fw-bold mb-0 text-truncate skill-tile-title">{{ skill.name }}</h6>
+                      <small class="skill-tile-category">{{ getCategoryName(skill) }}</small>
                     </div>
-                    <span class="badge bg-white text-primary" style="font-size: 0.7rem; padding: 0.35rem 0.6rem;">
+                    <span class="badge bg-white text-primary flex-shrink-0 skill-tile-level">
                       {{ getSkillLevel(skill) | uppercase }}
                     </span>
                   </div>
@@ -174,28 +408,27 @@
                   <div class="mb-2">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                       <small class="text-muted fw-500">Score</small>
-                      <strong class="text-primary" style="font-size: 1rem;">{{ getSkillScore(skill) }}%</strong>
+                      <strong class="text-primary skill-tile-score">{{ getSkillScore(skill) }}%</strong>
                     </div>
-                    <div class="progress" style="height: 5px; border-radius: 8px;">
-                      <div 
-                        class="progress-bar" 
+                    <div class="progress skill-tile-progress">
+                      <div
+                        class="progress-bar"
                         [ngClass]="getSkillScore(skill) >= 80 ? 'bg-success' : (getSkillScore(skill) >= 60 ? 'bg-warning' : (getSkillScore(skill) >= 40 ? 'bg-info' : 'bg-danger'))"
-                        [style.width.%]="getSkillScore(skill)"
-                        style="border-radius: 8px; transition: width 0.3s ease;">
+                        [style.width.%]="getSkillScore(skill)">
                       </div>
                     </div>
                   </div>
 
                   <!-- Status Badge -->
                   <div class="text-center py-2 mb-2">
-                    <span class="badge" [ngClass]="skill.status === 'active' ? 'bg-success-subtle text-success-emphasis' : 'bg-secondary-subtle text-secondary-emphasis'" style="font-size: 0.75rem;">
+                    <span class="badge" [ngClass]="skill.status === 'active' ? 'bg-success-subtle text-success-emphasis' : 'bg-secondary-subtle text-secondary-emphasis'">
                       {{ skill.status === 'active' ? '✓ Active' : 'Inactive' }}
                     </span>
                   </div>
 
                   <!-- Description - Compact -->
                   @if (skill.description) {
-                    <small class="text-secondary" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;">
+                    <small class="text-secondary skill-tile-desc">
                       {{ skill.description }}
                     </small>
                   }
@@ -203,12 +436,11 @@
 
                 <!-- Card Footer - Compact -->
                 <div class="card-footer bg-light border-top px-3 py-2">
-                  <button 
+                  <button
                     type="button"
                     class="btn btn-primary btn-sm w-100"
-                    (click)="editSkill(skill)"
-                    title="View skill details"
-                    style="font-size: 0.85rem; padding: 0.35rem 0.75rem;">
+                    (click)="editSkill(skill); $event.stopPropagation()"
+                    title="View skill details">
                     <i class="bi bi-eye"></i> View
                   </button>
                 </div>
@@ -218,8 +450,50 @@
         </div>
       </div>
     } @else {
-      <!-- Admin/Company Skills - Data Table -->
-      <div class="table-responsive">
+      <!-- Admin/Company Skills -->
+
+      <!-- Mobile / tablet card list (shown below lg) -->
+      <div class="d-lg-none skills-mobile-list px-3 py-3">
+        @for(skill of currentSkills(); track skill._id) {
+          <div class="skill-row-card">
+            <div class="skill-row-card-top">
+              <span class="fw-semibold text-dark skill-row-card-name">{{ skill.name }}</span>
+              <span class="badge flex-shrink-0" [ngClass]="skill.status === 'active' ? 'bg-success' : 'bg-secondary'">
+                {{ skill.status === 'active' ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+
+            <span class="badge bg-info-subtle text-info-emphasis skill-row-card-category">
+              {{ getCategoryName(skill) }}
+            </span>
+
+            @if (skill.description) {
+              <p class="skill-row-card-desc">{{ skill.description }}</p>
+            }
+
+            <div class="skill-row-card-actions">
+              <button
+                type="button"
+                (click)="toggleSkillStatus(skill)"
+                [class]="skill.status === 'active' ? 'btn btn-sm btn-outline-danger' : 'btn btn-sm btn-outline-success'">
+                @if (skill.status === 'active') {
+                  <i class="bi bi-eye-slash"></i> Deactivate
+                } @else {
+                  <i class="bi bi-eye"></i> Activate
+                }
+              </button>
+              <app-table-actions
+                [actions]="['edit','delete']"
+                (edit)="editSkill(skill)"
+                (delete)="deleteSkill(skill)">
+              </app-table-actions>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Desktop data table (shown at lg and up) -->
+      <div class="table-responsive d-none d-lg-block">
 
         <table class="table align-middle mb-0">
 
@@ -279,7 +553,7 @@
 
               <td class="px-4 py-3 text-center">
                 <div class="d-flex gap-1 justify-content-center">
-                  <button 
+                  <button
                     type="button"
                     (click)="toggleSkillStatus(skill)"
                     [class]="skill.status === 'active' ? 'btn btn-sm btn-danger' : 'btn btn-sm btn-success'"
@@ -310,13 +584,13 @@
     }
 
     <!-- Pagination -->
-    <div class="d-flex align-items-center justify-content-between px-4 py-3 border-top bg-light">
+    <div class="pagination-bar border-top bg-light px-3 px-md-4 py-3">
 
-      <div class="d-flex align-items-center gap-2">
-        <label class="small text-secondary mb-0">Items per page:</label>
-        <select 
-          class="form-select form-select-sm" 
-          style="width: 80px;"
+      <div class="d-flex align-items-center gap-2 pagination-page-size">
+        <label class="small text-secondary mb-0">Rows:</label>
+        <select
+          class="form-select form-select-sm"
+          style="width: 72px;"
           [value]="pageSize()"
           (change)="onPageSizeChange(+$any($event.target).value)">
           <option [value]="5">5</option>
@@ -326,37 +600,41 @@
         </select>
       </div>
 
-      <nav aria-label="Pagination Navigation">
-        <ul class="pagination pagination-sm mb-0">
+      <nav aria-label="Pagination Navigation" class="pagination-nav">
+        <ul class="pagination pagination-sm mb-0 flex-nowrap">
 
           <li class="page-item" [class.disabled]="currentPage() === 1 || totalPages() === 0">
-            <button 
-              class="page-link" 
+            <button
+              class="page-link"
               (click)="onPageChange(1)"
-              [disabled]="currentPage() === 1 || totalPages() === 0">
-              First
+              [disabled]="currentPage() === 1 || totalPages() === 0"
+              title="First page">
+              <i class="bi bi-chevron-double-left"></i>
+              <span class="d-none d-sm-inline ms-1">First</span>
             </button>
           </li>
 
           <li class="page-item" [class.disabled]="currentPage() === 1 || totalPages() === 0">
-            <button 
-              class="page-link" 
+            <button
+              class="page-link"
               (click)="onPageChange(currentPage() - 1)"
-              [disabled]="currentPage() === 1 || totalPages() === 0">
-              Previous
+              [disabled]="currentPage() === 1 || totalPages() === 0"
+              title="Previous page">
+              <i class="bi bi-chevron-left"></i>
+              <span class="d-none d-sm-inline ms-1">Prev</span>
             </button>
           </li>
 
           <!-- Page Numbers -->
           @for(page of this.getPageNumbers(); track page) {
             @if (page === -1) {
-              <li class="page-item disabled">
+              <li class="page-item disabled d-none d-sm-block">
                 <span class="page-link">...</span>
               </li>
             } @else {
               <li class="page-item" [class.active]="page === currentPage()">
-                <button 
-                  class="page-link" 
+                <button
+                  class="page-link"
                   (click)="onPageChange(page)"
                   [class.active]="page === currentPage()">
                   {{ page }}
@@ -366,20 +644,24 @@
           }
 
           <li class="page-item" [class.disabled]="currentPage() === totalPages() || totalPages() === 0">
-            <button 
-              class="page-link" 
+            <button
+              class="page-link"
               (click)="onPageChange(currentPage() + 1)"
-              [disabled]="currentPage() === totalPages() || totalPages() === 0">
-              Next
+              [disabled]="currentPage() === totalPages() || totalPages() === 0"
+              title="Next page">
+              <span class="d-none d-sm-inline me-1">Next</span>
+              <i class="bi bi-chevron-right"></i>
             </button>
           </li>
 
           <li class="page-item" [class.disabled]="currentPage() === totalPages() || totalPages() === 0">
-            <button 
-              class="page-link" 
+            <button
+              class="page-link"
               (click)="onPageChange(totalPages())"
-              [disabled]="currentPage() === totalPages() || totalPages() === 0">
-              Last
+              [disabled]="currentPage() === totalPages() || totalPages() === 0"
+              title="Last page">
+              <span class="d-none d-sm-inline me-1">Last</span>
+              <i class="bi bi-chevron-double-right"></i>
             </button>
           </li>
 
@@ -396,42 +678,40 @@
 <!-- Skill Details Modal (Read-Only for Employees) -->
 @if (showSkillModal() && selectedSkillForView()) {
   <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" role="dialog" tabindex="-1">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg modal-fullscreen-sm-down" role="document">
       <div class="modal-content border-0 shadow-lg">
         <!-- Modal Header -->
-        <div class="modal-header border-0 py-4" style="background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);">
-          <div style="width: 100%; flex: 1;">
-            <h5 class="modal-title fw-bold mb-1" style="color: #ffffff; font-size: 1.35rem; margin: 0;">
+        <div class="modal-header border-0 py-3 py-md-4 px-3 px-md-4 skill-modal-header">
+          <div class="min-w-0 flex-grow-1">
+            <h5 class="modal-title fw-bold mb-1 text-truncate skill-modal-title">
               {{ getSkillName(selectedSkillForView()!) }}
             </h5>
-            <small style="color: #ffffff; opacity: 0.9; font-size: 0.85rem;">
+            <small class="skill-modal-subtitle">
               {{ getCategoryName(selectedSkillForView()!) || 'Unknown Category' }}
             </small>
           </div>
-          <button 
-            type="button" 
-            class="btn-close btn-close-white ms-2" 
+          <button
+            type="button"
+            class="btn-close btn-close-white ms-2 flex-shrink-0"
             (click)="closeSkillModal()"
-            aria-label="Close"
-            style="flex-shrink: 0;">
+            aria-label="Close">
           </button>
         </div>
 
         <!-- Modal Body -->
-        <div class="modal-body p-4">
+        <div class="modal-body p-3 p-md-4">
           <!-- Score Section -->
-          <div class="mb-4 p-4 bg-light rounded-3">
+          <div class="mb-4 p-3 p-md-4 bg-light rounded-3">
             <div class="row g-3">
-              <div class="col-md-6">
+              <div class="col-12 col-md-6">
                 <div class="text-center">
                   <small class="text-muted fw-semibold d-block mb-2">Proficiency Score</small>
                   <div class="h2 text-primary fw-bold">{{ getSkillScore(selectedSkillForView()!) }}%</div>
-                  <div class="progress mt-3" style="height: 8px; border-radius: 10px;">
-                    <div 
-                      class="progress-bar" 
+                  <div class="progress mt-3 skill-modal-progress">
+                    <div
+                      class="progress-bar"
                       [ngClass]="getSkillScore(selectedSkillForView()!) >= 80 ? 'bg-success' : (getSkillScore(selectedSkillForView()!) >= 60 ? 'bg-warning' : (getSkillScore(selectedSkillForView()!) >= 40 ? 'bg-info' : 'bg-danger'))"
-                      [style.width.%]="getSkillScore(selectedSkillForView()!)"
-                      style="border-radius: 10px;">
+                      [style.width.%]="getSkillScore(selectedSkillForView()!)">
                     </div>
                   </div>
                   <small class="text-muted d-block mt-2">
@@ -447,18 +727,18 @@
                   </small>
                 </div>
               </div>
-              <div class="col-md-6">
+              <div class="col-12 col-md-6">
                 <div class="row g-2">
-                  <div class="col-12">
-                    <div class="p-3 bg-white rounded border">
+                  <div class="col-6 col-md-12">
+                    <div class="p-3 bg-white rounded border h-100">
                       <small class="text-muted fw-semibold d-block mb-2">Skill Level</small>
                       <span class="badge" [ngClass]="getSkillLevelBadgeClass(selectedSkillForView()!)" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
                         {{ getSkillLevel(selectedSkillForView()!) | titlecase }}
                       </span>
                     </div>
                   </div>
-                  <div class="col-12">
-                    <div class="p-3 bg-white rounded border">
+                  <div class="col-6 col-md-12">
+                    <div class="p-3 bg-white rounded border h-100">
                       <small class="text-muted fw-semibold d-block mb-2">Status</small>
                       <span class="badge" [ngClass]="selectedSkillForView()?.status === 'active' ? 'bg-success-subtle text-success-emphasis' : 'bg-secondary-subtle text-secondary-emphasis'">
                         {{ selectedSkillForView()?.status === 'active' ? 'Active' : 'Inactive' }}
@@ -490,10 +770,10 @@
         </div>
 
         <!-- Modal Footer -->
-        <div class="modal-footer border-top bg-light">
-          <button 
-            type="button" 
-            class="btn btn-secondary" 
+        <div class="modal-footer border-top bg-light px-3 px-md-4">
+          <button
+            type="button"
+            class="btn btn-secondary w-100 w-md-auto"
             (click)="closeSkillModal()">
             Close
           </button>

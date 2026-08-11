@@ -1,0 +1,576 @@
+// ==========================================================================
+// Mobile-first base styles.
+// Every rule below is written for a small screen first; breakpoints layered
+// on top with min-width media queries progressively add table/desktop
+// treatments. Breakpoints used: 576 (sm), 768 (md), 992 (lg).
+// ==========================================================================
+
+.min-w-0 { min-width: 0; }
+
+.panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: .85rem;
+  box-shadow: 0 .25rem 1rem rgba(15, 23, 42, .06);
+  overflow: hidden;
+}
+
+.panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid #e2e8f0;
+
+  h2 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 1.02rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: .3rem 0 0;
+    color: #64748b;
+    font-size: .85rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .panel {
+    border-radius: 1rem;
+  }
+
+  .panel-heading {
+    padding: 1.25rem 1.5rem;
+
+    h2 {
+      font-size: 1.15rem;
+    }
+
+    p {
+      font-size: .9rem;
+    }
+  }
+}
+
+.loading-state,
+.empty-state {
+  text-align: center;
+}
+
+.empty-state {
+  h3 {
+    margin: 0 0 .5rem;
+    color: #1e293b;
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  i {
+    color: #94a3b8;
+  }
+}
+
+@media (min-width: 768px) {
+  .empty-state h3 {
+    font-size: 1.125rem;
+  }
+}
+
+.prism-assessment-panel {
+  margin-bottom: 1.25rem;
+  border-left: 4px solid #7c3aed;
+}
+
+.prism-report-shell {
+  --ink: #1f2937;
+  --muted: #718096;
+  --line-strong: #e3e8f0;
+  --accent: #4966c8;
+  --accent-strong: #3157c7;
+
+  color: var(--ink);
+  margin-bottom: 1.25rem;
+}
+
+.eyebrow {
+  margin: 0 0 .25rem;
+  color: var(--accent, #4966c8);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+// ---- Charts -------------------------------------------------------------
+
+.visual-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .75rem;
+}
+
+.chart-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-canvas {
+  position: relative;
+  height: 220px;
+  margin-top: .5rem;
+
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  &.tall {
+    height: 280px;
+  }
+}
+
+.wide-panel {
+  margin-top: .75rem;
+}
+
+.report-copy {
+  margin: 0;
+  color: var(--muted, #718096);
+  font-size: .88rem;
+  line-height: 1.65;
+  padding: 1rem;
+}
+
+.behaviour-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .65rem;
+  padding: 1rem;
+}
+
+.behaviour-card {
+  padding: .9rem 1rem;
+  background: #f6f8fb;
+  border: 1px solid var(--line-strong, #e3e8f0);
+  border-left: 3px solid var(--accent, #4966c8);
+  border-radius: 10px;
+
+  h3 {
+    margin: 0 0 .4rem;
+    color: var(--accent-strong, #3157c7);
+    font-size: .9rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--muted, #718096);
+    font-size: .84rem;
+    line-height: 1.5;
+  }
+}
+
+.prism-content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .75rem;
+  margin-top: .75rem;
+}
+
+.trait-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--muted, #718096);
+  font-size: .86rem;
+  line-height: 1.7;
+
+  li {
+    margin-bottom: .2rem;
+  }
+}
+
+@media (min-width: 576px) {
+  .visual-grid,
+  .behaviour-grid,
+  .prism-content-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chart-canvas {
+    height: 260px;
+
+    &.tall {
+      height: 340px;
+    }
+  }
+}
+
+@media (min-width: 992px) {
+  .chart-canvas {
+    height: 300px;
+
+    &.tall {
+      height: 380px;
+    }
+  }
+}
+
+// ---- PRISM assessment cards ---------------------------------------------
+
+.assessments-list {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  padding: 1rem;
+}
+
+.assessment-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  transition: border-color .2s ease, box-shadow .2s ease;
+
+  &:hover {
+    border-color: #3157c7;
+    box-shadow: 0 2px 8px rgba(49, 87, 199, .1);
+  }
+
+  &.assessment-error {
+    border-color: #dc2626;
+    background: #fef2f2;
+  }
+}
+
+.assessment-header {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: .85rem;
+  margin-bottom: .85rem;
+}
+
+.assessment-info {
+  flex: 1;
+
+  h3 {
+    margin: 0 0 .5rem;
+    color: #1e293b;
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  .badge {
+    padding: .25rem .75rem;
+    font-size: .8rem;
+  }
+}
+
+.assessment-card .assessment-header > .btn {
+  width: 100%;
+  min-height: 44px;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(49, 87, 199, .12);
+}
+
+.assessment-card .assessment-header > .btn:disabled {
+  cursor: not-allowed;
+  opacity: .7;
+  box-shadow: none;
+}
+
+.assessment-card .badge-blue { background: #e8efff; color: #3157c7; }
+.assessment-card .badge-yellow { background: #fff1df; color: #bd6b0c; }
+.assessment-card .badge-green { background: #e4f6ed; color: #16804f; }
+.assessment-card .badge-gray { background: #eef1f5; color: #64748b; }
+
+.assessment-details {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  padding-top: .85rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  color: #64748b;
+  font-size: .85rem;
+
+  i {
+    font-size: 1rem;
+    margin-top: .1rem;
+  }
+}
+
+.payment-notice {
+  padding: .55rem .75rem;
+  color: #a85d00;
+  background: #fff8eb;
+  border: 1px solid #f5d49a;
+  border-radius: 8px;
+
+  small {
+    display: block;
+    margin-top: .15rem;
+    color: #8a6a36;
+    font-size: .75rem;
+  }
+}
+
+@media (min-width: 576px) {
+  .assessments-list {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .assessment-card {
+    padding: 1.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .assessments-list {
+    padding: 1.5rem;
+  }
+
+  .assessment-card {
+    padding: 1.5rem;
+  }
+
+  .assessment-header {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .assessment-card .assessment-header > .btn {
+    width: auto;
+    flex: 0 0 auto;
+    min-width: 150px;
+  }
+
+  .assessment-details {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+}
+
+// ---- Skills panel shell + header ----------------------------------------
+
+.skills-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+
+// ---- Employee skill tiles -------------------------------------------------
+
+.skill-tile {
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+
+  &:hover,
+  &:focus-within {
+    transform: translateY(-2px);
+    box-shadow: 0 .5rem 1.25rem rgba(15, 23, 42, .1) !important;
+  }
+}
+
+.skill-tile-header {
+  background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+  color: #fff;
+}
+
+.skill-tile-title {
+  font-size: .92rem;
+  color: #fff;
+}
+
+.skill-tile-category {
+  opacity: .85;
+  font-size: .78rem;
+  color: #fff;
+}
+
+.skill-tile-level {
+  font-size: .68rem;
+  padding: .32rem .55rem;
+}
+
+.skill-tile-score {
+  font-size: .98rem;
+}
+
+.skill-tile-progress {
+  height: 5px;
+  border-radius: 8px;
+
+  .progress-bar {
+    border-radius: 8px;
+    transition: width .3s ease;
+  }
+}
+
+.skill-tile-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+@media (min-width: 768px) {
+  .skill-tile-title { font-size: .95rem; }
+  .skill-tile-score { font-size: 1rem; }
+}
+
+// ---- Admin skills: mobile card list (below lg) ---------------------------
+
+.skills-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.skill-row-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: .9rem;
+  background: #fff;
+}
+
+.skill-row-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.skill-row-card-name {
+  font-size: .95rem;
+  word-break: break-word;
+}
+
+.skill-row-card-category {
+  display: inline-block;
+  margin-top: .5rem;
+  font-size: .78rem;
+}
+
+.skill-row-card-desc {
+  margin: .6rem 0 0;
+  color: #64748b;
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.skill-row-card-actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: .85rem;
+  padding-top: .75rem;
+  border-top: 1px solid #eef1f5;
+
+  .btn {
+    min-height: 40px;
+  }
+}
+
+// ---- Pagination -----------------------------------------------------------
+
+.pagination-bar {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.pagination-page-size {
+  order: 2;
+  justify-content: center;
+}
+
+.pagination-nav {
+  order: 1;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  .pagination {
+    justify-content: center;
+    min-width: max-content;
+    margin: 0 auto;
+  }
+
+  .page-link {
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+@media (min-width: 768px) {
+  .pagination-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pagination-page-size {
+    order: 1;
+    justify-content: flex-start;
+  }
+
+  .pagination-nav {
+    order: 2;
+    width: auto;
+    overflow: visible;
+
+    .pagination {
+      margin: 0;
+    }
+  }
+}
+
+// ---- Skill details modal ---------------------------------------------------
+
+.skill-modal-header {
+  background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+}
+
+.skill-modal-title {
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.skill-modal-subtitle {
+  color: #fff;
+  opacity: .9;
+  font-size: .82rem;
+}
+
+.skill-modal-progress {
+  height: 8px;
+  border-radius: 10px;
+
+  .progress-bar {
+    border-radius: 10px;
+  }
+}
+
+@media (min-width: 768px) {
+  .skill-modal-title {
+    font-size: 1.35rem;
+  }
+}
