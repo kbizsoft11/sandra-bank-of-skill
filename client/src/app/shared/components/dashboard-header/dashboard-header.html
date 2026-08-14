@@ -13,17 +13,16 @@
         <input type="text" placeholder="Search...">
       </div>
 
-      <span class="id-number">{{ getUserId() }}</span>
     </div>
 
     <div class="d-flex align-items-center gap-3 flex-wrap header-right">
-      <a href="#" class="header-link">
+      <!-- <a href="#" class="header-link">
         <i class="bi bi-play-fill"></i>
         <i class="bi bi-box-arrow-up-right small-icon"></i>
         Watch a setup video
-      </a>
+      </a> -->
 
-      <a href="#" class="header-link">
+      <!-- <a href="#" class="header-link">
         <i class="bi bi-chat-dots"></i>
         <i class="bi bi-box-arrow-up-right small-icon"></i>
         Connect with an account manager
@@ -32,7 +31,7 @@
       <a href="#" class="btn-pill">
         <i class="bi bi-eye"></i>
         Averaged ratings
-      </a>
+      </a> -->
 
       <div class="dropdown notifications-dropdown">
         <button type="button" class="header-icon notification-trigger" aria-label="Notifications" (click)="toggleNotificationsMenu($event)">
@@ -90,7 +89,6 @@
         </a>
         <ul class="dropdown-menu dropdown-menu-end" [class.show]="showProfileMenu">
           <li><a class="dropdown-item" [routerLink]="profileLink">Profile</a></li>
-          <li><a class="dropdown-item" href="#">Settings</a></li>
           <li><button class="dropdown-item" type="button" (click)="logout()">Logout</button></li>
         </ul>
       </div>

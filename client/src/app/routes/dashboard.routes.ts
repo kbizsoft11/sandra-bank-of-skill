@@ -9,6 +9,29 @@ export const dashboardRoutes: Routes = [
     loadComponent: () =>
       import('../features/dashboard/dashboard-home/dashboard-home').then((c) => c.DashboardHome),
   },
+  {
+    path: 'support',
+    redirectTo: 'support/create',
+    pathMatch: 'full',
+  },
+  {
+    path: 'support/create',
+    canActivate: [roleGuard],
+    data: { roles: ['admin', 'company', 'employee'] },
+    loadComponent: () => import('../features/support/support-page').then((c) => c.SupportCreatePage),
+  },
+  {
+    path: 'support/history',
+    canActivate: [roleGuard],
+    data: { roles: ['admin', 'company', 'employee'] },
+    loadComponent: () => import('../features/support/support-history-page').then((c) => c.SupportHistoryPage),
+  },
+  {
+    path: 'support/review',
+    canActivate: [roleGuard],
+    data: { roles: ['admin', 'company'] },
+    loadComponent: () => import('../features/support/support-review-page').then((c) => c.SupportReviewPage),
+  },
 
   {
     path: 'prism-report/:employeeId',

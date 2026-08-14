@@ -24,6 +24,7 @@ import scalableNotificationRoutes from './scalable-notification.routes';
 import documentRouter from './document.route';
 import assessmentsRouter from './assessments.route';
 import activityRouter from './activity.route';
+import supportTicketRoutes from './support-ticket.route';
 import { getAdminPrismReports } from '../controllers/assessments.controller';
 
 const router = Router();
@@ -48,6 +49,7 @@ router.use('/documents', authenticate, documentRouter);
 router.get('/assessments/admin/reports', authenticate, allowRoles('admin'), getAdminPrismReports);
 router.use('/assessments', assessmentsRouter);
 router.use('/dashboard', authenticate, dashboardRoutes);
+router.use('/support-tickets', authenticate, supportTicketRoutes);
 router.use('/admin/global-search', authenticate, adminGlobalSearchRoutes);
 router.use('/analytics', authenticate, analyticsRoutes);
 router.use('/skill-categories', authenticate, skillCategoryRoutes);

@@ -121,27 +121,6 @@
         }
       </article>
 
-      <article class="panel">
-        <div class="panel-heading"><h2>Pending actions</h2><span>Action required</span></div>
-        @if (employeeStats()?.pendingActions?.length) {
-          <div class="action-list">
-            @for (action of employeeStats()?.pendingActions; track action.title) {
-              <div class="action-item">
-                <div class="action-body">
-                  <div class="action-title">{{ action.title }}</div>
-                  <div class="action-description">{{ action.description }}</div>
-                </div>
-                <div class="action-meta">
-                  <span class="action-status" [class]="getActionStatusClass(action.status)">{{ action.status }}</span>
-                  <a [routerLink]="['/' + getRolePrefix(), 'profile']" class="btn btn-sm btn-outline-primary">{{ action.actionLabel }}</a>
-                </div>
-              </div>
-            }
-          </div>
-        } @else {
-          <p class="empty-state">No pending actions.</p>
-        }
-      </article>
 
       <article class="panel">
         <div class="panel-heading"><h2>Recent activity</h2><a [routerLink]="['/' + getRolePrefix(), 'my-notifications']" class="text-button">View all</a></div>

@@ -1,0 +1,139 @@
+<div class="support-page">
+  <header class="dashboard-heading">
+    <div>
+      <p class="eyebrow">Support</p>
+      <h1>Support</h1>
+      <p class="subtitle">Submit a ticket and track recent support requests for your account.</p>
+    </div>
+    <div class="heading-actions">
+      <a [routerLink]="['/' + rolePrefix, 'support', 'history']" class="btn btn-outline-secondary">Ticket history</a>
+      @if (rolePrefix === 'company' || rolePrefix === 'admin') {
+        <a [routerLink]="['/' + rolePrefix, 'support', 'review']" class="btn btn-outline-secondary">Review tickets</a>
+      }
+    </div>
+  </header>
+
+  <div class="support-content">
+    <section class="panel support-form-panel">
+      <div class="panel-heading">
+        <div>
+          <h2>Submit a support ticket</h2>
+          <p>Our team will review your request and respond as soon as possible.</p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="supportSubject" class="form-label">Subject</label>
+        <input
+          id="supportSubject"
+          type="text"
+          class="form-control"
+          [ngModel]="supportSubject()"
+          (ngModelChange)="supportSubject.set($event)"
+          placeholder="Short summary of your issue"
+        />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="supportCategory" class="form-label">Category</label>
+          <select
+            id="supportCategory"
+            class="form-select"
+            [ngModel]="supportCategory()"
+            (ngModelChange)="supportCategory.set($event)"
+          >
+            <option>General</option>
+            <option>Account</option>
+            <option>Technical</option>
+            <option>Billing</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="supportPriority" class="form-label">Priority</label>
+          <select
+            id="supportPriority"
+            class="form-select"
+            [ngModel]="supportPriority()"
+            (ngModelChange)="supportPriority.set($event)"
+          >
+            <option value="low">Low</option>
+            <option value="normal">Normal</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="supportDescription" class="form-label">Description</label>
+        <textarea
+          id="supportDescription"
+          class="form-control"
+          rows="5"
+          [ngModel]="supportDescription()"
+          (ngModelChange)="supportDescription.set($event)"
+          placeholder="Describe the issue and what you need help with."
+        ></textarea>
+      </div>
+
+      @if (supportMessage()) {
+        <div class="alert alert-success">{{ supportMessage() }}</div>
+      }
+      @if (supportError()) {
+        <div class="alert alert-danger">{{ supportError() }}</div>
+      }
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="submitSupportTicket()"
+        [disabled]="supportSubmitting()"
+      >
+        @if (supportSubmitting()) {
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        }
+        Submit Ticket
+      </button>
+    </section>
+
+    <section class="panel support-list-panel">
+      <div class="panel-heading">
+        <div>
+          <h2>Recent support tickets</h2>
+          <p>Review support tickets created from this account.</p>
+        </div>
+      </div>
+
+      @if (ticketsLoading()) {
+        <div class="loading-state">
+          <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+        </div>
+      } @else if (ticketsError()) {
+        <div class="alert alert-danger">{{ ticketsError() }}</div>
+      } @else {
+        @if (hasTickets()) {
+          <div class="ticket-list">
+            @for (ticket of tickets(); track ticket._id) {
+              <article class="ticket-card">
+                <div class="ticket-card-header">
+                  <strong>{{ ticket.subject }}</strong>
+                  <span [class]="'status-badge status-' + ticket.status">{{ ticket.status }}</span>
+                </div>
+                <div class="ticket-card-meta">
+                  <span>{{ ticket.category }}</span>
+                  <span>{{ ticket.priority | titlecase }}</span>
+                  <span>{{ formatDate(ticket.createdAt) }}</span>
+                </div>
+                <p>{{ ticket.description }}</p>
+              </article>
+            }
+          </div>
+        } @else {
+          <p class="empty-state">No support tickets have been created yet.</p>
+        }
+      }
+    </section>
+  </div>
+</div>
