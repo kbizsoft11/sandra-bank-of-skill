@@ -1,0 +1,90 @@
+<div class="support-history-page">
+  <header class="dashboard-heading">
+    <div>
+      <p class="eyebrow">Support history</p>
+      <h1>Ticket history</h1>
+      <p class="subtitle">Review all support tickets submitted through your account.</p>
+    </div>
+  </header>
+
+  <section class="panel full-panel history-panel">
+    <div class="panel-heading">
+      <div>
+        <h2>Support ticket history</h2>
+        <p>Search, filter, and review support tickets by status and keyword.</p>
+      </div>
+      <span class="panel-count">{{ filteredTickets().length }} results</span>
+    </div>
+
+    <div class="filters-bar">
+      <div class="search-shell">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Search tickets by subject, description, or requester"
+          [value]="searchTerm()"
+          (input)="searchTerm.set($any($event.target).value)"
+        />
+      </div>
+
+      <select
+        class="form-select status-select"
+        [value]="statusFilter()"
+        (change)="setStatusFilter($any($event.target).value)"
+      >
+        <option value="all">All statuses</option>
+        <option value="open">Open</option>
+        <option value="pending">Pending</option>
+        <option value="resolved">Resolved</option>
+        <option value="closed">Closed</option>
+      </select>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+      </div>
+    } @else if (error()) {
+      <div class="alert alert-danger">{{ error() }}</div>
+    } @else {
+      @if (filteredTickets().length > 0) {
+        <div class="table-responsive">
+          <table class="table ticket-table">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Submitted by</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (ticket of filteredTickets(); track ticket._id) {
+                <tr>
+                  <td data-label="Subject">{{ ticket.subject }}</td>
+                  <td data-label="Category">{{ ticket.category }}</td>
+                  <td data-label="Priority">{{ ticket.priority | titlecase }}</td>
+                  <td data-label="Status">
+                    <span [class]="getStatusBadgeClass(ticket.status)">{{ ticket.status }}</span>
+                  </td>
+                  <td data-label="Submitted by">
+                    <div class="submitter-cell">
+                      <span>{{ ticket.createdByName || 'You' }}</span>
+                      <small>{{ ticket.createdByRole || 'employee' }}</small>
+                    </div>
+                  </td>
+                  <td data-label="Created">{{ formatDate(ticket.createdAt) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="empty-state">There are no support tickets matching your current search or filters.</p>
+      }
+    }
+  </section>
+</div>

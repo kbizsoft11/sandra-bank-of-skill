@@ -10,8 +10,6 @@ coverage/
 *.md
 
 # Environment
-.env
-.env.*
 
 # Logs
 logs/
@@ -21,7 +19,6 @@ yarn-error.log*
 pnpm-debug.log*
 
 # IDE
-.vscode/
 .idea/
 
 # OS
@@ -47,3 +44,4 @@ server/src.zip/
 maintenance.html
 
 bank-your-skill
+config.bat
