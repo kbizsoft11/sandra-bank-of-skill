@@ -175,6 +175,32 @@ export class DashboardSidebar implements OnInit, OnDestroy {
       roles: ['admin', 'company', 'employee'],
     },
     {
+      label: 'Support',
+      icon: 'bi bi-life-preserver',
+      roles: ['admin', 'company', 'employee'],
+      isDropdown: true,
+      children: [
+        {
+          label: 'Raise ticket',
+          path: 'support/create',
+          icon: 'bi bi-pencil-square',
+          roles: ['admin', 'company', 'employee'],
+        },
+        {
+          label: 'Ticket history',
+          path: 'support/history',
+          icon: 'bi bi-clock-history',
+          roles: ['admin', 'company', 'employee'],
+        },
+        {
+          label: 'Review tickets',
+          path: 'support/review',
+          icon: 'bi bi-journal-text',
+          roles: ['company'],
+        },
+      ],
+    },
+    {
       label: 'Admin Dashboard',
       path: 'dashboard',
       icon: 'bi bi-speedometer2',

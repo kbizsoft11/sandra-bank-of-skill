@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { take } from 'rxjs';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
@@ -26,7 +27,7 @@ type CompanyDashboardTab = 'summary' | 'skills' | 'trends' | 'assessments' | 'ab
 @Component({
   selector: 'app-company-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './company-dashboard.html',
   styleUrl: './company-dashboard.scss',
 })
@@ -65,6 +66,7 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
   readonly assessmentsPage = signal(1);
   readonly assessmentsPerPage = signal(10);
   readonly questStatusConfig = QUEST_STATUS_CONFIG;
+
 
   get companyName(): string {
     return this.authService.user()?.fullName || 'Company dashboard';
@@ -180,6 +182,7 @@ export class CompanyDashboard implements OnInit, AfterViewInit, OnDestroy {
       this.loadAssessments(page, this.assessmentsPerPage());
     }
   }
+
 
   get initials(): string {
     return this.getInitials(this.companyName);

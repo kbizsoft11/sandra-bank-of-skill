@@ -108,24 +108,6 @@
           }
         </article>
 
-        <article class="panel">
-          <div class="panel-heading"><h2>Recent activities</h2><button type="button" class="text-button" [routerLink]="['/employee-activity']">View all</button></div>
-          @if (stats()?.recentActivities?.length) {
-            <div class="activity-list">
-              @for (activity of stats()?.recentActivities; track activity._id || $index) {
-                <div class="activity-item">
-                  <div class="activity-main">
-                    <strong>{{ activity.employeeName || 'Employee' }}</strong>
-                    <span>{{ activity.activity || 'Updated records' }}</span>
-                  </div>
-                  <small>{{ formatDateTime(activity.timestamp) }}</small>
-                </div>
-              }
-            </div>
-          } @else {
-            <p class="empty-state">No recent employee activity is available yet.</p>
-          }
-        </article>
       </section>
     }
 
@@ -367,6 +349,5 @@
         }
       </section>
     }
-
   }
 </div>

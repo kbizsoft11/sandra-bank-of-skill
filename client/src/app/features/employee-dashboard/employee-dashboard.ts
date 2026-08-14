@@ -70,6 +70,7 @@ export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
   readonly documentDescription = signal('');
   readonly selectedDocumentType = signal('resume');
 
+
   readonly unreadNotificationsCount = computed(() =>
     this.employeeNotifications().filter((notification) => !notification.isRead).length,
   );
@@ -322,6 +323,7 @@ export class EmployeeDashboard implements OnInit, AfterViewInit, OnDestroy {
         },
       });
   }
+
 
   markNotificationAsRead(notification: EmployeeNotification): void {
     if (!notification._id || notification.isRead) return;

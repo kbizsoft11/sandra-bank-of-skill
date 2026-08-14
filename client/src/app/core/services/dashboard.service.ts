@@ -388,4 +388,28 @@ export class DashboardService {
       { params: { page: page.toString(), limit: limit.toString() } }
     );
   }
+
+  /**
+   * Get support tickets for the current user/company
+   */
+  getSupportTickets(page = 1, limit = 10): Observable<ApiResponse<{ tickets: any[]; pagination: any }>> {
+    return this.http.get<ApiResponse<{ tickets: any[]; pagination: any }>>(
+      `${API_CONFIG.BASE_URL}/support-tickets`,
+      { params: { page: page.toString(), limit: limit.toString() } }
+    );
+  }
+
+  /**
+   * Create a new support ticket
+   */
+  createSupportTicket(payload: { subject: string; description: string; category?: string; priority?: 'low' | 'normal' | 'high' }): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${API_CONFIG.BASE_URL}/support-tickets`, payload);
+  }
+
+  /**
+   * Update support ticket status (admin/company only)
+   */
+  updateSupportTicketStatus(ticketId: string, status: 'open' | 'pending' | 'resolved' | 'closed', note?: string): Observable<ApiResponse<any>> {
+    return this.http.patch<ApiResponse<any>>(`${API_CONFIG.BASE_URL}/support-tickets/${ticketId}/status`, { status, note });
+  }
 }
